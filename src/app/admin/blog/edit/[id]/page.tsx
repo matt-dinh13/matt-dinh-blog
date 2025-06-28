@@ -6,7 +6,6 @@ import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { createClient } from '@/lib/supabase'
-import { useAuth } from '@/components/AuthProvider'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
