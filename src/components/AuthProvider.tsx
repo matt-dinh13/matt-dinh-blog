@@ -16,14 +16,36 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [supabase, setSupabase] = useState<any>(null)
 
   useEffect(() => {
+    // Only create Supabase client if we're in the browser and environment variables are available
+    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      try {
+        const client = createClient()
+        setSupabase(client)
+      } catch (error) {
+        console.warn('Failed to create Supabase client:', error)
+        setLoading(false)
+      }
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!supabase) return
+
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setUser(session?.user ?? null)
+        setLoading(false)
+      } catch (error) {
+        console.warn('Failed to get session:', error)
+        setLoading(false)
+      }
     }
 
     getSession()
@@ -37,9 +59,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
   const signIn = async (email: string, password: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not available')
+    }
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -48,6 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (!supabase) {
+      throw new Error('Supabase client not available')
+    }
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   }

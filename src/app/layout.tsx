@@ -4,6 +4,9 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 
+// Force dynamic rendering to prevent static generation issues with Supabase
+export const dynamic = 'force-dynamic'
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
