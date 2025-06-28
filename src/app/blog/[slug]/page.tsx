@@ -42,13 +42,14 @@ const mockPosts = {
 }
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = mockPosts[params.slug as keyof typeof mockPosts]
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params
+  const post = mockPosts[slug as keyof typeof mockPosts]
 
   if (!post) {
     notFound()

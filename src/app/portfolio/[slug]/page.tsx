@@ -30,8 +30,9 @@ const mockProjects = [
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
-export default function PortfolioDetailPage({ params }: { params: { slug: string } }) {
-  const project = mockProjects.find(p => p.slug === params.slug)
+export default async function PortfolioDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const project = mockProjects.find(p => p.slug === slug)
   if (!project) return notFound()
 
   return (
