@@ -4,6 +4,9 @@ import Footer from '@/components/Footer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminBlogEditForm from './AdminBlogEditForm'
 
+// Force dynamic rendering to prevent static generation issues with Supabase
+export const dynamic = 'force-dynamic'
+
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default async function AdminBlogEditPage({ 

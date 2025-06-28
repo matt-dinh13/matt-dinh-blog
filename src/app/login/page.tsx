@@ -6,6 +6,9 @@ import { useAuth } from '@/components/AuthProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 
+// Force dynamic rendering to prevent static generation issues with Supabase
+export const dynamic = 'force-dynamic'
+
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default function LoginPage() {

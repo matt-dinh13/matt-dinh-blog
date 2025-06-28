@@ -1,6 +1,9 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 
+// Force dynamic rendering to prevent static generation issues with Supabase
+export const dynamic = 'force-dynamic'
+
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default async function AdminPortfolioEditPage({ params }: { params: Promise<{ id: string }> }) {

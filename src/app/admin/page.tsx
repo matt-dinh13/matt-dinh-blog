@@ -4,6 +4,9 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminContent from '@/components/AdminContent'
 import { Metadata } from 'next'
 
+// Force dynamic rendering to prevent static generation issues with Supabase
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Admin Panel | Matt Dinh',
   description: 'Admin panel for managing blog posts and portfolio projects.',

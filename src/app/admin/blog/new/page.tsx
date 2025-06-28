@@ -8,6 +8,9 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 
+// Force dynamic rendering to prevent static generation issues with Supabase
+export const dynamic = 'force-dynamic'
+
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default function AdminBlogNewPage() {
