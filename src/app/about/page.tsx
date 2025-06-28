@@ -17,12 +17,12 @@ export default function AboutPage() {
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h1 className="text-3xl font-bold mb-6 text-center" style={cardTextColor}>About Me</h1>
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-2" style={cardTextColor}>👋 Hi, I'm Matt Dinh</h2>
+            <h2 className="text-xl font-semibold mb-2" style={cardTextColor}>👋 Hi, I&apos;m Matt Dinh</h2>
             <p className="mb-4 text-base" style={cardTextColor}>
-              I'm a passionate software engineer and business analyst with over 5 years of experience in building modern web and mobile applications. I love sharing knowledge, writing about my journey, and helping others grow in their careers.
+              I&apos;m a passionate software engineer and business analyst with over 5 years of experience in building modern web and mobile applications. I love sharing knowledge, writing about my journey, and helping others grow in their careers.
             </p>
             <p className="mb-4 text-base" style={cardTextColor}>
-              When I'm not coding or analyzing business requirements, you can find me exploring new technologies, contributing to open-source projects, or mentoring junior developers. I believe in continuous learning and staying up-to-date with the latest industry trends.
+              When I&apos;m not coding or analyzing business requirements, you can find me exploring new technologies, contributing to open-source projects, or mentoring junior developers. I believe in continuous learning and staying up-to-date with the latest industry trends.
             </p>
           </section>
           <section className="mb-8">

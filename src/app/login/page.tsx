@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Metadata } from 'next'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -25,7 +24,8 @@ export default function LoginPage() {
     try {
       await signIn(email, password)
       router.push('/admin')
-    } catch (error) {
+    } catch (err) {
+      console.error('Login error:', err)
       setError('Invalid email or password')
     } finally {
       setLoading(false)

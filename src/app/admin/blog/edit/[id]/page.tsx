@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
@@ -27,14 +27,9 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const { user } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    fetchPost()
-  }, [params.id])
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const supabase = createClient()
       const { data, error } = await supabase
@@ -56,7 +51,11 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    fetchPost()
+  }, [fetchPost])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

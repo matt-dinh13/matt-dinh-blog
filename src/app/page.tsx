@@ -67,7 +67,6 @@ const mockPosts = [
 ]
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
-const articleTitleHoverColor = { color: '#2563eb' }; // Tailwind blue-600
 
 export default function Home() {
   const { language } = useLanguage();
