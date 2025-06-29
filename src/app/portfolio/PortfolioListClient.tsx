@@ -7,6 +7,7 @@ import { Calendar, ExternalLink, Github } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import Image from 'next/image'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
@@ -154,10 +155,11 @@ export default function PortfolioListClient() {
                 >
                   {/* Project Image */}
                   <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
-                    <img
+                    <Image
                       src={project.thumbnail_url || "/covers/cover-home.jpg"}
                       alt={translation.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-20"></div>
                   </div>

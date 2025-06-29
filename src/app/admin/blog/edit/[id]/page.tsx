@@ -9,11 +9,11 @@ export const dynamic = 'force-dynamic'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
-export default async function AdminBlogEditPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
-}) {
+interface EditBlogPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function EditBlogPage({ params }: EditBlogPageProps) {
   const { id } = await params
 
   return (

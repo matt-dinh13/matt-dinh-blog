@@ -9,7 +9,7 @@ export default function LanguageSwitcher() {
     <select
       value={language}
       onChange={e => setLanguage(e.target.value as 'vi' | 'en')}
-      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-auto"
+      className="bg-white text-gray-900 px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-auto"
       aria-label="Select language"
     >
       <option value="vi">🇻🇳 Tiếng Việt</option>

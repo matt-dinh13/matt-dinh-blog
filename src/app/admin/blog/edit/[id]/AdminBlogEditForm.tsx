@@ -28,6 +28,8 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const [categoryId, setCategoryId] = useState('')
+  const [categories, setCategories] = useState<any[]>([])
 
   const fetchPost = useCallback(async () => {
     try {
@@ -45,6 +47,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       setSummary(data.summary || '')
       setContent(data.content)
       setStatus(data.status)
+      setCategoryId(data.category_id ? String(data.category_id) : '')
     } catch (err) {
       setError('Error loading blog post')
       console.error('Error:', err)
@@ -56,6 +59,19 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   useEffect(() => {
     fetchPost()
   }, [fetchPost])
+
+  // Fetch categories
+  useEffect(() => {
+    async function fetchCategories() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('categories')
+        .select('id, slug, category_translations(name, language_code)')
+        .order('id', { ascending: true })
+      setCategories(data || [])
+    }
+    fetchCategories()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,7 +88,8 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
           summary,
           content,
           status,
-          published_at: status === 'published' ? new Date().toISOString() : null
+          published_at: status === 'published' ? new Date().toISOString() : null,
+          category_id: categoryId || null
         })
         .eq('id', id)
 
@@ -186,6 +203,26 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium mb-1" style={cardTextColor}>
+              Category
+            </label>
+            <select
+              id="category"
+              value={categoryId}
+              onChange={e => setCategoryId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select a category</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.category_translations.find((t: any) => t.language_code === 'en')?.name || cat.slug}
+                </option>
+              ))}
             </select>
           </div>
 

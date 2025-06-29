@@ -4,6 +4,8 @@ import { Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import AdminPostMetaClient from './AdminPostMetaClient'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
@@ -78,6 +80,45 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       }
     `;
 
+    // Fetch tags for this post
+    const { data: tagLinks, error: tagLinksError } = await supabase
+      .from('blog_post_tags')
+      .select('tag_id')
+      .eq('blog_post_id', post.id)
+
+    let tags: { slug: string, name: string }[] = []
+    if (!tagLinksError && tagLinks && tagLinks.length > 0) {
+      const tagIds = tagLinks.map((t: any) => t.tag_id)
+      // Fetch tag slugs and names (English for now)
+      const { data: tagData, error: tagDataError } = await supabase
+        .from('tags')
+        .select('id, slug, tag_translations(name)')
+        .in('id', tagIds)
+
+      if (!tagDataError && tagData) {
+        tags = tagData.map((tag: any) => ({
+          slug: tag.slug,
+          name: tag.tag_translations?.[0]?.name || tag.slug
+        }))
+      }
+    }
+
+    // Fetch category for this post (with translation)
+    let category = null
+    if (post.category_id) {
+      const { data: catData, error: catError } = await supabase
+        .from('categories')
+        .select('slug, category_translations(name)')
+        .eq('id', post.category_id)
+        .single()
+      if (!catError && catData) {
+        category = {
+          slug: catData.slug,
+          name: catData.category_translations?.[0]?.name || catData.slug
+        }
+      }
+    }
+
     console.log('✅ Blog Post: Successfully fetched post and translation')
 
     return (
@@ -85,11 +126,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <Navigation />
         
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
+          <Breadcrumbs items={[
+            { label: 'Home', href: '/' },
+            { label: 'Blog', href: '/blog' },
+            { label: translation.title }
+          ]} />
           {/* Back Button */}
           <Link 
             href="/blog"
-            className="inline-flex items-center space-x-2 mb-8 transition-colors duration-200"
-            style={cardTextColor}
+            className="inline-flex items-center space-x-2 mb-8 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
           >
             <ArrowLeft size={16} />
             <span>Back to Blog</span>
@@ -101,12 +146,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               {/* Article Header */}
               <header className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    Blog Post
-                  </span>
-                  <div className="text-xs text-gray-500">
-                    ID: {post.id} | Status: {post.status}
-                  </div>
+                  {category ? (
+                    <Link
+                      href={`/blog/category/${category.slug}`}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800 transition-colors duration-200 mr-2"
+                    >
+                      {category.name}
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      Blog Post
+                    </span>
+                  )}
+                  <AdminPostMetaClient id={post.id} status={post.status} />
                 </div>
                 
                 <h1 className="text-3xl font-bold mb-4" style={cardTextColor}>
@@ -134,6 +186,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 style={cardTextColor}
                 dangerouslySetInnerHTML={{ __html: translation.content }}
               />
+              {/* Hashtag Section */}
+              {tags.length > 0 && (
+                <div className="mt-8 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Link
+                      key={tag.slug}
+                      href={`/blog/tag/${tag.slug}`}
+                      className="inline-block px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-full text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-800 hover:text-blue-900 dark:hover:text-white transition-colors duration-200"
+                    >
+                      #{tag.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </article>
         </main>

@@ -3,6 +3,7 @@
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import Image from 'next/image'
 import { Mail, Linkedin, Github, Calendar, Briefcase } from 'lucide-react'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
@@ -87,9 +88,11 @@ export default function AboutClient() {
             {currentContent.subtitle}
           </p>
           <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-            <img
+            <Image
               src="/logo-square.jpg"
               alt="Matt Dinh"
+              width={128}
+              height={128}
               className="w-full h-full object-cover"
             />
           </div>

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
-import LanguageSwitcher from './LanguageSwitcher'
 
 const navTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -62,7 +61,6 @@ export default function Navigation() {
                 {item.name}
               </Link>
             ))}
-            <LanguageSwitcher />
           </div>
 
           {/* Mobile menu button */}
@@ -91,13 +89,6 @@ export default function Navigation() {
                   {item.name}
                 </Link>
               ))}
-              {/* Language Switcher in Mobile Menu */}
-              <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700 mt-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {language === 'vi' ? 'Ngôn ngữ' : 'Language'}
-                </label>
-                <LanguageSwitcher />
-              </div>
             </div>
           </div>
         )}

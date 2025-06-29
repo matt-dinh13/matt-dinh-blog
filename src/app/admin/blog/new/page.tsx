@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
@@ -22,6 +22,21 @@ export default function AdminBlogNewPage() {
   const [error, setError] = useState('')
   const { user } = useAuth()
   const router = useRouter()
+  const [categoryId, setCategoryId] = useState('')
+  const [categories, setCategories] = useState<any[]>([])
+
+  // Fetch categories
+  useEffect(() => {
+    async function fetchCategories() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('categories')
+        .select('id, slug, category_translations(name, language_code)')
+        .order('id', { ascending: true })
+      setCategories(data || [])
+    }
+    fetchCategories()
+  }, [])
 
   const generateSlug = (title: string) => {
     return title
@@ -50,7 +65,8 @@ export default function AdminBlogNewPage() {
           content,
           status,
           author_id: user?.id,
-          published_at: status === 'published' ? new Date().toISOString() : null
+          published_at: status === 'published' ? new Date().toISOString() : null,
+          category_id: categoryId || null
         })
 
       if (error) throw error
@@ -143,6 +159,26 @@ export default function AdminBlogNewPage() {
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium mb-1" style={cardTextColor}>
+                  Category
+                </label>
+                <select
+                  id="category"
+                  value={categoryId}
+                  onChange={e => setCategoryId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.category_translations.find((t: any) => t.language_code === 'en')?.name || cat.slug}
+                    </option>
+                  ))}
                 </select>
               </div>
 

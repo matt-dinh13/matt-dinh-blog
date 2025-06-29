@@ -18,6 +18,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
   const postsPerPage = 6
+  const [categories, setCategories] = useState<any[]>([])
 
   console.log('🏠 Homepage: Component loaded - postsPerPage:', postsPerPage, 'language:', language)
 
@@ -85,13 +86,17 @@ export default function Home() {
           translations: translationsData?.filter(t => t.blog_post_id === post.id) || []
         }))
 
-        console.log('✅ Homepage: Successfully combined posts with translations:', postsWithTranslations.length, 'posts')
-        console.log('🔍 Homepage: Posts with translations details:', postsWithTranslations.map(p => ({ 
-          id: p.id, 
-          slug: p.slug, 
-          translationCount: p.translations.length,
-          translations: p.translations.map((t: any) => t.language_code)
-        })))
+        // Fetch categories for these posts
+        const categoryIds = Array.from(new Set(postsData.map((p: any) => p.category_id).filter(Boolean)))
+        let categoriesData: any[] = []
+        if (categoryIds.length > 0) {
+          const { data: cats } = await supabase
+            .from('categories')
+            .select('id, slug, category_translations(name, language_code)')
+            .in('id', categoryIds)
+          categoriesData = cats || []
+        }
+        setCategories(categoriesData)
         setPosts(postsWithTranslations)
         
       } catch (err: any) {
@@ -285,6 +290,11 @@ export default function Home() {
                   const thumbnailUrl = getThumbnailUrl(post)
                   const isPlaceholder = !post.thumbnail_url
 
+                  // Category badge
+                  const category = categories.find((cat: any) => cat.id === post.category_id)
+                  const categoryName = category ? (category.category_translations.find((t: any) => t.language_code === language)?.name || category.slug) : (language === 'vi' ? 'Bài viết' : 'Post')
+                  const categorySlug = category ? category.slug : null
+
                   return (
                     <article key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col" style={cardTextColor}>
                       {/* Thumbnail - now clickable */}
@@ -316,13 +326,22 @@ export default function Home() {
                       <div className="p-6 flex flex-col flex-1">
                         {/* Category Badge */}
                         <div className="flex items-center justify-between mb-3">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            {language === 'vi' ? 'Bài viết' : 'Post'}
-                          </span>
+                          {categorySlug ? (
+                            <Link
+                              href={`/blog/category/${categorySlug}`}
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800 transition-colors duration-200"
+                            >
+                              {categoryName}
+                            </Link>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {categoryName}
+                            </span>
+                          )}
                         </div>
                         
                         {/* Title (block link) */}
-                        <h3 className="text-lg font-bold mb-3 line-clamp-2" style={cardTextColor}>
+                        <h3 className="text-lg font-bold mb-3 line-clamp-2 min-h-[3em]" style={cardTextColor}>
                           <Link
                             href={`/blog/${post.slug}`}
                             style={cardTextColor}
@@ -338,7 +357,7 @@ export default function Home() {
                         </h3>
                         
                         {/* Excerpt */}
-                        <p className="mb-4 line-clamp-3 text-sm" style={cardTextColor}>
+                        <p className="mb-4 line-clamp-3 min-h-[4.5em] text-sm" style={cardTextColor}>
                           {translation.summary}
                         </p>
                         
