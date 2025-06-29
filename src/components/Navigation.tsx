@@ -4,17 +4,31 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
+import { useLanguage } from './LanguageProvider'
 
 const navTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { language } = useLanguage()
 
   const menuItems = [
-    { name: 'Blog', href: '/blog' },
-    { name: 'Portfolio', href: '/portfolio' },
-    { name: 'About', href: '/about' },
-    { name: 'Admin', href: '/admin' },
+    { 
+      name: language === 'vi' ? 'Blog' : 'Blog', 
+      href: '/blog' 
+    },
+    { 
+      name: language === 'vi' ? 'Portfolio' : 'Portfolio', 
+      href: '/portfolio' 
+    },
+    { 
+      name: language === 'vi' ? 'Giới thiệu' : 'About', 
+      href: '/about' 
+    },
+    { 
+      name: language === 'vi' ? 'Quản trị' : 'Admin', 
+      href: '/admin' 
+    },
   ]
 
   return (

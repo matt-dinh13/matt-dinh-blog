@@ -1,9 +1,12 @@
+'use client'
+
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, Clock, Tag, ArrowRight } from 'lucide-react'
 import { Metadata } from 'next'
+import { useLanguage } from '@/components/LanguageProvider'
 
 export const metadata: Metadata = {
   title: 'Blog | Matt Dinh',
@@ -13,8 +16,10 @@ export const metadata: Metadata = {
 const mockPosts = [
   {
     id: 1,
-    title: "My Journey in Software Development",
-    excerpt: "Reflecting on my path from beginner to professional developer, the challenges I faced, and the lessons learned along the way.",
+    title_vi: "Hành trình của tôi trong phát triển phần mềm",
+    title_en: "My Journey in Software Development",
+    excerpt_vi: "Nhìn lại con đường từ người mới bắt đầu đến lập trình viên chuyên nghiệp, những thách thức tôi đã đối mặt và những bài học đã học được.",
+    excerpt_en: "Reflecting on my path from beginner to professional developer, the challenges I faced, and the lessons learned along the way.",
     category: "Career",
     tags: ["Software Development", "Career Growth", "Learning"],
     publishedAt: "2024-01-15",
@@ -25,8 +30,10 @@ const mockPosts = [
   },
   {
     id: 2,
-    title: "Building Scalable Web Applications",
-    excerpt: "A deep dive into the architecture patterns and best practices I've learned while building production-ready web applications.",
+    title_vi: "Xây dựng ứng dụng web có khả năng mở rộng",
+    title_en: "Building Scalable Web Applications",
+    excerpt_vi: "Tìm hiểu sâu về các mẫu kiến trúc và thực hành tốt nhất tôi đã học được khi xây dựng các ứng dụng web sẵn sàng cho sản xuất.",
+    excerpt_en: "A deep dive into the architecture patterns and best practices I've learned while building production-ready web applications.",
     category: "Technology",
     tags: ["Web Development", "Architecture", "Best Practices"],
     publishedAt: "2024-01-10",
@@ -37,8 +44,10 @@ const mockPosts = [
   },
   {
     id: 3,
-    title: "The Art of Problem Solving in Tech",
-    excerpt: "How I approach complex technical problems and the systematic methods that help me find effective solutions.",
+    title_vi: "Nghệ thuật giải quyết vấn đề trong công nghệ",
+    title_en: "The Art of Problem Solving in Tech",
+    excerpt_vi: "Cách tôi tiếp cận các vấn đề kỹ thuật phức tạp và các phương pháp có hệ thống giúp tôi tìm ra giải pháp hiệu quả.",
+    excerpt_en: "How I approach complex technical problems and the systematic methods that help me find effective solutions.",
     category: "Knowledge",
     tags: ["Problem Solving", "Critical Thinking", "Methodology"],
     publishedAt: "2024-01-05",
@@ -49,8 +58,10 @@ const mockPosts = [
   },
   {
     id: 4,
-    title: "Understanding Business Requirements",
-    excerpt: "A comprehensive guide to gathering, analyzing, and documenting business requirements effectively.",
+    title_vi: "Hiểu về yêu cầu nghiệp vụ",
+    title_en: "Understanding Business Requirements",
+    excerpt_vi: "Hướng dẫn toàn diện về thu thập, phân tích và tài liệu hóa yêu cầu nghiệp vụ một cách hiệu quả.",
+    excerpt_en: "A comprehensive guide to gathering, analyzing, and documenting business requirements effectively.",
     category: "Business Analysis",
     tags: ["Requirements", "Documentation", "Analysis"],
     publishedAt: "2024-01-01",
@@ -64,11 +75,15 @@ const mockPosts = [
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default function BlogListPage() {
+  const { language } = useLanguage()
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
       <Navigation />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
-        <h1 className="text-3xl font-bold mb-10 text-center text-white">Blog</h1>
+        <h1 className="text-3xl font-bold mb-10 text-center text-white">
+          {language === 'vi' ? 'Blog' : 'Blog'}
+        </h1>
         <div className="flex flex-col gap-8">
           {mockPosts.map((post) => (
             <article key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col md:flex-row" style={cardTextColor}>
@@ -76,13 +91,13 @@ export default function BlogListPage() {
               <Link href={`/blog/${post.slug}`} className="relative w-full md:w-48 h-40 bg-gray-100 dark:bg-gray-700 block group flex-shrink-0">
                 <Image
                   src={post.thumbnail}
-                  alt={post.title}
+                  alt={language === 'vi' ? post.title_vi : post.title_en}
                   fill
                   className="object-contain p-6 group-hover:scale-105 transition-transform duration-200"
                   sizes="(max-width: 768px) 100vw, 192px"
                   priority
                 />
-                <span className="sr-only">Go to {post.title}</span>
+                <span className="sr-only">Go to {language === 'vi' ? post.title_vi : post.title_en}</span>
               </Link>
               <div className="p-6 flex flex-col flex-1">
                 {/* Category Badge */}
@@ -91,7 +106,7 @@ export default function BlogListPage() {
                     {post.category}
                   </span>
                   <span className="text-xs" style={cardTextColor}>
-                    {post.views} views
+                    {post.views} {language === 'vi' ? 'lượt xem' : 'views'}
                   </span>
                 </div>
                 {/* Title (block link) */}
@@ -105,13 +120,13 @@ export default function BlogListPage() {
                       className="block transition-colors duration-200 group-hover:text-blue-600"
                       style={cardTextColor}
                     >
-                      {post.title}
+                      {language === 'vi' ? post.title_vi : post.title_en}
                     </span>
                   </Link>
                 </h2>
                 {/* Excerpt */}
                 <p className="mb-3 line-clamp-3 text-sm" style={cardTextColor}>
-                  {post.excerpt}
+                  {language === 'vi' ? post.excerpt_vi : post.excerpt_en}
                 </p>
                 {/* Meta Info */}
                 <div className="flex items-center gap-4 text-xs mb-3" style={cardTextColor}>
@@ -146,7 +161,7 @@ export default function BlogListPage() {
                   className="inline-flex items-center font-medium text-sm transition-colors duration-200 hover:text-blue-600"
                   style={cardTextColor}
                 >
-                  Read more
+                  {language === 'vi' ? 'Đọc tiếp' : 'Read more'}
                   <ArrowRight size={14} className="ml-1" />
                 </Link>
               </div>
