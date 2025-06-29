@@ -40,7 +40,7 @@ export default function PortfolioListClient() {
         }
 
         // Then, get translations for these projects
-        const projectIds = projectsData.map(p => p.id)
+        const projectIds = projectsData.map((p: any) => p.id)
         const { data: translationsData, error: translationsError } = await supabase
           .from('portfolio_project_translations')
           .select('*')
@@ -53,13 +53,13 @@ export default function PortfolioListClient() {
         }
 
         // Combine projects with their translations
-        const projectsWithTranslations = projectsData.map(project => {
-          const translation = translationsData?.find(t => t.portfolio_project_id === project.id)
+        const projectsWithTranslations = projectsData.map((project: any) => {
+          const translation = translationsData?.find((t: any) => t.portfolio_project_id === project.id)
           return {
             ...project,
             translations: translation ? [translation] : []
           }
-        }).filter(project => project.translations.length > 0) // Only show projects with translations
+        }).filter((project: any) => project.translations.length > 0) // Only show projects with translations
 
         setProjects(projectsWithTranslations)
       } catch (err) {
