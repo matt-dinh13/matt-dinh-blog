@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const navTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -56,19 +57,20 @@ export default function Navigation() {
                 key={item.name}
                 href={item.href}
                 style={navTextColor}
-                className="font-medium transition-colors duration-200 hover:text-[var(--color-gray-300)]"
+                className="font-medium transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 {item.name}
               </Link>
             ))}
+            <LanguageSwitcher />
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              style={navTextColor}
-              className="hover:text-[var(--color-gray-300)]"
+              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+              aria-label="Toggle menu"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -77,19 +79,25 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {menuItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  style={navTextColor}
-                  className="block px-3 py-2 font-medium transition-colors duration-200 hover:text-[var(--color-gray-300)]"
+                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 font-medium transition-colors duration-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
+              {/* Language Switcher in Mobile Menu */}
+              <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700 mt-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {language === 'vi' ? 'Ngôn ngữ' : 'Language'}
+                </label>
+                <LanguageSwitcher />
+              </div>
             </div>
           </div>
         )}
