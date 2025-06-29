@@ -64,9 +64,9 @@ export default async function TagPage({ params }: TagPageProps) {
       .in('blog_post_id', postIds)
 
     // Combine posts with their translations
-    posts = (postsData || []).map(post => ({
+    posts = (postsData || []).map((post: any) => ({
       ...post,
-      translations: translationsData?.filter(t => t.blog_post_id === post.id) || []
+      translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
     }))
   }
 

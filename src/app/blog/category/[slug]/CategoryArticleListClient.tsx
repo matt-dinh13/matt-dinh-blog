@@ -51,9 +51,9 @@ export default function CategoryArticleListClient({ categoryId, categorySlug, ca
         .from('blog_post_translations')
         .select('*')
         .in('blog_post_id', postIds)
-      postsWithTranslations = (postsData || []).map(post => ({
+      postsWithTranslations = (postsData || []).map((post: any) => ({
         ...post,
-        translations: translationsData?.filter(t => t.blog_post_id === post.id) || []
+        translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
       }))
     }
     if (pageNum === 1) {

@@ -1,12 +1,10 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Calendar, ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import CategoryArticleListClient from './CategoryArticleListClient'
-import { useLanguage } from '@/components/LanguageProvider'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
@@ -44,13 +42,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   // Get category name (English for now)
   const categoryName = category.category_translations?.[0]?.name || slug
 
-  // Get language from LanguageProvider (client context)
-  // Fallback to 'en' if not available
-  let language = 'en'
-  try {
-    // This will only work in client components, so fallback to 'en'
-    // You can pass language as a prop from the parent if needed
-  } catch {}
+  // Use constant language for now
+  const language = 'en'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>

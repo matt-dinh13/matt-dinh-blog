@@ -54,7 +54,7 @@ export default function Home() {
           return
         }
 
-        console.log('🔍 Homepage: Raw posts data:', postsData.map(p => ({ id: p.id, slug: p.slug, published_at: p.published_at })))
+        console.log('🔍 Homepage: Raw posts data:', postsData.map((p: any) => ({ id: p.id, slug: p.slug, published_at: p.published_at })))
 
         // Check if there are more posts available
         const { count: totalCount } = await supabase
@@ -67,7 +67,7 @@ export default function Home() {
 
         // Fetch translations for these posts
         console.log('🌐 Homepage: Fetching translations...')
-        const postIds = postsData.map(post => post.id)
+        const postIds = postsData.map((post: any) => post.id)
         const { data: translationsData, error: translationsError } = await supabase
           .from('blog_post_translations')
           .select('*')
@@ -81,9 +81,9 @@ export default function Home() {
         }
 
         // Combine posts with their translations
-        const postsWithTranslations = postsData.map(post => ({
+        const postsWithTranslations = postsData.map((post: any) => ({
           ...post,
-          translations: translationsData?.filter(t => t.blog_post_id === post.id) || []
+          translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
         }))
 
         // Fetch categories for these posts
@@ -155,7 +155,7 @@ export default function Home() {
       setHasMore((totalCount || 0) > offset + postsData.length)
 
       // Fetch translations for new posts
-      const postIds = postsData.map(post => post.id)
+      const postIds = postsData.map((post: any) => post.id)
       const { data: translationsData, error: translationsError } = await supabase
         .from('blog_post_translations')
         .select('*')
@@ -167,9 +167,9 @@ export default function Home() {
       }
 
       // Combine new posts with their translations
-      const newPostsWithTranslations = postsData.map(post => ({
+      const newPostsWithTranslations = postsData.map((post: any) => ({
         ...post,
-        translations: translationsData?.filter(t => t.blog_post_id === post.id) || []
+        translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
       }))
 
       // Add new posts to existing posts
