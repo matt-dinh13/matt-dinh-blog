@@ -1,18 +1,14 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import { Calendar, ArrowLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Calendar, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import Image from 'next/image'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
+const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 
-interface TagPageProps {
-  params: Promise<{ slug: string }>
-}
-
-export default async function TagPage({ params }: TagPageProps) {
+export default async function TagPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = createClient()
 
@@ -25,9 +21,9 @@ export default async function TagPage({ params }: TagPageProps) {
 
   if (tagError || !tag) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={CARD_TEXT_COLOR}>
         <Navigation />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={CARD_TEXT_COLOR}>
           <Link href="/blog" className="inline-flex items-center space-x-2 mb-8 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300">
             <ArrowLeft size={16} />
             <span>Back to Blog</span>
@@ -39,44 +35,30 @@ export default async function TagPage({ params }: TagPageProps) {
     )
   }
 
-  // Get all blog post IDs with this tag
-  const { data: postTags } = await supabase
-    .from('blog_post_tags')
-    .select('blog_post_id')
-    .eq('tag_id', tag.id)
-
-  const postIds = postTags?.map((pt: any) => pt.blog_post_id) || []
-
-  // Fetch posts and their translations
-  let posts: any[] = []
-  if (postIds.length > 0) {
-    const { data: postsData } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .in('id', postIds)
-      .eq('status', 'published')
-      .order('published_at', { ascending: false })
-
-    // Fetch translations
-    const { data: translationsData } = await supabase
-      .from('blog_post_translations')
-      .select('*')
-      .in('blog_post_id', postIds)
-
-    // Combine posts with their translations
-    posts = (postsData || []).map((post: any) => ({
-      ...post,
-      translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
-    }))
-  }
+  // Get all blog posts with this tag using a join
+  const { data: postsData } = await supabase
+    .from('blog_posts')
+    .select(`
+      *,
+      blog_post_translations!inner(*),
+      blog_post_tags!inner(tag_id),
+      categories(
+        id, 
+        slug, 
+        category_translations(name, language_code)
+      )
+    `)
+    .eq('status', 'published')
+    .eq('blog_post_tags.tag_id', tag.id)
+    .order('published_at', { ascending: false })
 
   // Get tag name (English for now)
   const tagName = tag.tag_translations?.[0]?.name || slug
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={CARD_TEXT_COLOR}>
       <Navigation />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={CARD_TEXT_COLOR}>
         <Breadcrumbs items={[
           { label: 'Home', href: '/' },
           { label: 'Blog', href: '/blog' },
@@ -88,12 +70,12 @@ export default async function TagPage({ params }: TagPageProps) {
           <span>Back to Blog</span>
         </Link>
         <h1 className="text-3xl font-bold mb-8"># {tagName}</h1>
-        {posts.length === 0 ? (
+        {!postsData || postsData.length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400">No articles found for this tag.</div>
-        ) : (
+        ) :
           <div className="space-y-8">
-            {posts.map((post) => {
-              const translation = post.translations.find((t: any) => t.language_code === 'en') || post.translations[0]
+            {postsData.map((post: any) => {
+              const translation = post.blog_post_translations?.find((t: any) => t.language_code === 'en') || post.blog_post_translations?.[0]
               const thumbnailUrl = post.thumbnail_url || '/cover.jpg'
               return (
                 <article key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -129,6 +111,7 @@ export default async function TagPage({ params }: TagPageProps) {
                       <div className="mt-4">
                         <Link href={`/blog/${post.slug}`} className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200">
                           <span>Read more</span>
+                          <ArrowRight size={14} />
                         </Link>
                       </div>
                     </div>
@@ -137,7 +120,7 @@ export default async function TagPage({ params }: TagPageProps) {
               )
             })}
           </div>
-        )}
+        }
       </main>
       <Footer />
     </div>

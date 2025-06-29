@@ -186,3 +186,8 @@ body {
 .dark .prose pre {
   background-color: var(--border);
 }
+
+/* Force search input text color to black */
+.search-input {
+  color: #000 !important;
+}

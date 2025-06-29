@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
@@ -10,7 +10,9 @@ import Image from 'next/image'
 import { Calendar, ArrowRight, Loader2 } from 'lucide-react'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)' };
+// Move constants outside component to prevent re-renders
+const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
+const POSTS_PER_PAGE = 6
 
 interface Post {
   id: string
@@ -45,122 +47,154 @@ export default function BlogListClient() {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
   const [error, setError] = useState<string | null>(null)
-  const postsPerPage = 6
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        console.log('🔍 Blog: Starting to fetch posts...')
-        console.log('🌍 Blog: Current language:', language)
-        
-        const supabase = createClient()
-        console.log('✅ Blog: Supabase client created successfully')
-        
-        // Fetch published posts
-        console.log('📝 Blog: Fetching published posts...')
-        const { data: postsData, error: postsError } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('status', 'published')
-          .order('published_at', { ascending: false })
-          .limit(postsPerPage)
-
-        console.log('📊 Blog: Posts query result:', { data: postsData, error: postsError, count: postsData?.length || 0 })
-
-        if (postsError) {
-          console.error('❌ Blog: Posts query failed:', postsError)
-          throw new Error(`Posts query failed: ${postsError.message}`)
-        }
-
-        if (!postsData || postsData.length === 0) {
-          console.log('⚠️ Blog: No published posts found')
-          setPosts([])
-          setHasMore(false)
-          setError('No blog posts found. Please add some posts to your database.')
-          return
-        }
-
-        // Check if there are more posts available
-        const { count: totalCount } = await supabase
-          .from('blog_posts')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'published')
-
-        console.log('📊 Blog: Total posts count:', totalCount, 'postsPerPage:', postsPerPage)
-        setHasMore((totalCount || 0) > postsPerPage)
-
-        // Fetch translations for these posts
-        console.log('🌐 Blog: Fetching translations...')
-        const postIds = postsData.map((post: any) => post.id)
-        const { data: translationsData, error: translationsError } = await supabase
-          .from('blog_post_translations')
-          .select('*')
-          .in('blog_post_id', postIds)
-
-        console.log('📊 Blog: Translations query result:', { data: translationsData, error: translationsError, count: translationsData?.length || 0 })
-
-        if (translationsError) {
-          console.error('❌ Blog: Translations query failed:', translationsError)
-          throw new Error(`Translations query failed: ${translationsError.message}`)
-        }
-
-        // Combine posts with their translations
-        const postsWithTranslations = postsData.map((post: any) => ({
-          ...post,
-          translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
-        }))
-
-        // Fetch categories for these posts
-        const categoryIds = Array.from(new Set(postsData.map((p: any) => p.category_id).filter(Boolean)))
-        let categoriesData: Category[] = []
-        if (categoryIds.length > 0) {
-          console.log('🏷️ Blog: Fetching categories for IDs:', categoryIds)
-          const { data: cats } = await supabase
-            .from('categories')
-            .select('id, slug, category_translations(name, language_code)')
-            .in('id', categoryIds)
-          categoriesData = cats || []
-          console.log('📊 Blog: Categories fetched:', categoriesData.length, 'categories')
-        }
-        setCategories(categoriesData)
-
-        console.log('✅ Blog: Successfully combined posts with translations:', postsWithTranslations.length, 'posts')
-        setPosts(postsWithTranslations)
-        
-      } catch (err: any) {
-        console.error('💥 Blog: Error fetching posts:', err)
-        console.error('💥 Blog: Error details:', {
-          message: err.message,
-          stack: err.stack,
-          name: err.name
-        })
-        setError(err.message || 'Failed to load blog posts')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPosts()
+  // Memoize the formatDate function to prevent unnecessary re-renders
+  const formatDate = useCallback((dateString: string) => {
+    return new Date(dateString).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
   }, [language])
 
-  const loadMorePosts = async () => {
+  // Memoize the getThumbnailUrl function
+  const getThumbnailUrl = useCallback((post: Post) => {
+    if (post.thumbnail_url) {
+      return post.thumbnail_url
+    }
+    return '/window.svg'
+  }, [])
+
+  // Memoize the getCategoryName function
+  const getCategoryName = useCallback((categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId)
+    if (!category) {
+      console.log('⚠️ Blog: Category not found for ID:', categoryId, 'Available categories:', categories.map(c => c.id))
+      return null
+    }
+    
+    const translation = category.category_translations?.find(t => t.language_code === language) || 
+                       category.category_translations?.[0]
+    return translation?.name || null
+  }, [categories, language])
+
+  // Optimized fetch function with proper joins
+  const fetchPosts = useCallback(async () => {
+    try {
+      console.log('🔍 Blog: Starting to fetch posts...')
+      console.log('🌍 Blog: Current language:', language)
+      
+      const supabase = createClient()
+      console.log('✅ Blog: Supabase client created successfully')
+      
+      // Single optimized query with joins instead of multiple queries
+      const { data: postsData, error: postsError } = await supabase
+        .from('blog_posts')
+        .select(`
+          *,
+          blog_post_translations!inner(*),
+          categories(
+            id, 
+            slug, 
+            category_translations(name, language_code)
+          )
+        `)
+        .eq('status', 'published')
+        .eq('blog_post_translations.language_code', language)
+        .order('published_at', { ascending: false })
+        .limit(POSTS_PER_PAGE)
+
+      console.log('📊 Blog: Posts query result:', { data: postsData, error: postsError, count: postsData?.length || 0 })
+
+      if (postsError) {
+        console.error('❌ Blog: Posts query failed:', postsError)
+        throw new Error(`Posts query failed: ${postsError.message}`)
+      }
+
+      if (!postsData || postsData.length === 0) {
+        console.log('⚠️ Blog: No published posts found')
+        setPosts([])
+        setHasMore(false)
+        setError('No blog posts found. Please add some posts to your database.')
+        return
+      }
+
+      // Check if there are more posts available (optimized count query)
+      const { count: totalCount } = await supabase
+        .from('blog_posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'published')
+
+      console.log('📊 Blog: Total posts count:', totalCount, 'postsPerPage:', POSTS_PER_PAGE)
+      setHasMore((totalCount || 0) > POSTS_PER_PAGE)
+
+      // Extract categories from the joined data
+      const categoriesData = postsData
+        .map((post: any) => post.categories)
+        .filter(Boolean)
+        .reduce((acc: Category[], category: any) => {
+          if (!acc.find(cat => cat.id === category.id)) {
+            acc.push(category)
+          }
+          return acc
+        }, [])
+
+      setCategories(categoriesData)
+
+      // Transform posts to match expected format
+      const postsWithTranslations = postsData.map((post: any) => ({
+        ...post,
+        translations: post.blog_post_translations || []
+      }))
+
+      console.log('✅ Blog: Successfully combined posts with translations:', postsWithTranslations.length, 'posts')
+      setPosts(postsWithTranslations)
+      
+    } catch (err: any) {
+      console.error('💥 Blog: Error fetching posts:', err)
+      console.error('💥 Blog: Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      })
+      setError(err.message || 'Failed to load blog posts')
+    } finally {
+      setLoading(false)
+    }
+  }, [language])
+
+  useEffect(() => {
+    fetchPosts()
+  }, [fetchPosts])
+
+  // Optimized load more function
+  const loadMorePosts = useCallback(async () => {
     if (loadingMore || !hasMore) return
 
     setLoadingMore(true)
     try {
       const supabase = createClient()
       const nextPage = page + 1
-      const offset = (nextPage - 1) * postsPerPage
+      const offset = (nextPage - 1) * POSTS_PER_PAGE
 
-      // Fetch next batch of posts
+      // Single optimized query for load more
       const { data: postsData, error: postsError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(`
+          *,
+          blog_post_translations!inner(*),
+          categories(
+            id, 
+            slug, 
+            category_translations(name, language_code)
+          )
+        `)
         .eq('status', 'published')
+        .eq('blog_post_translations.language_code', language)
         .order('published_at', { ascending: false })
-        .range(offset, offset + postsPerPage - 1)
+        .range(offset, offset + POSTS_PER_PAGE - 1)
 
-      console.log('🔍 Blog: Load more - offset:', offset, 'range:', offset, 'to', offset + postsPerPage - 1)
+      console.log('🔍 Blog: Load more - offset:', offset, 'range:', offset, 'to', offset + POSTS_PER_PAGE - 1)
       console.log('📊 Blog: Load more - posts fetched:', postsData?.length || 0)
 
       if (postsError) {
@@ -181,39 +215,29 @@ export default function BlogListClient() {
 
       setHasMore((totalCount || 0) > offset + postsData.length)
 
-      // Fetch translations for new posts
-      const postIds = postsData.map((post: any) => post.id)
-      const { data: translationsData, error: translationsError } = await supabase
-        .from('blog_post_translations')
-        .select('*')
-        .in('blog_post_id', postIds)
+      // Extract new categories
+      const newCategories = postsData
+        .map((post: any) => post.categories)
+        .filter(Boolean)
+        .reduce((acc: Category[], category: any) => {
+          if (!acc.find((cat: any) => cat.id === category.id)) {
+            acc.push(category)
+          }
+          return acc
+        }, [])
 
-      if (translationsError) {
-        console.error('❌ Blog: Load more translations query failed:', translationsError)
-        return
-      }
+      // Add new categories to existing ones
+      setCategories((prevCategories: Category[]) => {
+        const existingIds = prevCategories.map((cat: Category) => cat.id)
+        const uniqueNewCategories = newCategories.filter((cat: Category) => !existingIds.includes(cat.id))
+        return [...prevCategories, ...uniqueNewCategories]
+      })
 
-      // Combine new posts with their translations
+      // Transform new posts to match expected format
       const newPostsWithTranslations = postsData.map((post: any) => ({
         ...post,
-        translations: translationsData?.filter((t: any) => t.blog_post_id === post.id) || []
+        translations: post.blog_post_translations || []
       }))
-
-      // Fetch categories for new posts if we don't have them already
-      const newCategoryIds = Array.from(new Set(postsData.map((p: any) => p.category_id).filter(Boolean)))
-      const existingCategoryIds = categories.map((cat: Category) => cat.id)
-      const missingCategoryIds = newCategoryIds.filter((id: any) => !existingCategoryIds.includes(id))
-      
-      if (missingCategoryIds.length > 0) {
-        const { data: newCats } = await supabase
-          .from('categories')
-          .select('id, slug, category_translations(name, language_code)')
-          .in('id', missingCategoryIds)
-        
-        if (newCats && newCats.length > 0) {
-          setCategories(prevCategories => [...prevCategories, ...newCats])
-        }
-      }
 
       // Add new posts to existing posts
       setPosts(prevPosts => [...prevPosts, ...newPostsWithTranslations])
@@ -224,37 +248,136 @@ export default function BlogListClient() {
     } finally {
       setLoadingMore(false)
     }
-  }
+  }, [loadingMore, hasMore, page, language])
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  // Memoize the rendered posts to prevent unnecessary re-renders
+  const renderedPosts = useMemo(() => {
+    if (loading) return null
+
+    return posts.map((post: Post) => {
+      const translation = post.translations?.find((t: any) => t.language_code === language) || post.translations?.[0]
+
+      if (!translation) {
+        console.log('⚠️ Blog: No translation found for post:', post.id, 'language:', language)
+        return null
+      }
+
+      const thumbnailUrl = getThumbnailUrl(post)
+      const isPlaceholder = !post.thumbnail_url
+      const categoryName = post.category_id ? getCategoryName(post.category_id) : null
+
+      return (
+        <article 
+          key={post.id}
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
+          style={CARD_TEXT_COLOR}
+        >
+          <div className="flex flex-col md:flex-row">
+            {/* Thumbnail Section */}
+            <div className="md:w-1/4">
+              <Link href={`/blog/${post.slug}`} className="block relative h-48 md:h-full bg-gray-100 dark:bg-gray-700 overflow-hidden group">
+                {isPlaceholder ? (
+                  // Placeholder thumbnail
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-600">
+                    <Image
+                      src={thumbnailUrl}
+                      alt={translation.title}
+                      width={64}
+                      height={64}
+                      className="object-contain opacity-60 group-hover:scale-110 transition-transform duration-200"
+                    />
+                  </div>
+                ) : (
+                  // Real thumbnail from database
+                  <Image
+                    src={thumbnailUrl}
+                    alt={translation.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-200"
+                    sizes="(max-width: 768px) 100vw, 25vw"
+                  />
+                )}
+              </Link>
+            </div>
+
+            {/* Content Section */}
+            <div className="md:w-3/4 p-6">
+              <header className="mb-4">
+                <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
+                  <Link 
+                    href={`/blog/${post.slug}`}
+                    className="block w-full rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
+                  >
+                    <span
+                      className="block transition-colors duration-200 group-hover:text-blue-600"
+                      style={{ color: 'var(--color-gray-900)', filter: 'unset' }}
+                    >
+                      {translation.title}
+                    </span>
+                  </Link>
+                </h2>
+                
+                <p className="text-base mb-4 leading-relaxed text-gray-600 dark:text-gray-400">
+                  {translation.summary}
+                </p>
+              </header>
+
+              <div className="flex items-center justify-start text-sm mb-4 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <Calendar size={14} />
+                  <span>{formatDate(post.published_at || post.created_at)}</span>
+                </div>
+              </div>
+
+              <div className="mt-auto">
+                <Link 
+                  href={`/blog/${post.slug}`}
+                  className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 font-medium"
+                >
+                  <span>{language === 'vi' ? 'Đọc thêm' : 'Read more'}</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </article>
+      )
     })
-  }
+  }, [posts, language, getThumbnailUrl, getCategoryName, formatDate, categories])
 
-  // Function to get thumbnail URL with fallback
-  const getThumbnailUrl = (post: Post) => {
-    if (post.thumbnail_url) {
-      return post.thumbnail_url
-    }
-    // Fallback to a placeholder image
-    return '/window.svg'
-  }
+  // Memoize the breadcrumb items
+  const breadcrumbItems = useMemo(() => [
+    { label: 'Home', href: '/' }, 
+    { label: language === 'vi' ? 'Blog' : 'Blog' }
+  ], [language])
 
-  // Function to get category name
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId)
-    if (!category) {
-      console.log('⚠️ Blog: Category not found for ID:', categoryId, 'Available categories:', categories.map(c => c.id))
-      return null
-    }
-    
-    const translation = category.category_translations?.find(t => t.language_code === language) || 
-                       category.category_translations?.[0]
-    return translation?.name || null
-  }
+  // Memoize the page title and description
+  const pageContent = useMemo(() => ({
+    title: language === 'vi' ? 'Blog' : 'Blog',
+    description: language === 'vi' 
+      ? 'Những bài viết về công nghệ, lập trình và kinh nghiệm của tôi' 
+      : 'Thoughts on technology, programming, and my experiences'
+  }), [language])
+
+  // Memoize the load more button content
+  const loadMoreButtonContent = useMemo(() => ({
+    loading: language === 'vi' ? 'Đang tải...' : 'Loading...',
+    text: language === 'vi' ? 'Tải thêm bài viết' : 'Load More Posts'
+  }), [language])
+
+  // Memoize the error content
+  const errorContent = useMemo(() => ({
+    title: language === 'vi' ? 'Lỗi tải bài viết' : 'Error Loading Posts',
+    noPosts: language === 'vi' ? 'Chưa có bài viết nào' : 'No posts yet',
+    noPostsDesc: language === 'vi' 
+      ? 'Hãy quay lại sau hoặc thêm một số bài viết vào cơ sở dữ liệu.' 
+      : 'Check back later or add some posts to your database.'
+  }), [language])
+
+  // Memoize the loading content
+  const loadingContent = useMemo(() => ({
+    text: language === 'vi' ? 'Đang tải bài viết...' : 'Loading posts...'
+  }), [language])
 
   const renderContent = () => {
     if (loading) {
@@ -263,7 +386,7 @@ export default function BlogListClient() {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-400">
-              {language === 'vi' ? 'Đang tải bài viết...' : 'Loading posts...'}
+              {loadingContent.text}
             </p>
           </div>
         </div>
@@ -275,7 +398,7 @@ export default function BlogListClient() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
-              {language === 'vi' ? 'Lỗi tải bài viết' : 'Error Loading Posts'}
+              {errorContent.title}
             </h2>
             <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
             <div className="text-sm text-red-600 dark:text-red-400">
@@ -296,13 +419,10 @@ export default function BlogListClient() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {language === 'vi' ? 'Chưa có bài viết nào' : 'No posts yet'}
+              {errorContent.noPosts}
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              {language === 'vi' 
-                ? 'Hãy quay lại sau hoặc thêm một số bài viết vào cơ sở dữ liệu.' 
-                : 'Check back later or add some posts to your database.'
-              }
+              {errorContent.noPostsDesc}
             </p>
           </div>
         </div>
@@ -311,125 +431,18 @@ export default function BlogListClient() {
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: language === 'vi' ? 'Blog' : 'Blog' }]} />
+        <Breadcrumbs items={breadcrumbItems} />
         <div className="mb-8 text-left">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            {language === 'vi' ? 'Blog' : 'Blog'}
+            {pageContent.title}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400">
-            {language === 'vi' 
-              ? 'Những bài viết về công nghệ, lập trình và kinh nghiệm của tôi' 
-              : 'Thoughts on technology, programming, and my experiences'
-            }
+            {pageContent.description}
           </p>
         </div>
 
         <div className="space-y-6">
-          {posts.map((post: Post) => {
-            const translation = post.translations?.find((t: any) => t.language_code === language) || post.translations?.[0]
-
-            if (!translation) {
-              console.log('⚠️ Blog: No translation found for post:', post.id, 'language:', language)
-              return null
-            }
-
-            const thumbnailUrl = getThumbnailUrl(post)
-            const isPlaceholder = !post.thumbnail_url
-            const categoryName = post.category_id ? getCategoryName(post.category_id) : null
-
-            return (
-              <article 
-                key={post.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
-                style={cardTextColor}
-              >
-                <div className="flex flex-col md:flex-row">
-                  {/* Thumbnail Section */}
-                  <div className="md:w-1/4">
-                    <Link href={`/blog/${post.slug}`} className="block relative h-48 md:h-full bg-gray-100 dark:bg-gray-700 overflow-hidden group">
-                      {isPlaceholder ? (
-                        // Placeholder thumbnail
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-600">
-                          <Image
-                            src={thumbnailUrl}
-                            alt={translation.title}
-                            width={64}
-                            height={64}
-                            className="object-contain opacity-60 group-hover:scale-110 transition-transform duration-200"
-                          />
-                        </div>
-                      ) : (
-                        // Real thumbnail from database
-                        <Image
-                          src={thumbnailUrl}
-                          alt={translation.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-200"
-                          sizes="(max-width: 768px) 100vw, 25vw"
-                        />
-                      )}
-                    </Link>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="md:w-3/4 p-6">
-                    <header className="mb-4">
-                      <div className="flex items-center justify-start mb-3">
-                        {categoryName && (
-                          <Link
-                            href={`/blog/category/${categories.find(cat => cat.id === post.category_id)?.slug || 'uncategorized'}`}
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200"
-                          >
-                            {categoryName}
-                          </Link>
-                        )}
-                        {!categoryName && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                            {language === 'vi' ? 'Bài viết' : 'Post'}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <h2 className="text-xl font-bold mb-3" style={cardTextColor}>
-                        <Link 
-                          href={`/blog/${post.slug}`}
-                          className="block w-full rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
-                        >
-                          <span
-                            className="block transition-colors duration-200 group-hover:text-blue-600"
-                            style={cardTextColor}
-                          >
-                            {translation.title}
-                          </span>
-                        </Link>
-                      </h2>
-                      
-                      <p className="text-base mb-4 leading-relaxed" style={cardTextColor}>
-                        {translation.summary}
-                      </p>
-                    </header>
-
-                    <div className="flex items-center justify-start text-sm mb-4" style={cardTextColor}>
-                      <div className="flex items-center space-x-1">
-                        <Calendar size={14} />
-                        <span>{formatDate(post.published_at || post.created_at)}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto">
-                      <Link 
-                        href={`/blog/${post.slug}`}
-                        className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 font-medium"
-                      >
-                        <span>{language === 'vi' ? 'Đọc thêm' : 'Read more'}</span>
-                        <ArrowRight size={14} />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            )
-          })}
+          {renderedPosts}
         </div>
 
         {/* Load More Button */}
@@ -443,10 +456,10 @@ export default function BlogListClient() {
               {loadingMore ? (
                 <>
                   <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
-                  {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+                  {loadMoreButtonContent.loading}
                 </>
               ) : (
-                language === 'vi' ? 'Tải thêm bài viết' : 'Load More Posts'
+                loadMoreButtonContent.text
               )}
             </button>
           </div>
