@@ -21,30 +21,46 @@ export default function PortfolioListClient() {
       try {
         const supabase = createClient()
         
-        const { data, error } = await supabase
+        // First, get all published projects
+        const { data: projectsData, error: projectsError } = await supabase
           .from('portfolio_projects')
-          .select(`
-            id,
-            slug,
-            status,
-            project_url,
-            github_url,
-            technologies,
-            published_at,
-            created_at,
-            translations!inner(
-              language_code,
-              title,
-              description
-            )
-          `)
+          .select('*')
           .eq('status', 'published')
-          .eq('translations.language_code', language)
           .order('published_at', { ascending: false })
 
-        if (error) throw error
+        if (projectsError) {
+          console.error('Error fetching projects:', projectsError)
+          throw projectsError
+        }
 
-        setProjects(data || [])
+        if (!projectsData || projectsData.length === 0) {
+          setProjects([])
+          return
+        }
+
+        // Then, get translations for these projects
+        const projectIds = projectsData.map(p => p.id)
+        const { data: translationsData, error: translationsError } = await supabase
+          .from('portfolio_project_translations')
+          .select('*')
+          .in('portfolio_project_id', projectIds)
+          .eq('language_code', language)
+
+        if (translationsError) {
+          console.error('Error fetching translations:', translationsError)
+          throw translationsError
+        }
+
+        // Combine projects with their translations
+        const projectsWithTranslations = projectsData.map(project => {
+          const translation = translationsData?.find(t => t.portfolio_project_id === project.id)
+          return {
+            ...project,
+            translations: translation ? [translation] : []
+          }
+        }).filter(project => project.translations.length > 0) // Only show projects with translations
+
+        setProjects(projectsWithTranslations)
       } catch (err) {
         console.error('Error fetching projects:', err)
         setError('Failed to load portfolio projects')
@@ -139,7 +155,7 @@ export default function PortfolioListClient() {
                   {/* Project Image */}
                   <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
                     <img
-                      src="/covers/cover-home.jpg"
+                      src={project.thumbnail_url || "/covers/cover-home.jpg"}
                       alt={translation.title}
                       className="w-full h-full object-cover"
                     />
