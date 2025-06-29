@@ -3,7 +3,7 @@
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Calendar, ExternalLink, Github, Tag } from 'lucide-react'
+import { Calendar, ExternalLink, Github } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'

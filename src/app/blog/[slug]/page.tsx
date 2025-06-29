@@ -1,6 +1,6 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Calendar, Clock, Tag, ArrowLeft, Eye } from 'lucide-react'
+import { Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -50,6 +50,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     }
 
     // For now, we'll use English content (you can add language detection later)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const translation = translations?.find((t: any) => t.language_code === 'en') || translations?.[0]
 
     if (!translation) {

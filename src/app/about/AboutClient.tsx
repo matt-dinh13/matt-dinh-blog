@@ -3,7 +3,7 @@
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Mail, Linkedin, Github, MapPin, Calendar, Briefcase } from 'lucide-react'
+import { Mail, Linkedin, Github, Calendar, Briefcase } from 'lucide-react'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
