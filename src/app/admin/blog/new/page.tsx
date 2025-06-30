@@ -8,7 +8,6 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import RichTextEditor from '@/components/RichTextEditor'
-import { useLanguage } from '@/components/LanguageProvider'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -31,7 +30,6 @@ export default function AdminBlogNewPage() {
   const [selectedTags, setSelectedTags] = useState<{ id?: number; slug: string; name: string }[]>([])
   const [tagInput, setTagInput] = useState('')
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; slug: string; name: string }[]>([])
-  const [language, setLanguage] = useState('en') // TODO: Replace with actual language context if available
   const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
 
   // Fetch categories
@@ -57,7 +55,7 @@ export default function AdminBlogNewPage() {
       if (data) {
         // Pick translation for current language
         const tagList = data.map((tag: any) => {
-          const translation = tag.tag_translations.find((t: any) => t.language_code === language)
+          const translation = tag.tag_translations.find((t: any) => t.language_code === 'en')
           return {
             id: tag.id,
             slug: tag.slug,
@@ -68,7 +66,7 @@ export default function AdminBlogNewPage() {
       }
     }
     fetchTags()
-  }, [language])
+  }, [])
 
   // Tag input suggestions
   useEffect(() => {

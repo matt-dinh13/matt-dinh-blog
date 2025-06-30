@@ -1,12 +1,9 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Calendar, ArrowLeft, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import AdminPostMetaClient from './AdminPostMetaClient'
 import Breadcrumbs from '@/components/Breadcrumbs'
-import dynamic from 'next/dynamic'
 import ArticleDetailsClient from './ArticleDetailsClient'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
@@ -61,26 +58,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       console.error('❌ Blog Post: No translation found for post:', post.id)
       notFound()
     }
-
-    const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    }
-
-    // Add custom style for headings in the article content
-    const proseStyle = `
-      h1, h2, h3, h4, h5, h6 {
-        color: oklch(21% .034 264.665) !important;
-        font-family: Inter, system-ui, sans-serif !important;
-        font-weight: 500 !important;
-      }
-      p, ul, ol, li {
-        font-family: Inter, system-ui, sans-serif !important;
-      }
-    `;
 
     // Fetch tags for this post
     const { data: tagLinks, error: tagLinksError } = await supabase

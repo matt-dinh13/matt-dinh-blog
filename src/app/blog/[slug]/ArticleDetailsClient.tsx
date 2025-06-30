@@ -1,6 +1,5 @@
 "use client"
 
-import { Calendar, Eye, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import BlogPostViewCountClient from './BlogPostViewCountClient';
 import BlogCard from '@/components/BlogCard';
@@ -16,9 +15,7 @@ interface RelatedPost {
 
 export default function ArticleDetailsClient({
   postId,
-  postSlug,
   title,
-  summary,
   content,
   publishedAt,
   createdAt,
@@ -30,9 +27,7 @@ export default function ArticleDetailsClient({
   relatedPosts
 }: {
   postId: string,
-  postSlug: string,
   title: string,
-  summary: string,
   content: string,
   publishedAt: string,
   createdAt: string,

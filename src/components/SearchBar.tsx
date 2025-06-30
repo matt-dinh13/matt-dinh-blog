@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Search, X, ArrowDown, ArrowUp } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { useLanguage } from './LanguageProvider'
 import Link from 'next/link'

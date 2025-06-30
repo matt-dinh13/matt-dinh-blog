@@ -9,7 +9,6 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase'
 
 // Move constants outside component to prevent re-renders
-const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const POSTS_PER_PAGE = 6
 
 export default function Home() {
@@ -178,8 +177,6 @@ export default function Home() {
 
       const thumbnailUrl = getThumbnailUrl(post)
       const isPlaceholder = !post.thumbnail_url
-      const categoryName = post.categories?.category_translations?.find((t: any) => t.language_code === language)?.name
-      const categorySlug = post.categories?.slug
 
       return (
         <article key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col">
@@ -252,7 +249,7 @@ export default function Home() {
   }, [posts, loading, language, getThumbnailUrl, formatDate])
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={CARD_TEXT_COLOR}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
       
       {/* Cover Section with real image, crop at 80% from top (20% from bottom) and reliable grey overlay */}
@@ -307,7 +304,7 @@ export default function Home() {
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4" style={CARD_TEXT_COLOR}>
+            <p className="mt-4">
               {language === 'vi' ? 'Đang tải bài viết...' : 'Loading posts...'}
             </p>
           </div>

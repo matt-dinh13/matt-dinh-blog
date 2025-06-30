@@ -46,7 +46,6 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   const [selectedTags, setSelectedTags] = useState<{ id?: number; slug: string; name: string }[]>([])
   const [tagInput, setTagInput] = useState('')
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; slug: string; name: string }[]>([])
-  const [language, setLanguage] = useState('en') // TODO: Replace with actual language context if available
   const [translation, setTranslation] = useState<BlogPostTranslation | null>(null)
   const [translationLang, setTranslationLang] = useState('vi') // Always prefer Vietnamese
   const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
@@ -129,7 +128,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       if (data) {
         // Pick translation for current language
         const tagList = data.map((tag: any) => {
-          const translation = tag.tag_translations.find((t: any) => t.language_code === language)
+          const translation = tag.tag_translations.find((t: any) => t.language_code === 'en')
           return {
             id: tag.id,
             slug: tag.slug,
@@ -140,7 +139,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       }
     }
     fetchTags()
-  }, [language])
+  }, [])
 
   // Fetch post's tags on load
   useEffect(() => {
@@ -153,7 +152,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       if (data) {
         const tagList = data.map((row: any) => {
           const tag = row.tag
-          const translation = tag.tag_translations.find((t: any) => t.language_code === language)
+          const translation = tag.tag_translations.find((t: any) => t.language_code === 'en')
           return {
             id: tag.id,
             slug: tag.slug,
@@ -164,7 +163,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       }
     }
     fetchPostTags()
-  }, [id, language])
+  }, [id])
 
   // Tag input suggestions
   useEffect(() => {

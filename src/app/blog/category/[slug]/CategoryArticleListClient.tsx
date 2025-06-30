@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
@@ -11,12 +11,10 @@ const POSTS_PER_PAGE = 6
 
 interface CategoryArticleListClientProps {
   categoryId: string
-  categorySlug: string
-  categoryName: string
   language: string
 }
 
-export default function CategoryArticleListClient({ categoryId, categorySlug, categoryName, language }: CategoryArticleListClientProps) {
+export default function CategoryArticleListClient({ categoryId, language }: CategoryArticleListClientProps) {
   const [posts, setPosts] = useState<any[]>([])
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)

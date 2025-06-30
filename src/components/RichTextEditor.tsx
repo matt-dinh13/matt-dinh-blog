@@ -60,7 +60,6 @@ export default function RichTextEditor({ value, onChange, language, className }:
     if (editor && value !== editor.storage.markdown.getMarkdown()) {
       editor.commands.setContent(value || '', false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor, language]);
 
   // Image upload handler

@@ -5,14 +5,10 @@ import { createClient } from '@/lib/supabase'
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Calendar, ArrowRight, Loader2 } from 'lucide-react'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import BlogCard from '@/components/BlogCard'
 
 // Move constants outside component to prevent re-renders
-const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const POSTS_PER_PAGE = 6
 
 interface Post {
@@ -49,15 +45,6 @@ export default function BlogListClient() {
   const [page, setPage] = useState(1)
   const [error, setError] = useState<string | null>(null)
 
-  // Memoize the formatDate function to prevent unnecessary re-renders
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }, [language])
-
   // Memoize the getThumbnailUrl function
   const getThumbnailUrl = useCallback((post: Post) => {
     if (post.thumbnail_url) {
@@ -65,19 +52,6 @@ export default function BlogListClient() {
     }
     return '/window.svg'
   }, [])
-
-  // Memoize the getCategoryName function
-  const getCategoryName = useCallback((categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId)
-    if (!category) {
-      console.log('⚠️ Blog: Category not found for ID:', categoryId, 'Available categories:', categories.map(c => c.id))
-      return null
-    }
-    
-    const translation = category.category_translations?.find(t => t.language_code === language) || 
-                       category.category_translations?.[0]
-    return translation?.name || null
-  }, [categories, language])
 
   // Optimized fetch function with proper joins
   const fetchPosts = useCallback(async () => {
@@ -246,7 +220,6 @@ export default function BlogListClient() {
       }
 
       const thumbnailUrl = getThumbnailUrl(post)
-      const categoryName = post.category_id ? getCategoryName(post.category_id) : null
 
       return (
         <BlogCard

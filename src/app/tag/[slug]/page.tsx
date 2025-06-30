@@ -1,10 +1,8 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Calendar, ArrowLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import Breadcrumbs from '@/components/Breadcrumbs'
-import Image from 'next/image'
 import { Metadata } from 'next'
 import BlogCard from '@/components/BlogCard'
 
