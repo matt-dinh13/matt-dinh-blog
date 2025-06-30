@@ -8,7 +8,11 @@ import Image from 'next/image'
 
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 
-export default async function TagPage({ params }: { params: Promise<{ slug: string }> }) {
+type Props = {
+  params: Promise<{ slug: string }>
+}
+
+export default async function TagPage({ params }: Props) {
   const { slug } = await params
   const supabase = createClient()
 

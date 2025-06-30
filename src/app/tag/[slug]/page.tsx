@@ -10,9 +10,10 @@ import { ArrowLeft } from 'lucide-react'
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const PAGE_SIZE = 10
 
-export async function generateMetadata({ params, searchParams }: { params: { slug: string }, searchParams: { lang?: string } }): Promise<Metadata> {
-  const { slug } = params
-  const languageCode = searchParams?.lang === 'vi' ? 'vi' : 'en'
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ lang?: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const resolvedSearchParams = await searchParams
+  const languageCode = resolvedSearchParams?.lang === 'vi' ? 'vi' : 'en'
   const supabase = createClient()
   const { data: tag } = await supabase
     .from('tags')
@@ -44,10 +45,16 @@ export async function generateMetadata({ params, searchParams }: { params: { slu
   }
 }
 
-export default async function TagPage({ params, searchParams }: { params: { slug: string }, searchParams: { lang?: string, page?: string } }) {
-  const { slug } = params
-  const languageCode = searchParams?.lang === 'vi' ? 'vi' : 'en'
-  const page = parseInt(searchParams?.page || '1', 10)
+type Props = {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ lang?: string, page?: string }>
+}
+
+export default async function TagPage({ params, searchParams }: Props) {
+  const { slug } = await params
+  const resolvedSearchParams = await searchParams
+  const languageCode = resolvedSearchParams?.lang === 'vi' ? 'vi' : 'en'
+  const page = parseInt(resolvedSearchParams?.page || '1', 10)
   const supabase = createClient()
 
   // Get tag info with translations

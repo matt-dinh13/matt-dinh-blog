@@ -8,11 +8,11 @@ import CategoryArticleListClient from './CategoryArticleListClient'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
-interface CategoryPageProps {
+type Props = {
   params: Promise<{ slug: string }>
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params }: Props) {
   const { slug } = await params
   const supabase = createClient()
 
@@ -60,7 +60,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <span>Back to Blog</span>
         </Link>
         <h1 className="text-3xl font-bold mb-8 text-white">{categoryName}</h1>
-        <CategoryArticleListClient categoryId={category.id} categorySlug={slug} categoryName={categoryName} language={language} />
+        <CategoryArticleListClient categoryId={category.id} language={language} />
       </main>
       <Footer />
     </div>

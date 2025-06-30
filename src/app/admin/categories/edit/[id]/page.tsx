@@ -8,11 +8,11 @@ export const dynamic = 'force-dynamic'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
-interface EditCategoryPageProps {
+type Props = {
   params: Promise<{ id: string }>
 }
 
-export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
+export default async function EditCategoryPage({ params }: Props) {
   const { id } = await params
 
   return (

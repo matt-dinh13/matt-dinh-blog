@@ -27,15 +27,6 @@ interface Post {
   }>
 }
 
-interface Category {
-  id: string
-  slug: string
-  category_translations: Array<{
-    name: string
-    language_code: string
-  }>
-}
-
 export default function BlogListClient() {
   const { language } = useLanguage()
   const [posts, setPosts] = useState<Post[]>([])
@@ -102,17 +93,6 @@ export default function BlogListClient() {
 
       console.log('📊 Blog: Total posts count:', totalCount, 'postsPerPage:', POSTS_PER_PAGE)
       setHasMore((totalCount || 0) > POSTS_PER_PAGE)
-
-      // Extract categories from the joined data
-      const categoriesData = postsData
-        .map((post: any) => post.categories)
-        .filter(Boolean)
-        .reduce((acc: Category[], category: any) => {
-          if (!acc.find(cat => cat.id === category.id)) {
-            acc.push(category)
-          }
-          return acc
-        }, [])
 
       // Transform posts to match expected format
       const postsWithTranslations = postsData.map((post: any) => ({
@@ -191,11 +171,10 @@ export default function BlogListClient() {
           .select('*', { count: 'exact', head: true })
           .eq('status', 'published')
         
-        setHasMore((totalCount || 0) > (prevPosts.length + newPostsWithTranslations.length))
+        setHasMore((totalCount || 0) > (posts.length + newPostsWithTranslations.length))
       } else {
         setHasMore(false)
       }
-      
     } catch (err: any) {
       console.error('💥 Blog: Error loading more posts:', err)
       console.error('💥 Blog: Load more error details:', {

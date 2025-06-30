@@ -55,12 +55,12 @@ export default function SearchPage() {
   useEffect(() => {
     setPage(1);
     fetchResults(true);
-  }, [query]);
+  }, [query, fetchResults]);
 
   useEffect(() => {
     if (page === 1) return;
     fetchResults();
-  }, [page]);
+  }, [page, fetchResults]);
 
   // Breadcrumbs
   const breadcrumbItems = useMemo(() => [

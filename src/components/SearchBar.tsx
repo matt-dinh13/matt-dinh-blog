@@ -255,7 +255,7 @@ export default function SearchBar({ onSearch, className = '', hideIcon = false }
     onSearch?.('')
   }
 
-  const handleResultClick = (result: SearchResult) => {
+  const handleResultClick = () => {
     setShowResults(false)
     setSelectedIndex(-1)
   }
@@ -313,7 +313,7 @@ export default function SearchBar({ onSearch, className = '', hideIcon = false }
                 <Link
                   key={result.id}
                   href={`/blog/${result.slug}`}
-                  onClick={() => handleResultClick(result)}
+                  onClick={() => handleResultClick()}
                   className={`group block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 ${
                     index === selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}

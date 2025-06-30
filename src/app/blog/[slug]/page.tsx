@@ -9,13 +9,11 @@ import { ArrowLeft } from 'lucide-react'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
-interface BlogPostPageProps {
-  params: Promise<{
-    slug: string
-  }>
+type Props = {
+  params: Promise<{ slug: string }>
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
   
   try {
@@ -52,7 +50,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     }
 
     // For now, we'll use English content (you can add language detection later)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const translation = translations?.find((t: any) => t.language_code === 'en') || translations?.[0]
 
     if (!translation) {
@@ -196,9 +193,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           <ArticleDetailsClient
             postId={post.id}
-            postSlug={post.slug}
             title={translation.title}
-            summary={translation.summary}
             content={translation.content}
             publishedAt={post.published_at}
             createdAt={post.created_at}
