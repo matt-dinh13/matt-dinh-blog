@@ -7,6 +7,7 @@ import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import BlogCard from '@/components/BlogCard'
+import { Loader2 } from 'lucide-react'
 
 // Move constants outside component to prevent re-renders
 const POSTS_PER_PAGE = 6
@@ -38,7 +39,6 @@ interface Category {
 export default function BlogListClient() {
   const { language } = useLanguage()
   const [posts, setPosts] = useState<Post[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -113,8 +113,6 @@ export default function BlogListClient() {
           }
           return acc
         }, [])
-
-      setCategories(categoriesData)
 
       // Transform posts to match expected format
       const postsWithTranslations = postsData.map((post: any) => ({

@@ -69,12 +69,12 @@ export default function RichTextEditor({ value, onChange, language, className }:
       const supabase = createClient();
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      const { data, error } = await supabase.storage.from('blog-images').upload(fileName, file);
-      if (error) throw error;
+      const uploadResult = await supabase.storage.from('blog-images').upload(fileName, file);
+      if (uploadResult.error) throw uploadResult.error;
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
       if (!urlData?.publicUrl) throw new Error('Failed to get public URL');
       editor?.chain().focus().setImage({ src: urlData.publicUrl }).run();
-    } catch (err) {
+    } catch {
       alert('Image upload failed');
     } finally {
       setUploading(false);
@@ -106,7 +106,7 @@ export default function RichTextEditor({ value, onChange, language, className }:
 
   // Update image size
   const updateImageSize = (attrs: { width?: string; height?: string }) => {
-    const { state, view } = editor!;
+    const { state } = editor!;
     const { selection } = state;
     const node = state.doc.nodeAt(selection.from);
     if (node?.type.name === 'image') {

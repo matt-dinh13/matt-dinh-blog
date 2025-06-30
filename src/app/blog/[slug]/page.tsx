@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import ArticleDetailsClient from './ArticleDetailsClient'
+import { ArrowLeft } from 'lucide-react'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import BlogPostViewCountClient from './BlogPostViewCountClient';
 import BlogCard from '@/components/BlogCard';
+import { Calendar } from 'lucide-react';
 
 interface RelatedPost {
   id: number;

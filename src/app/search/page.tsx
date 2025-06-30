@@ -50,18 +50,16 @@ export default function SearchPage() {
     setResults(reset ? data : [...results, ...data]);
     setHasMore((count || 0) > to + 1);
     setLoading(false);
-  }, [query, page]);
+  }, [query, page, results]);
 
   useEffect(() => {
     setPage(1);
     fetchResults(true);
-    // eslint-disable-next-line
   }, [query]);
 
   useEffect(() => {
     if (page === 1) return;
     fetchResults();
-    // eslint-disable-next-line
   }, [page]);
 
   // Breadcrumbs

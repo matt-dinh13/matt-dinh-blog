@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import { Metadata } from 'next'
 import BlogCard from '@/components/BlogCard'
+import { ArrowLeft } from 'lucide-react'
 
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const PAGE_SIZE = 10
