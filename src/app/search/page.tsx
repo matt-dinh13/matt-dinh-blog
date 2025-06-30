@@ -9,6 +9,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { ArrowRight } from "lucide-react";
+import { useLanguage } from '@/components/LanguageProvider';
 
 const PAGE_SIZE = 6;
 
@@ -19,6 +20,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
+  const { language } = useLanguage();
 
   const fetchResults = useCallback(async (reset = false) => {
     if (!query.trim()) {
@@ -69,12 +71,23 @@ export default function SearchPage() {
     { label: query, href: `/search?q=${encodeURIComponent(query)}` }
   ], [query]);
 
+  // Localized content
+  const localized = useMemo(() => ({
+    search: language === 'vi' ? 'Tìm kiếm' : 'Search',
+    resultsFor: language === 'vi' ? 'Kết quả cho' : 'Search results for',
+    enterKeyword: language === 'vi' ? 'Nhập từ khóa để tìm bài viết.' : 'Enter a keyword to search articles.',
+    noArticles: language === 'vi' ? 'Không tìm thấy bài viết nào.' : 'No articles found.',
+    loading: language === 'vi' ? 'Đang tải...' : 'Loading...',
+    readMore: language === 'vi' ? 'Đọc thêm' : 'Read more',
+    dateLocale: language === 'vi' ? 'vi-VN' : 'en-US',
+  }), [language]);
+
   // Format date
   const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString(localized.dateLocale, {
       year: 'numeric', month: 'short', day: 'numeric'
     })
-  }, [])
+  }, [localized.dateLocale])
 
   // Get thumbnail
   const getThumbnailUrl = useCallback((post: any) => {
@@ -89,76 +102,79 @@ export default function SearchPage() {
           <Breadcrumbs items={breadcrumbItems} />
           <div className="mb-8 text-left">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {query ? `Search: "${query}"` : 'Search'}
+              {query ? `${localized.search}: "${query}"` : localized.search}
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400">
-              {query ? `Search results for "${query}"` : 'Enter a keyword to search articles.'}
+              {query ? `${localized.resultsFor} "${query}"` : localized.enterKeyword}
             </p>
           </div>
 
           {loading && (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-12">Loading...</div>
+            <div className="text-center text-gray-500 dark:text-gray-400 py-12">{localized.loading}</div>
           )}
           {!loading && results.length === 0 && (
-            <div className="text-center text-gray-500 dark:text-gray-400">No articles found.</div>
+            <div className="text-center text-gray-500 dark:text-gray-400">{localized.noArticles}</div>
           )}
-          <div className="space-y-6">
-            {results.map((result, index) => (
-              <article key={result.blog_post_id + '-' + result.title + '-' + index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <div className="flex flex-col md:flex-row">
-                  {/* Thumbnail Section */}
-                  <div className="md:w-1/4">
-                    <Link href={`/blog/${result.blog_posts.slug}`} className="block relative h-48 md:h-full bg-gray-100 dark:bg-gray-700 overflow-hidden group">
-                      <Image
-                        src={getThumbnailUrl(result)}
-                        alt={result.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-200"
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                      />
-                    </Link>
-                  </div>
-                  {/* Content Section */}
-                  <div className="md:w-3/4 p-6">
-                    <header className="mb-4">
-                      <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
-                        <Link href={`/blog/${result.blog_posts.slug}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                          <span className="block transition-colors duration-200 group-hover:text-blue-600">
-                            {result.title}
-                          </span>
-                        </Link>
-                      </h2>
-                      <p className="text-lg mb-4 text-gray-600 dark:text-gray-400">
-                        {result.summary}
-                      </p>
-                    </header>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center space-x-1">
-                        <span>{formatDate(result.blog_posts.published_at)}</span>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <Link href={`/blog/${result.blog_posts.slug}`} className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200">
-                        <span>Read more</span>
-                        <ArrowRight size={14} />
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {results.map((result, index) => {
+              const categoryName = result.blog_posts?.categories?.category_translations?.[0]?.name;
+              return (
+                <article key={result.blog_post_id + '-' + result.title + '-' + index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col">
+                  <Link href={`/blog/${result.blog_posts.slug}`} className="relative w-full h-40 bg-gray-100 dark:bg-gray-700 block group overflow-hidden">
+                    <Image
+                      src={getThumbnailUrl(result)}
+                      alt={result.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-200"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                    <span className="sr-only">Go to {result.title}</span>
+                  </Link>
+                  <div className="p-6 flex flex-col flex-1">
+                    {categoryName && (
+                      <span className="inline-block mb-2 px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        {categoryName}
+                      </span>
+                    )}
+                    <h3 className="text-lg font-bold mb-3 line-clamp-2 min-h-[3em]">
+                      <Link
+                        href={`/blog/${result.blog_posts.slug}`}
+                        className="block w-full rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
+                      >
+                        <span
+                          className="block transition-colors duration-200 group-hover:text-blue-600"
+                          style={{ color: 'var(--color-gray-900)', filter: 'unset' }}
+                        >
+                          {result.title}
+                        </span>
+                      </Link>
+                    </h3>
+                    <p className="mb-4 line-clamp-3 min-h-[4.5em] text-sm text-gray-600 dark:text-gray-400">
+                      {result.summary}
+                    </p>
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto">
+                      <span>{formatDate(result.blog_posts.published_at)}</span>
+                      <Link href={`/blog/${result.blog_posts.slug}`} className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 font-medium">
+                        <span>{localized.readMore}</span>
+                        <ArrowRight size={12} />
                       </Link>
                     </div>
                   </div>
-                </div>
-              </article>
-            ))}
-            {hasMore && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={loading}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  {loading ? 'Loading...' : 'Load More'}
-                </button>
-              </div>
-            )}
+                </article>
+              )
+            })}
           </div>
+          {hasMore && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setPage(page + 1)}
+                disabled={loading}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                {loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

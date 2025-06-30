@@ -45,4 +45,28 @@ SELECT COUNT(*) as posts_with_both_translations
 FROM blog_posts bp
 WHERE bp.status = 'published' 
 AND EXISTS (SELECT 1 FROM blog_post_translations bpt1 WHERE bpt1.blog_post_id = bp.id AND bpt1.language_code = 'en')
-AND EXISTS (SELECT 1 FROM blog_post_translations bpt2 WHERE bpt2.blog_post_id = bp.id AND bpt2.language_code = 'vi'); 
+AND EXISTS (SELECT 1 FROM blog_post_translations bpt2 WHERE bpt2.blog_post_id = bp.id AND bpt2.language_code = 'vi');
+
+-- Fix missing Vietnamese translations by copying English content
+-- For each blog post that has an English translation but no Vietnamese translation,
+-- copy the English translation to create a Vietnamese one.
+
+INSERT INTO blog_post_translations (blog_post_id, language_code, title, summary, content, meta_title, meta_description, created_at, updated_at)
+SELECT 
+  en.blog_post_id,
+  'vi' AS language_code,
+  en.title,
+  en.summary,
+  en.content,
+  en.meta_title,
+  en.meta_description,
+  NOW(),
+  NOW()
+FROM blog_post_translations en
+LEFT JOIN blog_post_translations vi
+  ON en.blog_post_id = vi.blog_post_id AND vi.language_code = 'vi'
+WHERE en.language_code = 'en'
+  AND vi.id IS NULL;
+
+-- Show how many were added
+SELECT COUNT(*) AS vi_translations_added FROM blog_post_translations WHERE language_code = 'vi' AND created_at = updated_at; 

@@ -7,6 +7,8 @@ import Footer from '@/components/Footer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
+import RichTextEditor from '@/components/RichTextEditor'
+import { useLanguage } from '@/components/LanguageProvider'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -14,9 +16,10 @@ export const dynamic = 'force-dynamic'
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 export default function AdminBlogNewPage() {
-  const [title, setTitle] = useState('')
-  const [summary, setSummary] = useState('')
-  const [content, setContent] = useState('')
+  const [titleVi, setTitleVi] = useState('')
+  const [titleEn, setTitleEn] = useState('')
+  const [contentVi, setContentVi] = useState('')
+  const [contentEn, setContentEn] = useState('')
   const [status, setStatus] = useState('draft')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -24,6 +27,12 @@ export default function AdminBlogNewPage() {
   const router = useRouter()
   const [categoryId, setCategoryId] = useState('')
   const [categories, setCategories] = useState<any[]>([])
+  const [tags, setTags] = useState<{ id: number; slug: string; name: string }[]>([])
+  const [selectedTags, setSelectedTags] = useState<{ id?: number; slug: string; name: string }[]>([])
+  const [tagInput, setTagInput] = useState('')
+  const [tagSuggestions, setTagSuggestions] = useState<{ id: number; slug: string; name: string }[]>([])
+  const [language, setLanguage] = useState('en') // TODO: Replace with actual language context if available
+  const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
 
   // Fetch categories
   useEffect(() => {
@@ -38,6 +47,45 @@ export default function AdminBlogNewPage() {
     fetchCategories()
   }, [])
 
+  // Fetch tags with translations
+  useEffect(() => {
+    async function fetchTags() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('tags')
+        .select('id, slug, tag_translations(name, language_code)')
+      if (data) {
+        // Pick translation for current language
+        const tagList = data.map((tag: any) => {
+          const translation = tag.tag_translations.find((t: any) => t.language_code === language)
+          return {
+            id: tag.id,
+            slug: tag.slug,
+            name: translation ? translation.name : tag.slug,
+          }
+        })
+        setTags(tagList)
+      }
+    }
+    fetchTags()
+  }, [language])
+
+  // Tag input suggestions
+  useEffect(() => {
+    if (!tagInput) {
+      setTagSuggestions([])
+      return
+    }
+    const input = tagInput.toLowerCase()
+    setTagSuggestions(
+      tags.filter(
+        (tag) =>
+          tag.name.toLowerCase().includes(input) &&
+          !selectedTags.some((t) => t.slug === tag.slug)
+      ).slice(0, 5)
+    )
+  }, [tagInput, tags, selectedTags])
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -47,30 +95,101 @@ export default function AdminBlogNewPage() {
       .trim()
   }
 
+  // Add tag
+  const handleAddTag = (tag: { id?: number; slug: string; name: string }) => {
+    if (selectedTags.length >= 3) return
+    setSelectedTags([...selectedTags, tag])
+    setTagInput('')
+    setTagSuggestions([])
+  }
+
+  // Remove tag
+  const handleRemoveTag = (slug: string) => {
+    setSelectedTags(selectedTags.filter((t) => t.slug !== slug))
+  }
+
+  // Handle free text enter
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault()
+      if (selectedTags.length >= 3) return
+      // Check if tag exists
+      const existing = tags.find(
+        (tag) => tag.name.toLowerCase() === tagInput.trim().toLowerCase()
+      )
+      if (existing) {
+        handleAddTag(existing)
+      } else {
+        // New tag (no id yet)
+        handleAddTag({ slug: tagInput.trim().toLowerCase().replace(/\s+/g, '-'), name: tagInput.trim() })
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     try {
       const supabase = createClient()
-      const slug = generateSlug(title)
-      
-      const { error } = await supabase
+      const slug = generateSlug(titleVi)
+      // Insert base post
+      const { data: postData, error } = await supabase
         .from('blog_posts')
         .insert({
-          title,
+          title: titleVi,
           slug,
-          summary,
-          content,
+          summary: '',
+          content: contentVi, // for backward compatibility
           status,
           author_id: user?.id,
           published_at: status === 'published' ? new Date().toISOString() : null,
           category_id: categoryId || null
         })
-
+        .select('id')
+        .single()
       if (error) throw error
-
+      const postId = postData.id
+      // Upsert translations for VI and EN
+      const translations = [
+        { blog_post_id: postId, language_code: 'vi', title: titleVi, summary: '', content: contentVi },
+      ]
+      if (contentEn.trim()) {
+        translations.push({ blog_post_id: postId, language_code: 'en', title: titleEn, summary: '', content: contentEn })
+      }
+      for (const tr of translations) {
+        await supabase
+          .from('blog_post_translations')
+          .upsert(tr, { onConflict: 'blog_post_id,language_code' })
+      }
+      // Upsert tags and translations
+      for (const tag of selectedTags) {
+        let tagId = tag.id
+        if (!tagId) {
+          // Insert tag
+          const { data: tagData, error: tagError } = await supabase
+            .from('tags')
+            .upsert({ slug: tag.slug }, { onConflict: 'slug' })
+            .select('id')
+            .single()
+          if (tagError) throw tagError
+          tagId = tagData.id
+          // Upsert translations for both EN and VI
+          const translations = [
+            { tag_id: tagId, language_code: 'en', name: tag.name },
+            { tag_id: tagId, language_code: 'vi', name: tag.name }, // TODO: Optionally prompt for VI name
+          ]
+          for (const tr of translations) {
+            await supabase
+              .from('tag_translations')
+              .upsert(tr, { onConflict: 'tag_id,language_code' })
+          }
+        }
+        // Upsert blog_post_tags
+        await supabase
+          .from('blog_post_tags')
+          .upsert({ blog_post_id: postId, tag_id: tagId }, { onConflict: 'blog_post_id,tag_id' })
+      }
       router.push('/admin')
     } catch (err) {
       setError('Error creating blog post')
@@ -84,9 +203,9 @@ export default function AdminBlogNewPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
         <Navigation />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+        <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold" style={cardTextColor}>Add New Blog Post</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Blog Post</h1>
             <button
               onClick={() => router.back()}
               className="text-blue-600 hover:underline"
@@ -101,7 +220,15 @@ export default function AdminBlogNewPage() {
             </div>
           )}
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex gap-2 mb-4">
+              <button type="button" className={`px-2 py-1 rounded ${activeLang === 'vi' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white'}`} onClick={() => setActiveLang('vi')}>
+                🇻🇳 VN
+              </button>
+              <button type="button" className={`px-2 py-1 rounded ${activeLang === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white'}`} onClick={() => setActiveLang('en')}>
+                🇺🇸 EN
+              </button>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
@@ -110,40 +237,23 @@ export default function AdminBlogNewPage() {
                 <input
                   id="title"
                   type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={activeLang === 'vi' ? titleVi : titleEn}
+                  onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter blog post title"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                  placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
                 />
               </div>
 
-              <div>
-                <label htmlFor="summary" className="block text-sm font-medium mb-1" style={cardTextColor}>
-                  Summary
-                </label>
-                <textarea
-                  id="summary"
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief summary of the blog post"
-                />
-              </div>
-
-              <div>
+              <div className="mt-4">
                 <label htmlFor="content" className="block text-sm font-medium mb-1" style={cardTextColor}>
                   Content *
                 </label>
-                <textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  required
-                  rows={10}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  placeholder="Write your blog post content here (supports markdown)"
+                <RichTextEditor
+                  value={activeLang === 'vi' ? contentVi : contentEn}
+                  onChange={md => activeLang === 'vi' ? setContentVi(md) : setContentEn(md)}
+                  language={activeLang}
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md"
                 />
               </div>
 
@@ -180,6 +290,46 @@ export default function AdminBlogNewPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label htmlFor="hashtags" className="block text-sm font-medium mb-1" style={cardTextColor}>
+                  Hashtags (max 3)
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedTags.map((tag) => (
+                    <span key={tag.slug} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs flex items-center">
+                      #{tag.name}
+                      <button type="button" className="ml-1 text-red-500" onClick={() => handleRemoveTag(tag.slug)}>&times;</button>
+                    </span>
+                  ))}
+                </div>
+                <input
+                  id="hashtags"
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagInputKeyDown}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Add a hashtag (press Enter)"
+                  disabled={selectedTags.length >= 3}
+                />
+                {tagSuggestions.length > 0 && (
+                  <ul className="border border-gray-200 rounded mt-1 bg-white z-10 absolute">
+                    {tagSuggestions.map((tag) => (
+                      <li
+                        key={tag.slug}
+                        className="px-3 py-1 cursor-pointer hover:bg-blue-100"
+                        onClick={() => handleAddTag(tag)}
+                      >
+                        #{tag.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {selectedTags.length >= 3 && (
+                  <div className="text-xs text-red-500 mt-1">You can only add up to 3 hashtags.</div>
+                )}
               </div>
 
               <div className="flex gap-4 pt-4">

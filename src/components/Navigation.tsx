@@ -19,7 +19,7 @@ export default function Navigation() {
     { name: language === 'vi' ? 'Blog' : 'Blog', href: '/blog' },
     { name: language === 'vi' ? 'Portfolio' : 'Portfolio', href: '/portfolio' },
     { name: language === 'vi' ? 'Giới thiệu' : 'About', href: '/about' },
-    { name: language === 'vi' ? 'Quản trị' : 'Admin', href: '/admin' },
+    // Admin link removed for public navigation
   ], [language])
 
   // Memoize handlers

@@ -13,6 +13,7 @@ type BlogPost = {
   title: string
   status: string
   created_at: string
+  slug: string
 }
 
 type PortfolioProject = {
@@ -39,7 +40,7 @@ export default function AdminContent() {
     // Fetch blog posts
     const { data: posts } = await supabase
       .from('blog_posts')
-      .select('id, title, status, created_at')
+      .select('id, title, status, created_at, slug')
       .order('created_at', { ascending: false })
 
     // Fetch portfolio projects
@@ -139,6 +140,14 @@ export default function AdminContent() {
                     </td>
                     <td className="px-4 py-2">
                       <Link href={`/admin/blog/edit/${post.id}`} className="text-blue-600 hover:underline mr-2">Edit</Link>
+                      <a
+                        href={`/blog/${post.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:underline mr-2"
+                      >
+                        View
+                      </a>
                       <button 
                         onClick={() => handleDelete('blog', post.id)}
                         className="text-red-600 hover:underline"

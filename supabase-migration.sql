@@ -20,6 +20,9 @@ ALTER COLUMN content DROP NOT NULL;
 ALTER TABLE public.tags 
 ALTER COLUMN name DROP NOT NULL;
 
+-- Add view_count column to blog_posts
+ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS view_count integer NOT NULL DEFAULT 0;
+
 -- 2. Create languages table if it doesn't exist
 CREATE TABLE IF NOT EXISTS public.languages (
   id SERIAL PRIMARY KEY,

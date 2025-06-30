@@ -1,0 +1,5 @@
+/* Force all text inside the editor to be dark, regardless of parent or global styles */
+.forceDarkText, .forceDarkText * {
+  color: #222 !important;
+  caret-color: #222 !important;
+} 

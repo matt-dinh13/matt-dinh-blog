@@ -1,11 +1,13 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Calendar, ArrowLeft } from 'lucide-react'
+import { Calendar, ArrowLeft, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import AdminPostMetaClient from './AdminPostMetaClient'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import dynamic from 'next/dynamic'
+import ArticleDetailsClient from './ArticleDetailsClient'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
@@ -121,6 +123,80 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
     console.log('✅ Blog Post: Successfully fetched post and translation')
 
+    // Fetch related posts
+    let relatedPosts: any[] = []
+    try {
+      // First, try to find posts with shared tags
+      if (tags.length > 0) {
+        const tagIds = tagLinks.map((t: any) => t.tag_id)
+        const { data: relatedByTags } = await supabase
+          .from('blog_posts')
+          .select(`
+            id,
+            slug,
+            thumbnail_url,
+            published_at,
+            blog_post_translations!inner(title, summary, language_code)
+          `)
+          .eq('status', 'published')
+          .neq('id', post.id)
+          .in('blog_post_tags.tag_id', tagIds)
+          .order('published_at', { ascending: false })
+          .limit(6)
+
+        if (relatedByTags && relatedByTags.length > 0) {
+          relatedPosts = relatedByTags.map((p: any) => {
+            const tr = p.blog_post_translations.find((t: any) => t.language_code === translation.language_code) || p.blog_post_translations[0]
+            return {
+              id: p.id,
+              slug: p.slug,
+              title: tr.title,
+              summary: tr.summary,
+              thumbnailUrl: p.thumbnail_url,
+              publishedAt: p.published_at
+            }
+          })
+        }
+      }
+
+      // If not enough posts by tags, fill with posts from same category
+      if (relatedPosts.length < 6 && category) {
+        const { data: relatedByCategory } = await supabase
+          .from('blog_posts')
+          .select(`
+            id,
+            slug,
+            thumbnail_url,
+            published_at,
+            blog_post_translations!inner(title, summary, language_code)
+          `)
+          .eq('status', 'published')
+          .eq('category_id', post.category_id)
+          .neq('id', post.id)
+          .not('id', 'in', `(${relatedPosts.map(p => p.id).join(',')})`)
+          .order('published_at', { ascending: false })
+          .limit(6 - relatedPosts.length)
+
+        if (relatedByCategory && relatedByCategory.length > 0) {
+          const categoryPosts = relatedByCategory.map((p: any) => {
+            const tr = p.blog_post_translations.find((t: any) => t.language_code === translation.language_code) || p.blog_post_translations[0]
+            return {
+              id: p.id,
+              slug: p.slug,
+              title: tr.title,
+              summary: tr.summary,
+              thumbnailUrl: p.thumbnail_url,
+              publishedAt: p.published_at
+            }
+          })
+          relatedPosts = [...relatedPosts, ...categoryPosts]
+        }
+      }
+    } catch (error) {
+      console.error('❌ Blog Post: Error fetching related posts:', error)
+      // Continue without related posts if there's an error
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
         <Navigation />
@@ -140,68 +216,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <span>Back to Blog</span>
           </Link>
 
-          {/* Article Card */}
-          <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden" style={cardTextColor}>
-            <div className="p-8">
-              {/* Article Header */}
-              <header className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  {category ? (
-                    <Link
-                      href={`/blog/category/${category.slug}`}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800 transition-colors duration-200 mr-2"
-                    >
-                      {category.name}
-                    </Link>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      Blog Post
-                    </span>
-                  )}
-                  <AdminPostMetaClient id={post.id} status={post.status} />
-                </div>
-                
-                <h1 className="text-3xl font-bold mb-4" style={cardTextColor}>
-                  {translation.title}
-                </h1>
-                
-                <p className="text-lg mb-6" style={cardTextColor}>
-                  {translation.summary}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm" style={cardTextColor}>
-                    <div className="flex items-center space-x-1">
-                      <Calendar size={14} />
-                      <span>{formatDate(post.published_at || post.created_at)}</span>
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              {/* Article Content */}
-              <style>{proseStyle}</style>
-              <div 
-                className="prose prose-lg dark:prose-invert max-w-none"
-                style={cardTextColor}
-                dangerouslySetInnerHTML={{ __html: translation.content }}
-              />
-              {/* Hashtag Section */}
-              {tags.length > 0 && (
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <Link
-                      key={tag.slug}
-                      href={`/blog/tag/${tag.slug}`}
-                      className="inline-block px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-full text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-800 hover:text-blue-900 dark:hover:text-white transition-colors duration-200"
-                    >
-                      #{tag.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </article>
+          <ArticleDetailsClient
+            postId={post.id}
+            postSlug={post.slug}
+            title={translation.title}
+            summary={translation.summary}
+            content={translation.content}
+            publishedAt={post.published_at}
+            createdAt={post.created_at}
+            viewCount={post.view_count || 0}
+            category={category}
+            tags={tags}
+            thumbnailUrl={post.thumbnail_url}
+            languageCode={translation.language_code}
+            relatedPosts={relatedPosts}
+          />
         </main>
         <Footer />
       </div>

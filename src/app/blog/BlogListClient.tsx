@@ -9,6 +9,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, ArrowRight, Loader2 } from 'lucide-react'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import BlogCard from '@/components/BlogCard'
 
 // Move constants outside component to prevent re-renders
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
@@ -198,152 +199,68 @@ export default function BlogListClient() {
       console.log('📊 Blog: Load more - posts fetched:', postsData?.length || 0)
 
       if (postsError) {
-        console.error('❌ Blog: Load more posts query failed:', postsError)
-        return
+        console.error('❌ Blog: Load more - posts query failed:', postsError)
+        throw new Error(`Load more posts query failed: ${postsError.message}`)
       }
 
-      if (!postsData || postsData.length === 0) {
+      if (postsData && postsData.length > 0) {
+        // Transform posts to match expected format
+        const newPostsWithTranslations = postsData.map((post: any) => ({
+          ...post,
+          translations: post.blog_post_translations || []
+        }))
+
+        setPosts(prevPosts => [...prevPosts, ...newPostsWithTranslations])
+        setPage(nextPage)
+        
+        // Check if there are more posts
+        const { count: totalCount } = await supabase
+          .from('blog_posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'published')
+        
+        setHasMore((totalCount || 0) > (prevPosts.length + newPostsWithTranslations.length))
+      } else {
         setHasMore(false)
-        return
       }
-
-      // Check if there are more posts after this batch
-      const { count: totalCount } = await supabase
-        .from('blog_posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'published')
-
-      setHasMore((totalCount || 0) > offset + postsData.length)
-
-      // Extract new categories
-      const newCategories = postsData
-        .map((post: any) => post.categories)
-        .filter(Boolean)
-        .reduce((acc: Category[], category: any) => {
-          if (!acc.find((cat: any) => cat.id === category.id)) {
-            acc.push(category)
-          }
-          return acc
-        }, [])
-
-      // Add new categories to existing ones
-      setCategories((prevCategories: Category[]) => {
-        const existingIds = prevCategories.map((cat: Category) => cat.id)
-        const uniqueNewCategories = newCategories.filter((cat: Category) => !existingIds.includes(cat.id))
-        return [...prevCategories, ...uniqueNewCategories]
-      })
-
-      // Transform new posts to match expected format
-      const newPostsWithTranslations = postsData.map((post: any) => ({
-        ...post,
-        translations: post.blog_post_translations || []
-      }))
-
-      // Add new posts to existing posts
-      setPosts(prevPosts => [...prevPosts, ...newPostsWithTranslations])
-      setPage(nextPage)
-
+      
     } catch (err: any) {
       console.error('💥 Blog: Error loading more posts:', err)
+      console.error('💥 Blog: Load more error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      })
     } finally {
       setLoadingMore(false)
     }
   }, [loadingMore, hasMore, page, language])
 
-  // Memoize the rendered posts to prevent unnecessary re-renders
+  // Memoize rendered posts to prevent unnecessary re-renders
   const renderedPosts = useMemo(() => {
-    if (loading) return null
-
-    return posts.map((post: Post) => {
-      const translation = post.translations?.find((t: any) => t.language_code === language) || post.translations?.[0]
-
+    return posts.map((post) => {
+      const translation = post.translations.find(t => t.language_code === language) || post.translations[0]
       if (!translation) {
-        console.log('⚠️ Blog: No translation found for post:', post.id, 'language:', language)
+        console.warn('⚠️ Blog: No translation found for post:', post.id, 'Available translations:', post.translations)
         return null
       }
 
       const thumbnailUrl = getThumbnailUrl(post)
-      const isPlaceholder = !post.thumbnail_url
       const categoryName = post.category_id ? getCategoryName(post.category_id) : null
 
       return (
-        <article 
+        <BlogCard
           key={post.id}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
-          style={CARD_TEXT_COLOR}
-        >
-          <div className="flex flex-col md:flex-row">
-            {/* Thumbnail Section */}
-            <div className="md:w-1/4">
-              <Link href={`/blog/${post.slug}`} className="block relative h-48 md:h-full bg-gray-100 dark:bg-gray-700 overflow-hidden group">
-                {isPlaceholder ? (
-                  // Placeholder thumbnail
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-600">
-                    <Image
-                      src={thumbnailUrl}
-                      alt={translation.title}
-                      width={64}
-                      height={64}
-                      className="object-contain opacity-60 group-hover:scale-110 transition-transform duration-200"
-                    />
-                  </div>
-                ) : (
-                  // Real thumbnail from database
-                  <Image
-                    src={thumbnailUrl}
-                    alt={translation.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-200"
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                  />
-                )}
-              </Link>
-            </div>
-
-            {/* Content Section */}
-            <div className="md:w-3/4 p-6">
-              <header className="mb-4">
-                <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
-                  <Link 
-                    href={`/blog/${post.slug}`}
-                    className="block w-full rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
-                  >
-                    <span
-                      className="block transition-colors duration-200 group-hover:text-blue-600"
-                      style={{ color: 'var(--color-gray-900)', filter: 'unset' }}
-                    >
-                      {translation.title}
-                    </span>
-                  </Link>
-                </h2>
-                
-                <p className="text-base mb-4 leading-relaxed text-gray-600 dark:text-gray-400">
-                  {translation.summary}
-                </p>
-              </header>
-
-              <div className="flex items-center justify-start text-sm mb-4 text-gray-500 dark:text-gray-400">
-                <div className="flex items-center space-x-1">
-                  <Calendar size={14} />
-                  <span>{formatDate(post.published_at || post.created_at)}</span>
-                </div>
-              </div>
-
-              <div className="mt-auto">
-                <Link 
-                  href={`/blog/${post.slug}`}
-                  className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 font-medium"
-                >
-                  <span>{language === 'vi' ? 'Đọc thêm' : 'Read more'}</span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </article>
+          slug={post.slug}
+          title={translation.title}
+          summary={translation.summary}
+          thumbnailUrl={thumbnailUrl}
+          publishedAt={post.published_at || post.created_at}
+          locale={language === 'vi' ? 'vi-VN' : 'en-US'}
+        />
       )
     })
-  }, [posts, language, getThumbnailUrl, getCategoryName, formatDate, categories])
+  }, [posts, language, getThumbnailUrl])
 
   // Memoize the breadcrumb items
   const breadcrumbItems = useMemo(() => [
@@ -441,7 +358,7 @@ export default function BlogListClient() {
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {renderedPosts}
         </div>
 
