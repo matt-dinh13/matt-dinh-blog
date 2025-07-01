@@ -1,78 +1,123 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Image from 'next/image'
-import { Mail, Linkedin, Github, Calendar, Briefcase } from 'lucide-react'
+import { Mail, Linkedin, Github } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
+interface AboutMeData {
+  id: number
+  status: 'draft' | 'published'
+  published_at: string | null
+  translations: {
+    id: number
+    language_code: string
+    title: string
+    subtitle: string
+    content: string
+    meta_title: string
+    meta_description: string
+  }[]
+}
+
 export default function AboutClient() {
   const { language } = useLanguage()
+  const [aboutMe, setAboutMe] = useState<AboutMeData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
 
-  const content = {
-    en: {
-      title: "About Me",
-      subtitle: "Software Engineer & Business Analyst",
-      intro: "Hello! I'm Matt Dinh, a passionate software engineer and business analyst with a love for creating meaningful solutions that bridge technology and business needs.",
-      description: "With over 5 years of experience in software development and business analysis, I specialize in building scalable web applications, analyzing business requirements, and translating complex problems into elegant technical solutions.",
-      skills: {
-        title: "Skills & Expertise",
-        technical: "Technical Skills",
-        business: "Business Analysis",
-        soft: "Soft Skills"
-      },
-      experience: {
-        title: "Professional Experience",
-        current: "Senior Software Engineer",
-        company: "Tech Solutions Inc.",
-        period: "2022 - Present",
-        description: "Leading development of enterprise web applications, mentoring junior developers, and collaborating with cross-functional teams."
-      },
-      education: {
-        title: "Education",
-        degree: "Bachelor of Computer Science",
-        university: "University of Technology",
-        year: "2019"
-      },
-      contact: {
-        title: "Get In Touch",
-        description: "I'm always interested in new opportunities and collaborations. Feel free to reach out!"
+  useEffect(() => {
+    fetchAboutMe()
+  }, [])
+
+  const fetchAboutMe = async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch published about me data
+      const { data: aboutMeData, error: aboutMeError } = await supabase
+        .from('about_me')
+        .select('*')
+        .eq('status', 'published')
+        .single()
+
+      if (aboutMeError) {
+        console.error('Error fetching about me:', aboutMeError)
+        return
       }
-    },
-    vi: {
-      title: "Về Tôi",
-      subtitle: "Kỹ Sư Phần Mềm & Phân Tích Viên Kinh Doanh",
-      intro: "Xin chào! Tôi là Matt Dinh, một kỹ sư phần mềm và phân tích viên kinh doanh đam mê, với tình yêu tạo ra những giải pháp có ý nghĩa kết nối công nghệ và nhu cầu kinh doanh.",
-      description: "Với hơn 5 năm kinh nghiệm trong phát triển phần mềm và phân tích kinh doanh, tôi chuyên về xây dựng các ứng dụng web có khả năng mở rộng, phân tích yêu cầu kinh doanh và chuyển đổi các vấn đề phức tạp thành các giải pháp kỹ thuật thanh lịch.",
-      skills: {
-        title: "Kỹ Năng & Chuyên Môn",
-        technical: "Kỹ Năng Kỹ Thuật",
-        business: "Phân Tích Kinh Doanh",
-        soft: "Kỹ Năng Mềm"
-      },
-      experience: {
-        title: "Kinh Nghiệm Chuyên Môn",
-        current: "Kỹ Sư Phần Mềm Cao Cấp",
-        company: "Tech Solutions Inc.",
-        period: "2022 - Hiện Tại",
-        description: "Lãnh đạo phát triển các ứng dụng web doanh nghiệp, hướng dẫn các lập trình viên trẻ và hợp tác với các nhóm đa chức năng."
-      },
-      education: {
-        title: "Học Vấn",
-        degree: "Cử Nhân Khoa Học Máy Tính",
-        university: "Đại Học Công Nghệ",
-        year: "2019"
-      },
-      contact: {
-        title: "Liên Hệ",
-        description: "Tôi luôn quan tâm đến những cơ hội mới và sự hợp tác. Hãy liên hệ với tôi!"
+
+      if (aboutMeData) {
+        // Fetch translations
+        const { data: translations, error: translationsError } = await supabase
+          .from('about_me_translations')
+          .select('*')
+          .eq('about_me_id', aboutMeData.id)
+
+        if (translationsError) {
+          console.error('Error fetching translations:', translationsError)
+          return
+        }
+
+        setAboutMe({
+          ...aboutMeData,
+          translations: translations || []
+        })
       }
+    } catch (error) {
+      console.error('Error fetching about me:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const currentContent = content[language]
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+        <Navigation />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-lg">Loading...</div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (!aboutMe) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+        <Navigation />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-lg">About me page not found.</div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  const translation = aboutMe.translations.find(t => t.language_code === language)
+  
+  if (!translation) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+        <Navigation />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-lg">Translation not available for this language.</div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
@@ -82,10 +127,10 @@ export default function AboutClient() {
         {/* Header */}
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4" style={cardTextColor}>
-            {currentContent.title}
+            {translation.title}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
-            {currentContent.subtitle}
+            {translation.subtitle}
           </p>
           <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
             <Image
@@ -98,125 +143,27 @@ export default function AboutClient() {
           </div>
         </header>
 
-        {/* Introduction */}
+        {/* Content */}
         <section className="mb-12">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-            <p className="text-lg mb-4" style={cardTextColor}>
-              {currentContent.intro}
-            </p>
-            <p className="text-lg" style={cardTextColor}>
-              {currentContent.description}
-            </p>
-          </div>
-        </section>
-
-        {/* Skills */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6" style={cardTextColor}>
-            {currentContent.skills.title}
-          </h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold mb-4" style={cardTextColor}>
-                {currentContent.skills.technical}
-              </h3>
-              <ul className="space-y-2" style={cardTextColor}>
-                <li>• JavaScript/TypeScript</li>
-                <li>• React/Next.js</li>
-                <li>• Node.js/Python</li>
-                <li>• PostgreSQL/MongoDB</li>
-                <li>• Docker/AWS</li>
-              </ul>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold mb-4" style={cardTextColor}>
-                {currentContent.skills.business}
-              </h3>
-              <ul className="space-y-2" style={cardTextColor}>
-                <li>• Requirements Gathering</li>
-                <li>• Process Modeling</li>
-                <li>• Stakeholder Management</li>
-                <li>• Data Analysis</li>
-                <li>• Project Management</li>
-              </ul>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold mb-4" style={cardTextColor}>
-                {currentContent.skills.soft}
-              </h3>
-              <ul className="space-y-2" style={cardTextColor}>
-                <li>• Problem Solving</li>
-                <li>• Communication</li>
-                <li>• Team Leadership</li>
-                <li>• Critical Thinking</li>
-                <li>• Adaptability</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Experience & Education */}
-        <section className="mb-12">
-          <div className="grid gap-8 md:grid-cols-2">
-            {/* Experience */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-2xl font-bold mb-6" style={cardTextColor}>
-                {currentContent.experience.title}
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Briefcase size={16} className="text-blue-600" />
-                    <h3 className="font-semibold" style={cardTextColor}>
-                      {currentContent.experience.current}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {currentContent.experience.company}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    {currentContent.experience.period}
-                  </p>
-                  <p className="text-sm" style={cardTextColor}>
-                    {currentContent.experience.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Education */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-2xl font-bold mb-6" style={cardTextColor}>
-                {currentContent.education.title}
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Calendar size={16} className="text-green-600" />
-                    <h3 className="font-semibold" style={cardTextColor}>
-                      {currentContent.education.degree}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {currentContent.education.university}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {currentContent.education.year}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <div 
+              className="prose prose-lg max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: translation.content }}
+            />
           </div>
         </section>
 
         {/* Contact */}
         <section className="text-center">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-            <h2 className="text-2xl font-bold mb-4" style={cardTextColor}>
-              {currentContent.contact.title}
+            <h2 className="text-2xl font-bold mb-6" style={cardTextColor}>
+              {language === 'en' ? 'Get In Touch' : 'Liên Hệ'}
             </h2>
             <p className="text-lg mb-6" style={cardTextColor}>
-              {currentContent.contact.description}
+              {language === 'en' 
+                ? "I'm always interested in new opportunities and collaborations. Feel free to reach out!"
+                : "Tôi luôn quan tâm đến những cơ hội mới và sự hợp tác. Hãy liên hệ với tôi!"
+              }
             </p>
             <div className="flex justify-center space-x-6">
               <a

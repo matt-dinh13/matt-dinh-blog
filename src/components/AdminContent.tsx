@@ -65,14 +65,21 @@ export default function AdminContent() {
     const supabase = createClient()
     const table = type === 'blog' ? 'blog_posts' : 'portfolio_projects'
     
-    const { error } = await supabase
-      .from(table)
-      .delete()
-      .eq('id', id)
+    try {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', id)
 
-    if (!error) {
-      fetchData()
-    } else {
+      if (error) {
+        console.error('Error deleting item:', error)
+        alert(`Error deleting item: ${error.message}`)
+      } else {
+        alert('Item deleted successfully')
+        fetchData() // Refresh the data
+      }
+    } catch (err) {
+      console.error('Error in delete operation:', err)
       alert('Error deleting item')
     }
   }

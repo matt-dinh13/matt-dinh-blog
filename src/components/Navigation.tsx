@@ -19,7 +19,6 @@ export default function Navigation() {
     { name: language === 'vi' ? 'Blog' : 'Blog', href: '/blog' },
     { name: language === 'vi' ? 'Portfolio' : 'Portfolio', href: '/portfolio' },
     { name: language === 'vi' ? 'Giới thiệu' : 'About', href: '/about' },
-    // Admin link removed for public navigation
   ], [language])
 
   // Memoize handlers
@@ -31,46 +30,51 @@ export default function Navigation() {
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3">
+          {/* Logo - Fixed width to prevent layout shifts */}
+          <Link href="/" className="flex items-center space-x-3 flex-shrink-0 min-w-0">
             <Image
               src="/logo-square.jpg"
               alt="Matt Dinh Blog"
               width={40}
               height={40}
-              className="rounded-lg"
+              className="rounded-lg flex-shrink-0"
             />
-            <span className="text-xl font-bold" style={NAV_TEXT_COLOR}>
+            <span className="text-xl font-bold truncate" style={NAV_TEXT_COLOR}>
               Matt Dinh
             </span>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
-            {/* Search Icon - Desktop */}
-            {!isSearchOpen && (
-              <button
-                onClick={handleSearchToggle}
-                className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                aria-label="Toggle search"
-              >
-                <Search size={20} />
-              </button>
-            )}
-            
-            {/* Inline Search Field - Desktop */}
-            {isSearchOpen && (
-              <div className="w-64">
-                <SearchBar />
-              </div>
-            )}
-            
+          {/* Desktop Menu - Center section with proper spacing */}
+          <div className="hidden md:flex items-center justify-center flex-1 px-4">
+            <div className="flex items-center space-x-4 max-w-md w-full">
+              {/* Search Icon - Desktop */}
+              {!isSearchOpen && (
+                <button
+                  onClick={handleSearchToggle}
+                  className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 flex-shrink-0"
+                  aria-label="Toggle search"
+                >
+                  <Search size={20} />
+                </button>
+              )}
+              
+              {/* Inline Search Field - Desktop */}
+              {isSearchOpen && (
+                <div className="flex-1 max-w-xs">
+                  <SearchBar compact={true} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Navigation Links - Right section */}
+          <div className="hidden md:flex items-center space-x-2 flex-shrink-0">
             {menuItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 style={NAV_TEXT_COLOR}
-                className="font-medium transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300"
+                className="flex items-center justify-center h-10 px-3 font-medium transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-nowrap"
               >
                 {item.name}
               </Link>
@@ -78,12 +82,12 @@ export default function Navigation() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center space-x-2 flex-shrink-0">
             {/* Search Icon - Mobile */}
             {!isSearchOpen && (
               <button
                 onClick={handleSearchToggle}
-                className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                 aria-label="Toggle search"
               >
                 <Search size={20} />
@@ -92,10 +96,10 @@ export default function Navigation() {
             
             <button
               onClick={handleMenuToggle}
-              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+              className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
               aria-label="Toggle menu"
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -107,7 +111,7 @@ export default function Navigation() {
               {/* Inline Search Field - Mobile */}
               {isSearchOpen && (
                 <div className="px-3 py-2">
-                  <SearchBar />
+                  <SearchBar compact={true} />
                 </div>
               )}
               

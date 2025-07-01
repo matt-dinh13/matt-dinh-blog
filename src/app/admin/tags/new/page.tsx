@@ -11,7 +11,7 @@ import { logActivity } from '@/lib/logActivity'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' }
 
-export default function NewCategoryPage() {
+export default function NewTagPage() {
   const [slug, setSlug] = useState('')
   const [nameEn, setNameEn] = useState('')
   const [nameVi, setNameVi] = useState('')
@@ -25,31 +25,31 @@ export default function NewCategoryPage() {
     setError('')
     try {
       const supabase = createClient()
-      // Insert category
-      const { data: cat, error: catError } = await supabase
-        .from('categories')
+      // Insert tag
+      const { data: tag, error: tagError } = await supabase
+        .from('tags')
         .insert({ slug })
         .select('id')
         .single()
-      if (catError) throw catError
+      if (tagError) throw tagError
       // Insert translations
       for (const [lang, name] of [['en', nameEn], ['vi', nameVi]]) {
         const { error: trError } = await supabase
-          .from('category_translations')
-          .insert({ category_id: cat.id, language_code: lang, name })
+          .from('tag_translations')
+          .insert({ tag_id: tag.id, language_code: lang, name })
         if (trError) throw trError
       }
       // Log activity
       await logActivity({
         action: 'create',
-        entity: 'category',
-        entity_id: cat.id,
+        entity: 'tag',
+        entity_id: tag.id,
         details: { slug, nameEn, nameVi },
         user_id: null,
       })
-      router.push('/admin/categories')
+      router.push('/admin/tags')
     } catch (err: any) {
-      setError(err.message || 'Failed to create category')
+      setError(err.message || 'Failed to create tag')
     } finally {
       setSaving(false)
     }
@@ -57,7 +57,7 @@ export default function NewCategoryPage() {
 
   return (
     <ProtectedRoute>
-      <AdminLayout title="New Category" subtitle="Create a new blog category">
+      <AdminLayout title="New Tag" subtitle="Create a new blog tag">
         <div className="max-w-2xl">
           {error && (
             <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -76,9 +76,9 @@ export default function NewCategoryPage() {
                     onChange={e => setSlug(e.target.value)}
                     required
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g. programming"
+                    placeholder="e.g. javascript"
                   />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">URL-friendly identifier for the category</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">URL-friendly identifier for the tag</p>
                 </div>
                 
                 <div>
@@ -89,7 +89,7 @@ export default function NewCategoryPage() {
                     onChange={e => setNameEn(e.target.value)}
                     required
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g. Programming"
+                    placeholder="e.g. JavaScript"
                   />
                 </div>
                 
@@ -101,7 +101,7 @@ export default function NewCategoryPage() {
                     onChange={e => setNameVi(e.target.value)}
                     required
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g. Lập trình"
+                    placeholder="e.g. JavaScript"
                   />
                 </div>
               </div>
@@ -109,11 +109,11 @@ export default function NewCategoryPage() {
 
             <div className="flex items-center justify-between">
               <Link
-                href="/admin/categories"
+                href="/admin/tags"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors duration-200"
               >
                 <ArrowLeft size={16} className="mr-2" />
-                Back to Categories
+                Back to Tags
               </Link>
               <button
                 type="submit"
@@ -121,7 +121,7 @@ export default function NewCategoryPage() {
                 className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 <Save size={16} className="mr-2" />
-                {saving ? 'Creating...' : 'Create Category'}
+                {saving ? 'Creating...' : 'Create Tag'}
               </button>
             </div>
           </form>
@@ -129,4 +129,4 @@ export default function NewCategoryPage() {
       </AdminLayout>
     </ProtectedRoute>
   )
-} 
+}

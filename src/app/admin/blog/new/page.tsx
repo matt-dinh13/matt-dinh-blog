@@ -8,6 +8,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import RichTextEditor from '@/components/RichTextEditor'
+import { logActivity } from '@/lib/logActivity'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -188,6 +189,20 @@ export default function AdminBlogNewPage() {
           .from('blog_post_tags')
           .upsert({ blog_post_id: postId, tag_id: tagId }, { onConflict: 'blog_post_id,tag_id' })
       }
+      // Log activity
+      await logActivity({
+        action: 'create',
+        entity: 'blog_post',
+        entity_id: postId,
+        details: {
+          titleVi,
+          titleEn,
+          status,
+          categoryId,
+          tags: selectedTags.map(t => t.slug),
+        },
+        user_id: user?.id || null,
+      });
       router.push('/admin')
     } catch (err) {
       setError('Error creating blog post')

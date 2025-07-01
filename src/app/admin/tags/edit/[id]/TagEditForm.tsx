@@ -7,13 +7,13 @@ import { ArrowLeft, Save, X } from 'lucide-react'
 import Link from 'next/link'
 import { logActivity } from '@/lib/logActivity'
 
-interface CategoryEditFormProps {
+interface TagEditFormProps {
   id: string
 }
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' }
 
-export default function CategoryEditForm({ id }: CategoryEditFormProps) {
+export default function TagEditForm({ id }: TagEditFormProps) {
   const [slug, setSlug] = useState('')
   const [nameEn, setNameEn] = useState('')
   const [nameVi, setNameVi] = useState('')
@@ -23,27 +23,27 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
   const router = useRouter()
 
   useEffect(() => {
-    fetchCategory()
+    fetchTag()
     // eslint-disable-next-line
   }, [id])
 
-  async function fetchCategory() {
+  async function fetchTag() {
     setLoading(true)
     setError('')
     const supabase = createClient()
-    const { data: cat, error: catError } = await supabase
-      .from('categories')
-      .select('slug, category_translations(name, language_code)')
+    const { data: tag, error: tagError } = await supabase
+      .from('tags')
+      .select('slug, tag_translations(name, language_code)')
       .eq('id', id)
       .single()
-    if (catError || !cat) {
-      setError('Category not found')
+    if (tagError || !tag) {
+      setError('Tag not found')
       setLoading(false)
       return
     }
-    setSlug(cat.slug)
-    setNameEn(cat.category_translations.find((t: any) => t.language_code === 'en')?.name || '')
-    setNameVi(cat.category_translations.find((t: any) => t.language_code === 'vi')?.name || '')
+    setSlug(tag.slug)
+    setNameEn(tag.tag_translations.find((t: any) => t.language_code === 'en')?.name || '')
+    setNameVi(tag.tag_translations.find((t: any) => t.language_code === 'vi')?.name || '')
     setLoading(false)
   }
 
@@ -53,73 +53,45 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
     setError('')
     try {
       const supabase = createClient()
-      // Update category slug
-      const { error: catError } = await supabase
-        .from('categories')
+      // Update tag slug
+      const { error: tagError } = await supabase
+        .from('tags')
         .update({ slug })
         .eq('id', id)
-      if (catError) throw catError
+      if (tagError) throw tagError
       // Update or insert translations
       for (const [lang, name] of [['en', nameEn], ['vi', nameVi]]) {
         // Try update first
         const { data: updateData, error: trUpdateError } = await supabase
-          .from('category_translations')
+          .from('tag_translations')
           .update({ name })
-          .eq('category_id', id)
+          .eq('tag_id', id)
           .eq('language_code', lang)
           .select('*')
         if (trUpdateError) throw trUpdateError
         if (!updateData || updateData.length === 0) {
           // Insert if not exist
           const { error: trInsertError } = await supabase
-            .from('category_translations')
-            .insert({ category_id: id, language_code: lang, name })
+            .from('tag_translations')
+            .insert({ tag_id: id, language_code: lang, name })
           if (trInsertError) throw trInsertError
         }
       }
       // Log activity
       await logActivity({
         action: 'update',
-        entity: 'category',
+        entity: 'tag',
         entity_id: id,
         details: { slug, nameEn, nameVi },
         user_id: null,
       });
-      router.push('/admin/categories')
+      router.push('/admin/tags')
     } catch (err: any) {
-      setError(err.message || 'Failed to update category')
+      setError(err.message || 'Failed to update tag')
     } finally {
       setSaving(false)
     }
   }
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) return;
-    setSaving(true);
-    setError('');
-    try {
-      const supabase = createClient();
-      // Delete translations
-      await supabase.from('category_translations').delete().eq('category_id', id);
-      // Delete the category itself
-      const { error: catError } = await supabase.from('categories').delete().eq('id', id);
-      if (catError) throw catError;
-      // Log activity
-      await logActivity({
-        action: 'delete',
-        entity: 'category',
-        entity_id: id,
-        details: { slug, nameEn, nameVi },
-        user_id: null,
-      });
-      router.push('/admin/categories');
-    } catch (err) {
-      setError('Error deleting category');
-      console.error('Error:', err);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -134,11 +106,11 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
         <p className="text-red-600 dark:text-red-400">{error}</p>
         <Link 
-          href="/admin/categories" 
+          href="/admin/tags" 
           className="inline-flex items-center mt-2 text-blue-600 hover:text-blue-700"
         >
           <ArrowLeft size={16} className="mr-1" />
-          Back to Categories
+          Back to Tags
         </Link>
       </div>
     )
@@ -157,9 +129,9 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
                 onChange={e => setSlug(e.target.value)}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g. programming"
+                placeholder="e.g. javascript"
               />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">URL-friendly identifier for the category</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">URL-friendly identifier for the tag</p>
             </div>
             
             <div>
@@ -170,7 +142,7 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
                 onChange={e => setNameEn(e.target.value)}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g. Programming"
+                placeholder="e.g. JavaScript"
               />
             </div>
             
@@ -182,7 +154,7 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
                 onChange={e => setNameVi(e.target.value)}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g. Lập trình"
+                placeholder="e.g. JavaScript"
               />
             </div>
           </div>
@@ -190,7 +162,7 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
 
         <div className="flex items-center justify-between">
           <Link
-            href="/admin/categories"
+            href="/admin/tags"
             className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors duration-200"
           >
             <X size={16} className="mr-2" />
@@ -204,16 +176,8 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
             <Save size={16} className="mr-2" />
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={saving}
-            className="inline-flex items-center px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 ml-4"
-          >
-            Delete
-          </button>
         </div>
       </form>
     </div>
   )
-} 
+}
