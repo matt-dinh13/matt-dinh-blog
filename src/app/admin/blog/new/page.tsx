@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
-import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/imageUtils'
+import { processImageFile, validateImageFile } from '@/lib/imageUtils'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
