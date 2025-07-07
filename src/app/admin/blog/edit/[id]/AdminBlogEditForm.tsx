@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
+import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/imageUtils'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -15,6 +16,7 @@ type BlogPost = {
   content: string
   status: string
   tags?: { id: number; slug: string; name: string }[]
+  thumbnail_url?: string
 }
 
 interface BlogPostTranslation {
@@ -50,6 +52,10 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   const [translation, setTranslation] = useState<BlogPostTranslation | null>(null)
   const [translationLang, setTranslationLang] = useState('vi') // Always prefer Vietnamese
   const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
+  const [success, setSuccess] = useState('')
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
+  const [thumbnailError, setThumbnailError] = useState<string>('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchPost = useCallback(async () => {
     try {
@@ -213,22 +219,134 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     }
   }
 
+  // On load, set preview if thumbnail_url exists
+  useEffect(() => {
+    if (post?.thumbnail_url) setThumbnailPreview(post.thumbnail_url);
+  }, [post]);
+
+  // Handle thumbnail select (not upload)
+  const handleThumbnailSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setThumbnailError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      setThumbnailError(validation.error || 'Invalid file');
+      return;
+    }
+
+    try {
+      // Process the image (convert HEIC to JPG, compress, etc.)
+      const result = await processImageFile(file);
+      
+      if (!result.success) {
+        setThumbnailError(result.error || 'Failed to process image');
+        return;
+      }
+
+      // Check final file size
+      if (result.file.size > 3 * 1024 * 1024) {
+        setThumbnailError('Image is too large after processing (max 3MB).');
+        return;
+      }
+
+      setThumbnailPreview(result.preview);
+      console.log('Image processed successfully:', {
+        originalName: file.name,
+        processedName: result.file.name,
+        originalSize: file.size,
+        processedSize: result.file.size,
+        type: result.file.type
+      });
+      
+    } catch (err: any) {
+      console.error('Image processing error:', err);
+      setThumbnailError(`Failed to process image: ${err.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleRemoveThumbnail = () => {
+    setThumbnailPreview('');
+    setThumbnailError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setError('')
+    setSuccess('')
+    setThumbnailError('')
+    let uploadedThumbnailUrl = thumbnailPreview; // fallback to existing if not changed
     try {
+      if (thumbnailPreview) {
+        // Upload thumbnail to Supabase
+        const supabase = createClient()
+        
+        // Convert data URL back to File object for upload
+        const response = await fetch(thumbnailPreview);
+        const blob = await response.blob();
+        const file = new File([blob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        
+        console.log('Uploading file:', {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified
+        });
+        
+        const fileName = `thumbnails/${Date.now()}-${file.name}`
+        console.log('Uploading to path:', fileName);
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, { upsert: true })
+        
+        console.log('Upload response:', { data: uploadData, error: uploadError });
+        
+        if (uploadError) {
+          console.error('Upload error details:', uploadError);
+          throw new Error(`Storage upload failed: ${uploadError.message} (${uploadError.statusCode})`);
+        }
+        
+        const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
+        uploadedThumbnailUrl = urlData?.publicUrl
+        if (!uploadedThumbnailUrl) throw new Error('Failed to get public URL for thumbnail.')
+        
+        // Clean up old thumbnail if it exists and is different from the new one
+        if (post?.thumbnail_url && post.thumbnail_url !== uploadedThumbnailUrl) {
+          console.log('Cleaning up old thumbnail:', post.thumbnail_url);
+          await cleanupOldThumbnail(post.thumbnail_url, supabase);
+        }
+      }
+      if (!uploadedThumbnailUrl) {
+        setThumbnailError('Thumbnail is required.')
+        setSaving(false)
+        return
+      }
       const supabase = createClient()
+      
+      // Get current user for RLS policy
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        throw new Error('User not authenticated. Please log in again.')
+      }
+      
       // Update blog post (base)
       const { error: postError } = await supabase
         .from('blog_posts')
         .update({
           status,
           published_at: status === 'published' ? new Date().toISOString() : null,
-          category_id: categoryId || null
+          category_id: categoryId || null,
+          thumbnail_url: uploadedThumbnailUrl,
+          author_id: user.id // Set author_id for RLS policy
         })
         .eq('id', id)
-      if (postError) throw postError
+      if (postError) {
+        console.error('Post update error:', postError)
+        throw new Error(`Database error: ${postError.message}`)
+      }
       // Upsert translations for VI and EN
       const translations = [
         { blog_post_id: id, language_code: 'vi', title: titleVi, summary: '', content: contentVi },
@@ -285,9 +403,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
           tags: selectedTags.map(t => t.slug),
         },
       });
-      router.push('/admin')
-    } catch (err) {
+      setSuccess('Article saved successfully!')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch (err: any) {
       setError('Error updating blog post')
+      setThumbnailError(err?.message || 'Unknown error')
       console.error('Error:', err)
     } finally {
       setSaving(false)
@@ -300,6 +420,13 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     setError('');
     try {
       const supabase = createClient();
+      
+      // Clean up thumbnail file if it exists
+      if (post?.thumbnail_url) {
+        console.log('Cleaning up thumbnail for deleted post:', post.thumbnail_url);
+        await cleanupOldThumbnail(post.thumbnail_url, supabase);
+      }
+      
       // Delete translations
       await supabase.from('blog_post_translations').delete().eq('blog_post_id', id);
       // Delete tags relation
@@ -365,7 +492,13 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 max-w-4xl mx-auto">
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1574px] mx-auto">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
@@ -389,6 +522,41 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
               placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
             />
           </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-900" htmlFor="thumbnail">Thumbnail Image <span className="text-red-500">*</span></label>
+            <div className="border-2 border-gray-300 rounded-lg p-3 flex items-center gap-4 bg-gray-50">
+              <input
+                type="file"
+                id="thumbnail"
+                accept="image/heic,image/jpeg,image/jpg,image/png"
+                onChange={handleThumbnailSelect}
+                disabled={saving}
+                className="bg-white text-gray-900 flex-1"
+                ref={fileInputRef}
+              />
+              {thumbnailPreview && (
+                <div className="relative">
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveThumbnail}
+                    className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-600 border border-gray-300 hover:bg-red-100"
+                    title="Remove thumbnail"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Supported formats: JPG, PNG, HEIC (some HEIC files may not be supported - convert to JPG/PNG if needed)
+            </div>
+            {thumbnailError && <div className="text-xs text-red-500 mt-1">{thumbnailError}</div>}
+          </div>
 
           <div className="mt-4">
             <label htmlFor="content" className="block text-sm font-medium mb-1" style={cardTextColor}>
@@ -410,7 +578,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
               id="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
@@ -425,7 +593,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
               id="category"
               value={categoryId}
               onChange={e => setCategoryId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               required
             >
               <option value="">Select a category</option>
@@ -455,7 +623,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagInputKeyDown}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               placeholder="Add a hashtag (press Enter)"
               disabled={selectedTags.length >= 3}
             />

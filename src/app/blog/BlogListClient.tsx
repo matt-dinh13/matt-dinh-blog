@@ -24,7 +24,13 @@ interface Post {
     language_code: string
     title: string
     summary: string
+    content: string
   }>
+}
+
+function stripHtml(html: string) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, '');
 }
 
 export default function BlogListClient() {
@@ -203,7 +209,7 @@ export default function BlogListClient() {
           key={post.id}
           slug={post.slug}
           title={translation.title}
-          summary={translation.summary}
+          description={stripHtml(translation.content).slice(0, 256)}
           thumbnailUrl={thumbnailUrl}
           publishedAt={post.published_at || post.created_at}
           locale={language === 'vi' ? 'vi-VN' : 'en-US'}

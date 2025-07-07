@@ -44,31 +44,24 @@ export default function Navigation() {
             </span>
           </Link>
 
-          {/* Desktop Menu - Center section with proper spacing */}
-          <div className="hidden md:flex items-center justify-center flex-1 px-4">
-            <div className="flex items-center space-x-4 max-w-md w-full">
-              {/* Search Icon - Desktop */}
-              {!isSearchOpen && (
-                <button
-                  onClick={handleSearchToggle}
-                  className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 flex-shrink-0"
-                  aria-label="Toggle search"
-                >
-                  <Search size={20} />
-                </button>
-              )}
-              
-              {/* Inline Search Field - Desktop */}
-              {isSearchOpen && (
-                <div className="flex-1 max-w-xs">
-                  <SearchBar compact={true} />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Desktop Navigation Links - Right section */}
+          {/* Desktop Navigation Links + Search - Right section */}
           <div className="hidden md:flex items-center space-x-2 flex-shrink-0">
+            {/* Search button/field first */}
+            {!isSearchOpen && (
+              <button
+                onClick={handleSearchToggle}
+                className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 flex-shrink-0"
+                aria-label="Toggle search"
+              >
+                <Search size={20} />
+              </button>
+            )}
+            {isSearchOpen && (
+              <div className="flex-1 max-w-xs">
+                <SearchBar compact={true} />
+              </div>
+            )}
+            {/* Then nav links in order */}
             {menuItems.map((item) => (
               <Link
                 key={item.name}

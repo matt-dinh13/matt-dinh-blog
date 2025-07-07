@@ -33,16 +33,16 @@ export default async function AdminBlogListPage() {
           <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
             {posts?.map((post: any) => (
               <tr key={post.id}>
-                <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">{post.id}</td>
+                <td className="px-4 py-2 text-sm force-dark">{post.id}</td>
                 <td className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400">
                   <Link href={`/blog/${post.slug}`} target="_blank" className="hover:underline">{post.slug}</Link>
                 </td>
                 <td className="px-4 py-2 text-sm">
                   <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{post.status}</span>
                 </td>
-                <td className="px-4 py-2 text-sm">{post.published_at ? new Date(post.published_at).toLocaleDateString() : '-'}</td>
-                <td className="px-4 py-2 text-sm">{new Date(post.created_at).toLocaleDateString()}</td>
-                <td className="px-4 py-2 text-sm">{new Date(post.updated_at).toLocaleDateString()}</td>
+                <td className="px-4 py-2 text-sm force-dark">{post.published_at ? new Date(post.published_at).toLocaleDateString() : '-'}</td>
+                <td className="px-4 py-2 text-sm force-dark">{new Date(post.created_at).toLocaleDateString()}</td>
+                <td className="px-4 py-2 text-sm force-dark">{new Date(post.updated_at).toLocaleDateString()}</td>
                 <td className="px-4 py-2 text-right">
                   <Link href={`/admin/blog/edit/${post.id}`} className="text-blue-600 hover:underline mr-2">Edit</Link>
                 </td>

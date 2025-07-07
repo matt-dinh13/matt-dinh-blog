@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
+import AdminLayout from '@/components/AdminLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
+import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/imageUtils'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -32,6 +32,10 @@ export default function AdminBlogNewPage() {
   const [tagInput, setTagInput] = useState('')
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; slug: string; name: string }[]>([])
   const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
+  const [success, setSuccess] = useState('')
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
+  const [thumbnailError, setThumbnailError] = useState<string>('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch categories
   useEffect(() => {
@@ -125,12 +129,98 @@ export default function AdminBlogNewPage() {
     }
   }
 
+  // Handle thumbnail select (not upload)
+  const handleThumbnailSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setThumbnailError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      setThumbnailError(validation.error || 'Invalid file');
+      return;
+    }
+
+    try {
+      // Process the image (convert HEIC to JPG, compress, etc.)
+      const result = await processImageFile(file);
+      
+      if (!result.success) {
+        setThumbnailError(result.error || 'Failed to process image');
+        return;
+      }
+
+      // Check final file size
+      if (result.file.size > 3 * 1024 * 1024) {
+        setThumbnailError('Image is too large after processing (max 3MB).');
+        return;
+      }
+
+      setThumbnailPreview(result.preview);
+      console.log('Image processed successfully:', {
+        originalName: file.name,
+        processedName: result.file.name,
+        originalSize: file.size,
+        processedSize: result.file.size,
+        type: result.file.type
+      });
+      
+    } catch (err: any) {
+      console.error('Image processing error:', err);
+      setThumbnailError(`Failed to process image: ${err.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleRemoveThumbnail = () => {
+    setThumbnailPreview('');
+    setThumbnailError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
+    setThumbnailError('')
+    let uploadedThumbnailUrl = ''
     try {
+      if (!thumbnailPreview) {
+        setThumbnailError('Thumbnail is required.')
+        setLoading(false)
+        return
+      }
+      // Upload thumbnail to Supabase
       const supabase = createClient()
+      
+      // Convert data URL back to File object for upload
+      const response = await fetch(thumbnailPreview);
+      const blob = await response.blob();
+      const file = new File([blob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
+      console.log('Uploading file:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
+      
+      const fileName = `thumbnails/${Date.now()}-${file.name}`
+      console.log('Uploading to path:', fileName);
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, { upsert: true })
+      
+      console.log('Upload response:', { data: uploadData, error: uploadError });
+      
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw new Error(`Storage upload failed: ${uploadError.message} (${uploadError.statusCode})`);
+      }
+      
+      const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
+      uploadedThumbnailUrl = urlData?.publicUrl
+      if (!uploadedThumbnailUrl) throw new Error('Failed to get public URL for thumbnail.')
       const slug = generateSlug(titleVi)
       // Insert base post
       const { data: postData, error } = await supabase
@@ -143,11 +233,15 @@ export default function AdminBlogNewPage() {
           status,
           author_id: user?.id,
           published_at: status === 'published' ? new Date().toISOString() : null,
-          category_id: categoryId || null
+          category_id: categoryId || null,
+          thumbnail_url: uploadedThumbnailUrl
         })
         .select('id')
         .single()
-      if (error) throw error
+      if (error) {
+        console.error('Post creation error:', error)
+        throw new Error(`Database error: ${error.message}`)
+      }
       const postId = postData.id
       // Upsert translations for VI and EN
       const translations = [
@@ -203,9 +297,12 @@ export default function AdminBlogNewPage() {
         },
         user_id: user?.id || null,
       });
-      router.push('/admin')
-    } catch (err) {
+      setSuccess('Article created successfully!')
+      setThumbnailPreview('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch (err: any) {
       setError('Error creating blog post')
+      setThumbnailError(err?.message || 'Unknown error')
       console.error('Error:', err)
     } finally {
       setLoading(false)
@@ -214,9 +311,8 @@ export default function AdminBlogNewPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
-        <Navigation />
-        <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+      <AdminLayout title="Add New Blog Post">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Blog Post</h1>
             <button
@@ -233,7 +329,62 @@ export default function AdminBlogNewPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              {success}
+            </div>
+          )}
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1574px] mx-auto">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
+                Title *
+              </label>
+              <input
+                id="title"
+                type="text"
+                value={activeLang === 'vi' ? titleVi : titleEn}
+                onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1 text-gray-900" htmlFor="thumbnail">Thumbnail Image <span className="text-red-500">*</span></label>
+              <div className="border-2 border-gray-300 rounded-lg p-3 flex items-center gap-4 bg-gray-50">
+                <input
+                  type="file"
+                  id="thumbnail"
+                  accept="image/heic,image/jpeg,image/jpg,image/png"
+                  onChange={handleThumbnailSelect}
+                  disabled={loading}
+                  className="bg-white text-gray-900 flex-1"
+                  ref={fileInputRef}
+                />
+                {thumbnailPreview && (
+                  <div className="relative">
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail preview"
+                      style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveThumbnail}
+                      className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-600 border border-gray-300 hover:bg-red-100"
+                      title="Remove thumbnail"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Supported formats: JPG, PNG, HEIC (some HEIC files may not be supported - convert to JPG/PNG if needed)
+              </div>
+              {thumbnailError && <div className="text-xs text-red-500 mt-1">{thumbnailError}</div>}
+            </div>
             <div className="flex gap-2 mb-4">
               <button type="button" className={`px-2 py-1 rounded ${activeLang === 'vi' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white'}`} onClick={() => setActiveLang('vi')}>
                 🇻🇳 VN
@@ -243,31 +394,18 @@ export default function AdminBlogNewPage() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
-                  Title *
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  value={activeLang === 'vi' ? titleVi : titleEn}
-                  onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                  placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
-                />
-              </div>
-
               <div className="mt-4">
                 <label htmlFor="content" className="block text-sm font-medium mb-1" style={cardTextColor}>
                   Content *
                 </label>
-                <RichTextEditor
-                  value={activeLang === 'vi' ? contentVi : contentEn}
-                  onChange={md => activeLang === 'vi' ? setContentVi(md) : setContentEn(md)}
-                  language={activeLang}
-                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md"
-                />
+                <div className="w-full">
+                  <RichTextEditor
+                    value={activeLang === 'vi' ? contentVi : contentEn}
+                    onChange={md => activeLang === 'vi' ? setContentVi(md) : setContentEn(md)}
+                    language={activeLang}
+                    className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md"
+                  />
+                </div>
               </div>
 
               <div>
@@ -363,11 +501,8 @@ export default function AdminBlogNewPage() {
               </div>
             </form>
           </div>
-        </main>
-        <footer className="bg-gray-900 text-white">
-          <Footer />
-        </footer>
-      </div>
+        </div>
+      </AdminLayout>
     </ProtectedRoute>
   )
 } 

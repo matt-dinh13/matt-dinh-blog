@@ -2,7 +2,7 @@ import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import ArticleDetailsClient from './ArticleDetailsClient'
 import { ArrowLeft } from 'lucide-react'
@@ -19,14 +19,13 @@ export default async function BlogPostPage({ params }: Props) {
   try {
     console.log('🔍 Blog Post: Fetching post with slug:', slug)
     
-    const supabase = createClient()
+    const supabase = await createServerSupabaseClient()
     
-    // First, fetch the blog post
+    // Fetch post by slug regardless of status
     const { data: post, error: postError } = await supabase
       .from('blog_posts')
       .select('*')
       .eq('slug', slug)
-      .eq('status', 'published')
       .single()
 
     console.log('📊 Blog Post: Post query result:', { data: post, error: postError })
@@ -34,6 +33,23 @@ export default async function BlogPostPage({ params }: Props) {
     if (postError || !post) {
       console.error('❌ Blog Post: Post not found or error:', postError)
       notFound()
+    }
+
+    // If post is draft, check if user is admin
+    if (post.status === 'draft') {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        notFound()
+      }
+      // Fetch user from users table
+      const { data: userData } = await supabase
+        .from('users')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single()
+      if (!userData || !userData.is_admin) {
+        notFound()
+      }
     }
 
     // Then, fetch the translations for this post
@@ -64,7 +80,7 @@ export default async function BlogPostPage({ params }: Props) {
       .eq('blog_post_id', post.id)
 
     let tags: { slug: string, name: string }[] = []
-    if (!tagLinksError && tagLinks && tagLinks.length > 0) {
+    if (!tagLinksError && Array.isArray(tagLinks) && tagLinks.length > 0) {
       const tagIds = tagLinks.map((t: any) => t.tag_id)
       // Fetch tag slugs and names (English for now)
       const { data: tagData, error: tagDataError } = await supabase
@@ -103,7 +119,7 @@ export default async function BlogPostPage({ params }: Props) {
     try {
       // First, try to find posts with shared tags
       if (tags.length > 0) {
-        const tagIds = tagLinks.map((t: any) => t.tag_id)
+        const tagIds = Array.isArray(tagLinks) ? tagLinks.map((t: any) => t.tag_id) : []
         const { data: relatedByTags } = await supabase
           .from('blog_posts')
           .select(`
@@ -182,22 +198,26 @@ export default async function BlogPostPage({ params }: Props) {
             { label: 'Blog', href: '/blog' },
             { label: translation.title }
           ]} />
-          {/* Back Button */}
-          <Link 
-            href="/blog"
-            className="inline-flex items-center space-x-2 mb-8 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Blog</span>
-          </Link>
-
+          {/* Back Button and Draft Badge Row */}
+          <div className="flex items-center justify-between mb-8">
+            <Link 
+              href="/blog"
+              className="inline-flex items-center space-x-2 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Blog</span>
+            </Link>
+            {post.status === 'draft' && (
+              <div className="inline-block px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full font-semibold text-xs">Draft (visible to admin only)</div>
+            )}
+          </div>
           <ArticleDetailsClient
             postId={post.id}
-            title={translation.title}
-            content={translation.content}
+            title={post.title}
+            content={post.content}
             publishedAt={post.published_at}
             createdAt={post.created_at}
-            viewCount={post.view_count || 0}
+            viewCount={post.view_count}
             category={category}
             tags={tags}
             thumbnailUrl={post.thumbnail_url}

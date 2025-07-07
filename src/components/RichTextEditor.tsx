@@ -50,9 +50,10 @@ export default function RichTextEditor({ value, onChange, language, className }:
     },
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert min-h-[300px] max-w-none focus:outline-none text-gray-900',
+        class: 'min-h-[300px] w-full focus:outline-none text-gray-900',
       },
     },
+    immediatelyRender: false,
   });
 
   // Sync value from parent (for language switching)
@@ -116,9 +117,27 @@ export default function RichTextEditor({ value, onChange, language, className }:
 
   // Bubble menu for formatting
   return (
-    <div onDrop={handleDrop} className={`relative border rounded-md p-2 bg-white text-gray-900 ${className || ''}`}>
+    <div onDrop={handleDrop} className={`relative border rounded-md p-1 bg-white text-gray-900 w-full ${className || ''}`}>
       {editor && (
         <>
+          {/* Persistent toolbar at the top */}
+          <div className="flex flex-wrap gap-1 bg-white border-b rounded-t shadow-sm p-1 text-gray-900 sticky top-0 z-10">
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleItalic().run()}><i>I</i></button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleStrike().run()}><s>S</s></button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleCode().run()}>Code</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>H1</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleBulletList().run()}>• List</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleOrderedList().run()}>1. List</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().toggleBlockquote().run()}>❝</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Table</button>
+            <button className={menuButton} onClick={() => editor.chain().focus().setYoutubeVideo({ src: prompt('YouTube URL') || '' }).run()}>YT</button>
+            <button className={menuButton} onClick={handleImageButton} disabled={uploading}>🖼️</button>
+            <button className={menuButton} onClick={handleImageUrl}>🌐</button>
+          </div>
+          {/* Contextual menus remain for selection-based actions */}
           <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
             <div className="flex flex-wrap gap-1 bg-white border rounded shadow p-1 text-gray-900">
               <button className={menuButton} onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
@@ -164,7 +183,7 @@ export default function RichTextEditor({ value, onChange, language, className }:
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
-      <EditorContent editor={editor} className={`text-gray-900 bg-white prose prose-gray max-w-none ${styles.forceDarkText}`} style={{ fontWeight: 400 }} />
+      <EditorContent editor={editor} className={`text-gray-900 bg-white w-full min-h-[300px] ${styles.forceDarkText}`} style={{ fontWeight: 400 }} />
       {/* Image size controls (if image selected) */}
       {editor && editor.isActive('image') && (
         <div className="flex gap-2 mt-2 items-center">

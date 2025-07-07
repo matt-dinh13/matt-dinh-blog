@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
 import { 
   LayoutDashboard, 
@@ -44,9 +44,11 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
   const { signOut } = useAuth()
+  const router = useRouter()
 
   const handleSignOut = async () => {
     await signOut()
+    router.push('/login')
   }
 
   return (

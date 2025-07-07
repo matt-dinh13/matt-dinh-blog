@@ -191,3 +191,7 @@ body {
 .search-input {
   color: #000 !important;
 }
+
+.force-dark {
+  color: #111 !important;
+}

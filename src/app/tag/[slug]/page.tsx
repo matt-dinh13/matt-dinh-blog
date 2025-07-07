@@ -142,7 +142,7 @@ export default async function TagPage({ params, searchParams }: Props) {
                   key={post.id}
                   slug={post.slug}
                   title={translation?.title || post.slug}
-                  summary={translation?.summary || ''}
+                  description={translation?.summary || ''}
                   thumbnailUrl={thumbnailUrl}
                   publishedAt={post.published_at || post.created_at}
                   locale={languageCode === 'vi' ? 'vi-VN' : 'en-US'}

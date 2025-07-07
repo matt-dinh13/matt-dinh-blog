@@ -14,6 +14,11 @@ interface RelatedPost {
   publishedAt: string;
 }
 
+function stripHtml(html: string) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, '');
+}
+
 export default function ArticleDetailsClient({
   postId,
   title,
@@ -25,7 +30,7 @@ export default function ArticleDetailsClient({
   tags,
   thumbnailUrl,
   languageCode,
-  relatedPosts
+  relatedPosts,
 }: {
   postId: string,
   title: string,
@@ -37,7 +42,7 @@ export default function ArticleDetailsClient({
   tags: { slug: string, name: string }[],
   thumbnailUrl?: string,
   languageCode: string,
-  relatedPosts?: RelatedPost[]
+  relatedPosts?: RelatedPost[],
 }) {
   const locale = languageCode === 'vi' ? 'vi-VN' : 'en-US';
   const formattedDate = new Date(publishedAt || createdAt).toLocaleDateString(locale, {
@@ -127,7 +132,7 @@ export default function ArticleDetailsClient({
                   key={post.id}
                   slug={post.slug}
                   title={post.title}
-                  summary={post.summary}
+                  description={stripHtml((post as any).content || post.summary).slice(0, 256)}
                   thumbnailUrl={post.thumbnailUrl}
                   publishedAt={post.publishedAt}
                   locale={locale}

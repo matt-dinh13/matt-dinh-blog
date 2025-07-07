@@ -1,13 +1,10 @@
 import { Suspense } from 'react'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminBlogEditForm from './AdminBlogEditForm'
+import AdminLayout from '@/components/AdminLayout'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
-
-const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 type Props = {
   params: Promise<{ id: string }>
@@ -18,9 +15,8 @@ export default async function EditBlogPage({ params }: Props) {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
-        <Navigation />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+      <AdminLayout title="Edit Blog Post">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
           <Suspense fallback={
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -29,11 +25,8 @@ export default async function EditBlogPage({ params }: Props) {
           }>
             <AdminBlogEditForm id={id} />
           </Suspense>
-        </main>
-        <footer className="bg-gray-900 text-white">
-          <Footer />
-        </footer>
-      </div>
+        </div>
+      </AdminLayout>
     </ProtectedRoute>
   )
 } 

@@ -13,7 +13,9 @@ type BlogPost = {
   title: string
   status: string
   created_at: string
+  published_at?: string
   slug: string
+  updated_at?: string
 }
 
 type PortfolioProject = {
@@ -40,7 +42,7 @@ export default function AdminContent() {
     // Fetch blog posts
     const { data: posts } = await supabase
       .from('blog_posts')
-      .select('id, title, status, created_at, slug')
+      .select('id, title, status, created_at, published_at, slug, updated_at')
       .order('created_at', { ascending: false })
 
     // Fetch portfolio projects
@@ -116,9 +118,12 @@ export default function AdminContent() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-700">
+                <th className="px-4 py-2 text-left font-medium force-dark font-mono">ID</th>
                 <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Title</th>
                 <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Status</th>
-                <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Created</th>
+                <th className="px-4 py-2 text-left font-medium force-dark">Published</th>
+                <th className="px-4 py-2 text-left font-medium force-dark">Created</th>
+                <th className="px-4 py-2 text-left font-medium force-dark">Updated</th>
                 <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Actions</th>
               </tr>
             </thead>
@@ -132,6 +137,9 @@ export default function AdminContent() {
               ) : (
                 blogPosts.map((post) => (
                   <tr key={post.id}>
+                    <td className="px-4 py-2 text-sm force-dark font-mono">
+                      {post.id}
+                    </td>
                     <td className="px-4 py-2" style={cardTextColor}>{post.title}</td>
                     <td className="px-4 py-2" style={cardTextColor}>
                       <span className={`px-2 py-1 rounded text-xs ${
@@ -142,8 +150,14 @@ export default function AdminContent() {
                         {post.status}
                       </span>
                     </td>
-                    <td className="px-4 py-2" style={cardTextColor}>
+                    <td className="px-4 py-2 text-sm force-dark">
+                      {post.published_at ? new Date(post.published_at).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-4 py-2 text-sm force-dark">
                       {new Date(post.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-2 text-sm force-dark">
+                      {post.updated_at ? new Date(post.updated_at).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-4 py-2">
                       <Link href={`/admin/blog/edit/${post.id}`} className="text-blue-600 hover:underline mr-2">Edit</Link>
@@ -181,7 +195,7 @@ export default function AdminContent() {
               <tr className="bg-gray-100 dark:bg-gray-700">
                 <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Project</th>
                 <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Status</th>
-                <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Created</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-900 dark:text-white">Created</th>
                 <th className="px-4 py-2 text-left font-medium" style={cardTextColor}>Actions</th>
               </tr>
             </thead>
@@ -205,7 +219,7 @@ export default function AdminContent() {
                         {project.status}
                       </span>
                     </td>
-                    <td className="px-4 py-2" style={cardTextColor}>
+                    <td className="px-4 py-2 text-gray-900 dark:text-white">
                       {new Date(project.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-2">

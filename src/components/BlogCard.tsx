@@ -4,13 +4,19 @@ import { Calendar } from 'lucide-react'
 interface BlogCardProps {
   slug: string
   title: string
-  summary: string
+  description: string
   thumbnailUrl?: string
   publishedAt: string
   locale?: string
 }
 
-export default function BlogCard({ slug, title, summary, thumbnailUrl, publishedAt, locale = 'en-US' }: BlogCardProps) {
+function stripHtml(html: string) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, '');
+}
+
+export default function BlogCard({ slug, title, description, thumbnailUrl, publishedAt, locale = 'en-US' }: BlogCardProps) {
+  const shortDesc = stripHtml(description).slice(0, 256);
   return (
     <article className="flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 h-full">
       <Link href={`/blog/${slug}`} className="block">
@@ -30,7 +36,7 @@ export default function BlogCard({ slug, title, summary, thumbnailUrl, published
           </Link>
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-3">
-          {summary}
+          {shortDesc}
         </p>
         <div className="flex-1" />
         <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-auto pt-2">
