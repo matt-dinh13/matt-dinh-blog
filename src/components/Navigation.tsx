@@ -2,12 +2,39 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { Menu, X, Search } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 import SearchBar from './SearchBar'
 
 const NAV_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
+
+// Memoized menu item component
+const MenuItem = memo(({ item, onClick }: { item: { name: string; href: string }; onClick?: () => void }) => (
+  <Link
+    href={item.href}
+    style={NAV_TEXT_COLOR}
+    className="flex items-center justify-center h-10 px-3 font-medium transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-nowrap"
+    onClick={onClick}
+  >
+    {item.name}
+  </Link>
+))
+
+MenuItem.displayName = 'MenuItem'
+
+// Memoized mobile menu item component
+const MobileMenuItem = memo(({ item, onClick }: { item: { name: string; href: string }; onClick: () => void }) => (
+  <Link
+    href={item.href}
+    className="block px-3 py-2 text-gray-700 dark:text-gray-300 font-medium transition-colors duration-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+    onClick={onClick}
+  >
+    {item.name}
+  </Link>
+))
+
+MobileMenuItem.displayName = 'MobileMenuItem'
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -63,14 +90,7 @@ export default function Navigation() {
             )}
             {/* Then nav links in order */}
             {menuItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                style={NAV_TEXT_COLOR}
-                className="flex items-center justify-center h-10 px-3 font-medium transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-nowrap"
-              >
-                {item.name}
-              </Link>
+              <MenuItem key={item.name} item={item} />
             ))}
           </div>
 
@@ -109,14 +129,7 @@ export default function Navigation() {
               )}
               
               {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 font-medium transition-colors duration-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
-                  onClick={handleMenuClose}
-                >
-                  {item.name}
-                </Link>
+                <MobileMenuItem key={item.name} item={item} onClick={handleMenuClose} />
               ))}
             </div>
           </div>
