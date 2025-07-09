@@ -209,7 +209,7 @@ export default function Home() {
         />
       )
     }).filter(Boolean)
-  }, [state.posts, state.loading, language, getThumbnailUrl, formatDate])
+  }, [state.posts, state.loading, language, getThumbnailUrlCallback, formatDateCallback])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
