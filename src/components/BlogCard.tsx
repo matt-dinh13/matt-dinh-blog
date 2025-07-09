@@ -29,13 +29,12 @@ export default function BlogCard({ slug, title, description, thumbnailUrl, publi
         </div>
       </Link>
       <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-lg font-semibold mb-2"
-            style={{ color: 'oklch(21% .034 264.665)' }}>
-          <Link href={`/blog/${slug}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+        <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
+          <Link href={`/blog/${slug}`} className="hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-200">
             {title}
           </Link>
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-3">
+        <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 mb-3">
           {shortDesc}
         </p>
         <div className="flex-1" />
