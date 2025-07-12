@@ -64,19 +64,19 @@ export function BlogPostCard({
       
       <div className="p-6 flex flex-col flex-1">
         {/* Title (block link) */}
-        <h3 className="text-lg font-bold mb-3 line-clamp-2 min-h-[3em] text-gray-900 dark:text-white">
+        <h3 className="text-lg font-bold mb-3 line-clamp-2 min-h-[3em] text-gray-800 dark:text-gray-100">
           <Link
             href={`/blog/${post.slug}`}
             className="block w-full py-1 px-1 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
           >
-            <span className="block transition-colors duration-200 group-hover:text-blue-600">
+            <span className="block transition-colors duration-200 group-hover:text-blue-700 dark:group-hover:text-blue-400">
               {translation.title}
             </span>
           </Link>
         </h3>
         
         {/* Excerpt */}
-        <p className="mb-4 line-clamp-3 min-h-[4.5em] text-sm text-gray-600 dark:text-gray-400">
+        <p className="mb-4 line-clamp-3 min-h-[4.5em] text-sm text-gray-700 dark:text-gray-300">
           {translation.summary}
         </p>
         

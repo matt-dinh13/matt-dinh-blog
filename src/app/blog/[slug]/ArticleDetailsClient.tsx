@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import BlogPostViewCountClient from './BlogPostViewCountClient';
 import BlogCard from '@/components/BlogCard';
+import ReadingTime from '@/components/ReadingTime';
 import { Calendar } from 'lucide-react';
 
 interface RelatedPost {
@@ -62,6 +63,7 @@ export default function ArticleDetailsClient({
                 <Calendar size={14} />
                 <span>{formattedDate}</span>
               </div>
+              <ReadingTime content={content} languageCode={languageCode} />
             </div>
             <BlogPostViewCountClient postId={postId} initialViewCount={viewCount || 0} />
           </div>
