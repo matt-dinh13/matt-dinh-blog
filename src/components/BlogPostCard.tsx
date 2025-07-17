@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, ArrowRight } from 'lucide-react'
+import { CARD_TITLE_COLOR, CARD_DESC_COLOR } from './constants'
 
 interface BlogPost {
   id: number
@@ -14,6 +15,7 @@ interface Translation {
   language_code: string
   title: string
   summary: string
+  content: string
 }
 
 interface BlogPostCardProps {
@@ -24,6 +26,22 @@ interface BlogPostCardProps {
   language: string
 }
 
+// Utility function to strip HTML and create description
+function createDescription(content: string, summary: string): string {
+  // If summary exists and is not empty, use it
+  if (summary && summary.trim()) {
+    return summary
+  }
+  
+  // Otherwise, create description from content
+  if (content) {
+    const strippedContent = content.replace(/<[^>]+>/g, '').trim()
+    return strippedContent.slice(0, 300) + (strippedContent.length > 300 ? '...' : '')
+  }
+  
+  return ''
+}
+
 export function BlogPostCard({ 
   post, 
   translation, 
@@ -32,6 +50,7 @@ export function BlogPostCard({
   language 
 }: BlogPostCardProps) {
   const isPlaceholder = !post.thumbnail_url
+  const description = createDescription(translation.content, translation.summary)
 
   return (
     <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col">
@@ -64,7 +83,7 @@ export function BlogPostCard({
       
       <div className="p-6 flex flex-col flex-1">
         {/* Title (block link) */}
-        <h3 className="text-lg font-bold mb-3 line-clamp-2 min-h-[3em] text-gray-800 dark:text-gray-100">
+        <h3 className="text-lg font-bold mb-3 line-clamp-2 min-h-[3em]" style={{ color: CARD_TITLE_COLOR }}>
           <Link
             href={`/blog/${post.slug}`}
             className="block w-full py-1 px-1 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
@@ -76,8 +95,8 @@ export function BlogPostCard({
         </h3>
         
         {/* Excerpt */}
-        <p className="mb-4 line-clamp-3 min-h-[4.5em] text-sm text-gray-700 dark:text-gray-300">
-          {translation.summary}
+        <p className="mb-4 line-clamp-3 min-h-[4.5em] text-sm" style={{ color: CARD_DESC_COLOR }}>
+          {description}
         </p>
         
         {/* Meta Info */}

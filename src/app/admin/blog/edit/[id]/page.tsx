@@ -25,7 +25,7 @@ export default async function EditBlogPage({ params }: Props) {
           }>
             <AdminBlogEditForm id={id} />
           </Suspense>
-        </div>
+      </div>
       </AdminLayout>
     </ProtectedRoute>
   )

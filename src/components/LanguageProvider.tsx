@@ -1,8 +1,9 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import Cookies from 'js-cookie'
 
-type Language = 'vi' | 'en'
+export type Language = 'vi' | 'en'
 
 interface LanguageContextType {
   language: Language
@@ -13,22 +14,38 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
+// Helper to get language from cookie (SSR/CSR)
+export function getLanguageFromCookie(): Language {
+  if (typeof window === 'undefined') {
+    // SSR: fallback to default
+    return 'vi'
+  } else {
+    // CSR
+    const lang = Cookies.get('lang')
+    return lang === 'en' ? 'en' : 'vi'
+  }
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('vi')
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const lang = Cookies.get('lang')
+      return lang === 'en' ? 'en' : 'vi'
+    }
+    return 'vi'
+  })
 
   useEffect(() => {
-    // Try to load language from localStorage
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('lang') : null
-    if (stored === 'vi' || stored === 'en') {
-      setLanguageState(stored)
+    // On mount, sync language from cookie
+    const lang = Cookies.get('lang')
+    if (lang === 'en' || lang === 'vi') {
+      setLanguageState(lang)
     }
   }, [])
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('lang', lang)
-    }
+    Cookies.set('lang', lang, { expires: 365 })
   }, [])
 
   // Memoize context value to prevent unnecessary re-renders
@@ -47,9 +64,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useLanguage() {
-  const ctx = useContext(LanguageContext)
-  if (!ctx) {
-    throw new Error('useLanguage must be used within LanguageProvider')
+  const context = useContext(LanguageContext)
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider')
   }
-  return ctx
+  return context
 } 

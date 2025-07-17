@@ -8,13 +8,15 @@ import { useLanguage } from './LanguageProvider'
 import SearchBar from './SearchBar'
 
 const NAV_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
+const NAV_BORDER_BASE = 'border-2 border-transparent box-border';
+const NAV_HOVER_BORDER = 'hover:border-blue-600 dark:hover:border-blue-400 hover:bg-transparent dark:hover:bg-transparent';
 
 // Memoized menu item component
 const MenuItem = memo(({ item, onClick }: { item: { name: string; href: string }; onClick?: () => void }) => (
   <Link
     href={item.href}
     style={NAV_TEXT_COLOR}
-    className="flex items-center justify-center h-10 px-3 font-medium transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-nowrap"
+    className={`flex items-center justify-center h-10 px-3 font-medium transition-colors duration-200 rounded-md whitespace-nowrap ${NAV_BORDER_BASE} ${NAV_HOVER_BORDER}`}
     onClick={onClick}
   >
     {item.name}
@@ -27,7 +29,8 @@ MenuItem.displayName = 'MenuItem'
 const MobileMenuItem = memo(({ item, onClick }: { item: { name: string; href: string }; onClick: () => void }) => (
   <Link
     href={item.href}
-    className="block px-3 py-2 text-gray-700 dark:text-gray-300 font-medium transition-colors duration-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+    className={`block px-3 py-2 font-medium transition-colors duration-200 rounded-md ${NAV_BORDER_BASE} ${NAV_HOVER_BORDER}`}
+    style={NAV_TEXT_COLOR}
     onClick={onClick}
   >
     {item.name}

@@ -21,6 +21,7 @@ interface BlogPost {
     language_code: string
     title: string
     summary: string
+    content: string
   }>
   categories?: {
     id: number
@@ -78,11 +79,12 @@ export default function Home() {
           blog_post_translations!inner(
             language_code,
             title,
-            summary
+            summary,
+            content
           ),
           categories(
-            id,
-            slug,
+            id, 
+            slug, 
             category_translations(name, language_code)
           )
         `)
@@ -109,14 +111,14 @@ export default function Home() {
         loading: false
       }))
       
-          } catch (err: any) {
+    } catch (err: any) {
         handleError(err, 'Homepage: Error fetching posts')
         setState(prev => ({
           ...prev,
           posts: [],
           loading: false
         }))
-      }
+    }
   }, [language])
 
   // Optimized load more function
@@ -124,7 +126,7 @@ export default function Home() {
     if (state.loadingMore || !state.hasMore) return
 
     setState(prev => ({ ...prev, loadingMore: true }))
-    
+
     try {
       const supabase = createClient()
       const nextPage = state.page + 1
@@ -141,11 +143,12 @@ export default function Home() {
           blog_post_translations!inner(
             language_code,
             title,
-            summary
+            summary,
+            content
           ),
           categories(
-            id,
-            slug,
+            id, 
+            slug, 
             category_translations(name, language_code)
           )
         `)

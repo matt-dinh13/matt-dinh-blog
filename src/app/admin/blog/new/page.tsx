@@ -336,20 +336,20 @@ export default function AdminBlogNewPage() {
           )}
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1574px] mx-auto">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
-                Title *
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={activeLang === 'vi' ? titleVi : titleEn}
-                onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
-              />
-            </div>
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
+                  Title *
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={activeLang === 'vi' ? titleVi : titleEn}
+                  onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                  placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
+                />
+              </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1 text-gray-900" htmlFor="thumbnail">Thumbnail Image <span className="text-red-500">*</span></label>
               <div className="border-2 border-gray-300 rounded-lg p-3 flex items-center gap-4 bg-gray-50">
@@ -501,7 +501,7 @@ export default function AdminBlogNewPage() {
               </div>
             </form>
           </div>
-        </div>
+      </div>
       </AdminLayout>
     </ProtectedRoute>
   )

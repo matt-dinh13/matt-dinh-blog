@@ -200,13 +200,13 @@ export default async function BlogPostPage({ params }: Props) {
           ]} />
           {/* Back Button and Draft Badge Row */}
           <div className="flex items-center justify-between mb-8">
-            <Link 
-              href="/blog"
+          <Link 
+            href="/blog"
               className="inline-flex items-center space-x-2 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
-            >
-              <ArrowLeft size={16} />
-              <span>Back to Blog</span>
-            </Link>
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Blog</span>
+          </Link>
             {post.status === 'draft' && (
               <div className="inline-block px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full font-semibold text-xs">Draft (visible to admin only)</div>
             )}

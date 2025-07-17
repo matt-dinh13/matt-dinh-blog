@@ -27,9 +27,14 @@ export default function LoginPage() {
     try {
       await signIn(email, password)
       router.push('/admin')
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err)
-      setError('Invalid email or password')
+      // Show a friendly message for invalid credentials, otherwise show a generic error
+      if (err?.message?.toLowerCase().includes('invalid login credentials') || err?.message?.toLowerCase().includes('invalid email or password')) {
+        setError('Incorrect email or password. Please try again.')
+      } else {
+        setError('An unexpected error occurred. Please try again later.')
+      }
     } finally {
       setLoading(false)
     }
@@ -43,7 +48,7 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold mb-6 text-center" style={cardTextColor}>Admin Login</h1>
           
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded" role="alert" aria-live="assertive">
               {error}
             </div>
           )}

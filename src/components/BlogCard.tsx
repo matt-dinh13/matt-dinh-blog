@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Calendar } from 'lucide-react'
+import { CARD_TITLE_COLOR, CARD_DESC_COLOR } from './constants'
 
 interface BlogCardProps {
   slug: string
@@ -29,12 +30,12 @@ export default function BlogCard({ slug, title, description, thumbnailUrl, publi
         </div>
       </Link>
       <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
+        <h3 className="text-lg font-semibold mb-2" style={{ color: CARD_TITLE_COLOR }}>
           <Link href={`/blog/${slug}`} className="hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-200">
             {title}
           </Link>
         </h3>
-        <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 mb-3">
+        <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 mb-3" style={{ color: CARD_DESC_COLOR }}>
           {shortDesc}
         </p>
         <div className="flex-1" />

@@ -137,6 +137,9 @@ export default function AdminDashboard() {
     )
   }
 
+  const QUICK_ACTION_BORDER_BASE = 'border-2 border-transparent box-border';
+  const QUICK_ACTION_HOVER_BORDER = 'hover:border-blue-600 dark:hover:border-blue-400 hover:bg-transparent dark:hover:bg-transparent';
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -183,7 +186,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/admin/blog/new"
-            className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+            className={`flex items-center p-4 border-gray-200 dark:border-gray-700 rounded-lg transition-colors duration-200 ${QUICK_ACTION_BORDER_BASE} ${QUICK_ACTION_HOVER_BORDER}`}
           >
             <Plus size={20} className="text-blue-500 mr-3" />
             <div>
@@ -193,7 +196,7 @@ export default function AdminDashboard() {
           </Link>
           <Link
             href="/admin/categories/new"
-            className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+            className={`flex items-center p-4 border-gray-200 dark:border-gray-700 rounded-lg transition-colors duration-200 ${QUICK_ACTION_BORDER_BASE} ${QUICK_ACTION_HOVER_BORDER}`}
           >
             <FolderOpen size={20} className="text-purple-500 mr-3" />
             <div>
@@ -203,7 +206,7 @@ export default function AdminDashboard() {
           </Link>
           <Link
             href="/admin/portfolio/new"
-            className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+            className={`flex items-center p-4 border-gray-200 dark:border-gray-700 rounded-lg transition-colors duration-200 ${QUICK_ACTION_BORDER_BASE} ${QUICK_ACTION_HOVER_BORDER}`}
           >
             <Briefcase size={20} className="text-orange-500 mr-3" />
             <div>
