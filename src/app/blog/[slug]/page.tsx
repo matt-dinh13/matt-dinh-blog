@@ -240,18 +240,18 @@ export default async function BlogPostPage({ params }: Props) {
           <Navigation />
           <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
             <Breadcrumbs items={[
-              { label: 'Home', href: '/' },
-              { label: 'Blog', href: '/blog' },
+              { label: language === 'vi' ? 'Trang chủ' : 'Home', href: `/${language}` },
+              { label: language === 'vi' ? 'Blog' : 'Blog', href: `/${language}/blog` },
               { label: translation.title }
             ]} />
             {/* Back Button and Draft Badge Row */}
             <div className="flex items-center justify-between mb-8">
             <Link 
-              href="/blog"
+              href={`/${language}/blog`}
                 className="inline-flex items-center space-x-2 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
             >
               <ArrowLeft size={16} />
-              <span>Back to Blog</span>
+              <span>{language === 'vi' ? 'Quay lại Blog' : 'Back to Blog'}</span>
             </Link>
               {post.status === 'draft' && (
                 <div className="inline-block px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full font-semibold text-xs">Draft (visible to admin only)</div>
@@ -270,6 +270,7 @@ export default async function BlogPostPage({ params }: Props) {
               languageCode={translation.language_code}
               relatedPosts={relatedPosts}
               availableLanguages={translations?.map((t: any) => t.language_code) || []}
+              slug={post.slug}
             />
           </main>
           <Footer />

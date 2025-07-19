@@ -41,6 +41,7 @@ export default function ArticleDetailsClient({
   languageCode,
   relatedPosts,
   availableLanguages = ['vi', 'en'], // Add this prop
+  slug, // Add slug prop
 }: {
   postId: string,
   title: string,
@@ -54,6 +55,7 @@ export default function ArticleDetailsClient({
   languageCode: string,
   relatedPosts?: RelatedPost[],
   availableLanguages?: string[], // Add this type
+  slug: string, // Add slug type
 }) {
   const locale = languageCode === 'vi' ? 'vi-VN' : 'en-US';
   const router = useRouter();
@@ -116,7 +118,7 @@ export default function ArticleDetailsClient({
                 {availableLanguages.map((lang) => (
                   <button
                     key={lang}
-                    onClick={() => router.push(`/${lang}/blog/${window.location.pathname.split('/').pop()}`)}
+                    onClick={() => router.push(`/${lang}/blog/${slug}`)}
                     className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                       lang === languageCode
                         ? 'bg-blue-600 text-white'
