@@ -62,6 +62,23 @@
   - `src/app/api/setup-portfolio/route.ts` - Removed unused eslint-disable
   - `src/app/debug/page.tsx` - Removed unused eslint-disable
 
+#### 6. **Language Switcher Bug Fixes on Blog Pages**
+- **Issue**: Language switcher on blog post pages was not working correctly
+- **Root Cause**: 
+  - Language switcher was trying to extract slug from URL using `window.location.pathname.split('/').pop()`
+  - This approach was unreliable and caused navigation issues
+  - Breadcrumb and "Back to Blog" links were not using correct language URLs
+- **Solution**: 
+  - Added `slug` prop to `ArticleDetailsClient` component
+  - Updated language switcher to use `router.push(\`/\${lang}/blog/\${slug}\`)` instead of URL parsing
+  - Fixed breadcrumb navigation to use correct language URLs (`/${language}/blog`)
+  - Updated "Back to Blog" link to use correct language and URL
+  - Improved reliability by removing dependency on URL parsing
+- **Files Modified**: 
+  - `src/app/blog/[slug]/page.tsx`
+  - `src/app/blog/[slug]/ArticleDetailsClient.tsx`
+- **Impact**: Language switching now works reliably on all blog post pages
+
 ### 🔧 Technical Improvements
 
 #### **CSS and Styling**
