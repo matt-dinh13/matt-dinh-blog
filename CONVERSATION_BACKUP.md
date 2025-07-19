@@ -62,22 +62,30 @@
   - `src/app/api/setup-portfolio/route.ts` - Removed unused eslint-disable
   - `src/app/debug/page.tsx` - Removed unused eslint-disable
 
-#### 6. **Language Switcher Bug Fixes on Blog Pages**
+#### 6. **Language Switcher Bug Fixes on Blog Pages** ✅ **FIXED**
 - **Issue**: Language switcher on blog post pages was not working correctly
 - **Root Cause**: 
   - Language switcher was trying to extract slug from URL using `window.location.pathname.split('/').pop()`
   - This approach was unreliable and caused navigation issues
   - Breadcrumb and "Back to Blog" links were not using correct language URLs
+  - Missing language-specific blog post pages (`[lang]/blog/[slug]/page.tsx`)
 - **Solution**: 
-  - Added `slug` prop to `ArticleDetailsClient` component
-  - Updated language switcher to use `router.push(\`/\${lang}/blog/\${slug}\`)` instead of URL parsing
-  - Fixed breadcrumb navigation to use correct language URLs (`/${language}/blog`)
-  - Updated "Back to Blog" link to use correct language and URL
-  - Improved reliability by removing dependency on URL parsing
+  - **Created new language-specific blog post page**: `src/app/[lang]/blog/[slug]/page.tsx`
+  - **Fixed language switcher navigation**: Now uses `router.push(\`/\${lang}/blog/\${slug}\`)` instead of URL parsing
+  - **Added proper language detection**: Extracts language from URL params and finds correct translation
+  - **Implemented translation fallback**: Shows user-friendly message when translation is not available
+  - **Fixed breadcrumb navigation**: Uses correct language URLs (`/${language}/blog`)
+  - **Updated "Back to Blog" links**: Uses correct language and URL
+  - **Added proper SEO**: Hreflang tags for language versions
+  - **Improved reliability**: Removed dependency on URL parsing
 - **Files Modified**: 
+  - `src/app/[lang]/blog/[slug]/page.tsx` (NEW)
   - `src/app/blog/[slug]/page.tsx`
   - `src/app/blog/[slug]/ArticleDetailsClient.tsx`
-- **Impact**: Language switching now works reliably on all blog post pages
+- **Testing Results**: ✅ Both Vietnamese (`/vi/blog/slug`) and English (`/en/blog/slug`) versions working correctly
+- **URL Structure**: Now supports proper language-specific URLs:
+  - Vietnamese: `/vi/blog/khng-kh-hu-ni-cm-xc-tan-trong-sng-sm-1`
+  - English: `/en/blog/khng-kh-hu-ni-cm-xc-tan-trong-sng-sm-1`
 
 ### 🔧 Technical Improvements
 
