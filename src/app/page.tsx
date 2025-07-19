@@ -1,203 +1,63 @@
-'use client'
+import { Metadata } from 'next'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { useLanguage } from '@/components/LanguageProvider'
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import { createClient } from '@/lib/supabase'
 import { BlogPostCard } from '@/components/BlogPostCard'
 import { HeroSection } from '@/components/HeroSection'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { LoadMoreButton } from '@/components/LoadMoreButton'
-import { POSTS_PER_PAGE, formatDate, getThumbnailUrl, handleError } from '@/lib/utils'
+import { POSTS_PER_PAGE, formatDate, getThumbnailUrl } from '@/lib/utils'
 
-// Types
-interface BlogPost {
-  id: number
-  slug: string
-  thumbnail_url: string | null
-  published_at: string | null
-  created_at: string
-  blog_post_translations: Array<{
-    language_code: string
-    title: string
-    summary: string
-    content: string
-  }>
-  categories?: {
-    id: number
-    slug: string
-    category_translations: Array<{
-      name: string
-      language_code: string
-    }>
-  }
+export const metadata: Metadata = {
+  title: 'Matt Dinh Blog',
+  description: 'Personal blog sharing insights about life, work, and knowledge. Portfolio showcasing IT projects and career highlights.',
 }
 
-interface HomePageState {
-  posts: BlogPost[]
-  loading: boolean
-  loadingMore: boolean
-  hasMore: boolean
-  page: number
-}
+// Types are defined inline where needed
 
-export default function Home() {
-  const { language } = useLanguage()
-  const [state, setState] = useState<HomePageState>({
-    posts: [],
-    loading: true,
-    loadingMore: false,
-    hasMore: true,
-    page: 1
-  })
+export default async function Home() {
+  try {
+    console.log('🔍 Server: Fetching latest posts for homepage...')
+    
+    const supabase = await createServerSupabaseClient()
+    
+    // Fetch latest posts with translations (default to Vietnamese)
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select(`
+        id,
+        slug,
+        thumbnail_url,
+        published_at,
+        created_at,
+        blog_post_translations(
+          language_code,
+          title,
+          summary,
+          content
+        ),
+        categories(
+          id, 
+          slug, 
+          category_translations(name, language_code)
+        )
+      `)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(POSTS_PER_PAGE)
 
-  // Memoized utility functions
-  const formatDateCallback = useCallback((dateString: string) => {
-    return formatDate(dateString, language)
-  }, [language])
-
-  const getThumbnailUrlCallback = useCallback((post: BlogPost) => {
-    return getThumbnailUrl(post.thumbnail_url)
-  }, [])
-
-  // Optimized fetch function with proper error handling
-  const fetchLatestPosts = useCallback(async () => {
-    try {
-      console.log('🏠 Homepage: Fetching latest posts...')
-      
-      const supabase = createClient()
-      
-      // Single optimized query with joins
-      const { data: postsData, error: postsError } = await supabase
-        .from('blog_posts')
-        .select(`
-          id,
-          slug,
-          thumbnail_url,
-          published_at,
-          created_at,
-          blog_post_translations!inner(
-            language_code,
-            title,
-            summary,
-            content
-          ),
-          categories(
-            id, 
-            slug, 
-            category_translations(name, language_code)
-          )
-        `)
-        .eq('status', 'published')
-        .eq('blog_post_translations.language_code', language)
-        .order('published_at', { ascending: false })
-        .limit(POSTS_PER_PAGE)
-
-      if (postsError) {
-        console.error('❌ Homepage: Posts query failed:', postsError)
-        throw new Error(`Posts query failed: ${postsError.message}`)
-      }
-
-      // Check if there are more posts available
-      const { count: totalCount } = await supabase
-        .from('blog_posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'published')
-
-      setState(prev => ({
-        ...prev,
-        posts: postsData || [],
-        hasMore: (totalCount || 0) > POSTS_PER_PAGE,
-        loading: false
-      }))
-      
-    } catch (err: any) {
-        handleError(err, 'Homepage: Error fetching posts')
-        setState(prev => ({
-          ...prev,
-          posts: [],
-          loading: false
-        }))
+    if (error) {
+      console.error('❌ Server: Homepage posts query failed:', error)
+      throw new Error(`Posts query failed: ${error.message}`)
     }
-  }, [language])
 
-  // Optimized load more function
-  const loadMorePosts = useCallback(async () => {
-    if (state.loadingMore || !state.hasMore) return
+    console.log('✅ Server: Homepage posts fetched successfully:', posts?.length || 0)
 
-    setState(prev => ({ ...prev, loadingMore: true }))
-
-    try {
-      const supabase = createClient()
-      const nextPage = state.page + 1
-      const offset = (nextPage - 1) * POSTS_PER_PAGE
-
-      const { data: postsData, error: postsError } = await supabase
-        .from('blog_posts')
-        .select(`
-          id,
-          slug,
-          thumbnail_url,
-          published_at,
-          created_at,
-          blog_post_translations!inner(
-            language_code,
-            title,
-            summary,
-            content
-          ),
-          categories(
-            id, 
-            slug, 
-            category_translations(name, language_code)
-          )
-        `)
-        .eq('status', 'published')
-        .eq('blog_post_translations.language_code', language)
-        .order('published_at', { ascending: false })
-        .range(offset, offset + POSTS_PER_PAGE - 1)
-
-      if (postsError) {
-        console.error('❌ Homepage: Load more posts query failed:', postsError)
-        return
-      }
-
-      // Check if there are more posts after this batch
-      const { count: totalCount } = await supabase
-        .from('blog_posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'published')
-
-      setState(prev => ({
-        ...prev,
-        posts: [...prev.posts, ...(postsData || [])],
-        hasMore: (totalCount || 0) > offset + (postsData?.length || 0),
-        page: nextPage,
-        loadingMore: false
-      }))
-
-    } catch (err: any) {
-      console.error('💥 Homepage: Error loading more posts:', err)
-      setState(prev => ({ ...prev, loadingMore: false }))
-    }
-  }, [state.loadingMore, state.hasMore, state.page, language])
-
-  // Fetch posts on mount and language change
-  useEffect(() => {
-    fetchLatestPosts()
-  }, [fetchLatestPosts])
-
-  // Memoized rendered posts
-  const renderedPosts = useMemo(() => {
-    if (state.loading) return null
-
-    return state.posts.map((post) => {
-      const translation = post.blog_post_translations?.find(
-        (t) => t.language_code === language
-      ) || post.blog_post_translations?.[0]
+    // Render posts for Vietnamese (default language)
+    const renderedPosts = posts?.map((post) => {
+      const translations = post.blog_post_translations || []
+      const translation = translations.find(t => t.language_code === 'vi') || translations[0]
 
       if (!translation) {
-        console.log('⚠️ Homepage: No translation found for post:', post.id, 'language:', language)
+        console.warn('⚠️ Server: No translation found for post:', post.id)
         return null
       }
 
@@ -206,54 +66,78 @@ export default function Home() {
           key={post.id}
           post={post}
           translation={translation}
-          thumbnailUrl={getThumbnailUrlCallback(post)}
-          formatDate={formatDateCallback}
-          language={language}
+          thumbnailUrl={getThumbnailUrl(post.thumbnail_url)}
+          formatDate={(dateString: string) => formatDate(dateString, 'vi')}
+          language="vi"
         />
       )
-    }).filter(Boolean)
-  }, [state.posts, state.loading, language, getThumbnailUrlCallback, formatDateCallback])
+    }).filter(Boolean) || []
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navigation />
-      
-      <HeroSection language={language} />
-      
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {language === 'vi' ? 'Bài viết mới nhất' : 'Latest Articles'}
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            {language === 'vi'
-              ? 'Khám phá kiến thức, trải nghiệm và chia sẻ từ hành trình của tôi'
-              : 'Discover insights, experiences, and knowledge from my journey'}
-          </p>
-        </div>
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navigation />
+        
+        <HeroSection language="vi" />
+        
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Bài viết mới nhất
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Khám phá kiến thức, trải nghiệm và chia sẻ từ hành trình của tôi
+            </p>
+          </div>
 
-        {/* Blog Posts Grid */}
-        {state.loading ? (
-          <LoadingSpinner language={language} />
-        ) : (
-          <>
+          {/* Blog Posts Grid */}
+          {renderedPosts.length > 0 ? (
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {renderedPosts}
             </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">
+                Không có bài viết nào được tìm thấy.
+              </p>
+            </div>
+          )}
+        </main>
 
-            {/* Load More Button */}
-            {state.hasMore && (
-              <LoadMoreButton
-                loading={state.loadingMore}
-                onLoadMore={loadMorePosts}
-                language={language}
-              />
-            )}
-          </>
-        )}
-      </main>
-      <Footer />
-    </div>
-  )
+        <Footer />
+      </div>
+    )
+
+  } catch (error) {
+    console.error('💥 Server: Homepage error:', error)
+    
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navigation />
+        
+        <HeroSection language="vi" />
+        
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Bài viết mới nhất
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Khám phá kiến thức, trải nghiệm và chia sẻ từ hành trình của tôi
+            </p>
+          </div>
+
+          {/* Error State */}
+          <div className="text-center py-12">
+            <p className="text-gray-600 dark:text-gray-400">
+              Có lỗi xảy ra khi tải bài viết. Vui lòng thử lại sau.
+            </p>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    )
+  }
 }

@@ -1,329 +1,319 @@
 # System Architecture Diagram
+## Matt Dinh Blog Platform
 
-## High-Level System Architecture
-
-```mermaid
-graph TB
-    %% User Layer
-    subgraph "Users"
-        Admin[Admin User]
-        Reader[Reader/Visitor]
-        Mobile[Mobile User]
-    end
-
-    %% Frontend Layer
-    subgraph "Frontend (Next.js 15)"
-        Pages[Pages & Components]
-        API_Routes[API Routes]
-        Middleware[Middleware]
-        Auth_Provider[Auth Provider]
-        Language_Provider[Language Provider]
-        Rich_Text_Editor[Rich Text Editor]
-        Image_Processor[Image Processor]
-    end
-
-    %% Backend Services
-    subgraph "Backend Services (Supabase)"
-        Auth[Authentication]
-        Database[(PostgreSQL Database)]
-        Storage[File Storage]
-        RLS[Row Level Security]
-        RealTime[Real-time Subscriptions]
-    end
-
-    %% External Services
-    subgraph "External Services"
-        Vercel[Vercel Hosting]
-        CDN[Global CDN]
-        Analytics[Analytics]
-    end
-
-    %% Database Tables
-    subgraph "Database Schema"
-        Users[Users Table]
-        Posts[Blog Posts Table]
-        Translations[Translations Table]
-        Categories[Categories Table]
-        Tags[Tags Table]
-        Portfolio[Portfolio Table]
-        Views[Page Views Table]
-        Media[Media Table]
-    end
-
-    %% Connections
-    Admin --> Pages
-    Reader --> Pages
-    Mobile --> Pages
-
-    Pages --> API_Routes
-    API_Routes --> Middleware
-    Middleware --> Auth_Provider
-    Auth_Provider --> Language_Provider
-
-    Rich_Text_Editor --> Image_Processor
-    Image_Processor --> Storage
-
-    API_Routes --> Auth
-    API_Routes --> Database
-    API_Routes --> Storage
-    API_Routes --> RealTime
-
-    Auth --> RLS
-    Database --> RLS
-    Storage --> RLS
-
-    Pages --> Vercel
-    Vercel --> CDN
-    Vercel --> Analytics
-
-    Database --> Users
-    Database --> Posts
-    Database --> Translations
-    Database --> Categories
-    Database --> Tags
-    Database --> Portfolio
-    Database --> Views
-    Database --> Media
-
-    %% Styling
-    classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef frontendClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef backendClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    classDef externalClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef databaseClass fill:#fce4ec,stroke:#880e4f,stroke-width:2px
-
-    class Admin,Reader,Mobile userClass
-    class Pages,API_Routes,Middleware,Auth_Provider,Language_Provider,Rich_Text_Editor,Image_Processor frontendClass
-    class Auth,Database,Storage,RLS,RealTime backendClass
-    class Vercel,CDN,Analytics externalClass
-    class Users,Posts,Translations,Categories,Tags,Portfolio,Views,Media databaseClass
-```
-
-## Component Architecture
-
-```mermaid
-graph LR
-    %% Core Components
-    subgraph "Core Components"
-        Layout[Layout Component]
-        Navigation[Navigation]
-        Footer[Footer]
-        AuthProvider[Auth Provider]
-        LanguageProvider[Language Provider]
-    end
-
-    %% Page Components
-    subgraph "Page Components"
-        HomePage[Home Page]
-        BlogPage[Blog Page]
-        PostPage[Post Detail Page]
-        PortfolioPage[Portfolio Page]
-        AdminPage[Admin Page]
-        LoginPage[Login Page]
-    end
-
-    %% UI Components
-    subgraph "UI Components"
-        BlogCard[Blog Card]
-        PostCard[Post Card]
-        SearchBar[Search Bar]
-        LoadingSpinner[Loading Spinner]
-        Tooltip[Tooltip]
-        Breadcrumbs[Breadcrumbs]
-        ImageDisplay[Image Display]
-    end
-
-    %% Admin Components
-    subgraph "Admin Components"
-        AdminLayout[Admin Layout]
-        AdminDashboard[Admin Dashboard]
-        PostEditor[Post Editor]
-        RichTextEditor[Rich Text Editor]
-        MediaManager[Media Manager]
-        UserManager[User Manager]
-        ImageProcessor[Image Processor]
-    end
-
-    %% Data Layer
-    subgraph "Data Layer"
-        SupabaseClient[Supabase Client]
-        Utils[Utility Functions]
-        Constants[Constants]
-        Types[Type Definitions]
-        ImageUtils[Image Utilities]
-    end
-
-    %% Connections
-    Layout --> Navigation
-    Layout --> Footer
-    Layout --> AuthProvider
-    Layout --> LanguageProvider
-
-    HomePage --> BlogCard
-    BlogPage --> PostCard
-    PostPage --> Breadcrumbs
-    PostPage --> ImageDisplay
-    PortfolioPage --> PostCard
-    AdminPage --> AdminLayout
-    LoginPage --> AuthProvider
-
-    AdminLayout --> AdminDashboard
-    AdminLayout --> PostEditor
-    AdminLayout --> MediaManager
-    AdminLayout --> UserManager
-
-    PostEditor --> RichTextEditor
-    RichTextEditor --> ImageProcessor
-    ImageProcessor --> ImageUtils
-
-    BlogCard --> SupabaseClient
-    PostCard --> SupabaseClient
-    SearchBar --> SupabaseClient
-    PostEditor --> SupabaseClient
-    ImageDisplay --> SupabaseClient
-
-    SupabaseClient --> Utils
-    Utils --> Constants
-    Utils --> Types
-    ImageUtils --> Utils
-
-    %% Styling
-    classDef coreClass fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef pageClass fill:#f1f8e9,stroke:#33691e,stroke-width:2px
-    classDef uiClass fill:#fff8e1,stroke:#f57f17,stroke-width:2px
-    classDef adminClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef dataClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-
-    class Layout,Navigation,Footer,AuthProvider,LanguageProvider coreClass
-    class HomePage,BlogPage,PostPage,PortfolioPage,AdminPage,LoginPage pageClass
-    class BlogCard,PostCard,SearchBar,LoadingSpinner,Tooltip,Breadcrumbs,ImageDisplay uiClass
-    class AdminLayout,AdminDashboard,PostEditor,RichTextEditor,MediaManager,UserManager,ImageProcessor adminClass
-    class SupabaseClient,Utils,Constants,Types,ImageUtils dataClass
-```
-
-## Image Processing Flow
-
-```mermaid
-sequenceDiagram
-    participant U as Admin User
-    participant E as Rich Text Editor
-    participant P as Image Processor
-    participant S as Supabase Storage
-    participant D as Database
-    participant R as Reader
-
-    %% Image Upload Flow
-    U->>E: Upload Image
-    E->>P: Process Image
-    P->>P: Resize to 800px width
-    P->>P: Convert to JPG format
-    P->>P: Optimize quality
-    P->>S: Upload processed image
-    S-->>P: Return image URL
-    P-->>E: Insert image in content
-    E->>D: Save content with image URL
-    D-->>E: Confirm save
-    E-->>U: Show updated content
-
-    %% Image Display Flow
-    R->>R: Visit blog post
-    R->>D: Fetch post content
-    D-->>R: Return content with image URLs
-    R->>S: Request image
-    S-->>R: Serve optimized image
-    R-->>R: Display image in content
-```
-
-## Content Rendering Flow
-
-```mermaid
-sequenceDiagram
-    participant S as Server
-    participant C as Client
-    participant D as Database
-    participant R as Reader
-
-    %% Server-Side Rendering
-    S->>D: Fetch blog post content
-    D-->>S: Return Markdown content
-    S->>S: Pass raw content to client
-    S-->>C: Send HTML with raw content
-
-    %% Client-Side Processing
-    C->>C: Parse Markdown content
-    C->>C: Convert image syntax to HTML
-    C->>C: Render content safely
-    C-->>R: Display content with images
-
-    %% Hydration Safety
-    Note over S,C: No server-side Markdown processing
-    Note over C,R: Client-side image conversion prevents hydration errors
-```
-
-## Data Flow Architecture
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant P as Pages
-    participant A as API Routes
-    participant M as Middleware
-    participant S as Supabase
-    participant D as Database
-
-    %% Authentication Flow
-    U->>P: Access Admin Page
-    P->>M: Check Authentication
-    M->>S: Validate Session
-    S-->>M: Session Valid/Invalid
-    M-->>P: Allow/Deny Access
-    P-->>U: Show Admin Page/Login
-
-    %% Content Creation Flow
-    U->>P: Create Blog Post
-    P->>A: Submit Post Data
-    A->>S: Store in Database
-    S-->>A: Confirm Storage
-    A-->>P: Success Response
-    P-->>U: Show Success Message
-
-    %% Image Upload Flow
-    U->>P: Upload Image in Editor
-    P->>A: Process Image
-    A->>S: Store Image
-    S-->>A: Return Image URL
-    A-->>P: Update Content
-    P-->>U: Show Image in Editor
-
-    %% Content Display Flow
-    U->>P: View Blog Post
-    P->>A: Fetch Post Data
-    A->>S: Query Database
-    S-->>A: Return Post Data
-    A-->>P: Send Post Data
-    P-->>U: Display Post with Images
-```
-
-## Updated Architecture Notes
-
-### Image Processing Components
-- **Rich Text Editor**: TipTap-based editor with image upload integration
-- **Image Processor**: Client-side image processing with Canvas API
-- **Image Utilities**: Helper functions for image manipulation and optimization
-- **Image Display**: Responsive image rendering component
-
-### Content Rendering Strategy
-- **Server**: Passes raw Markdown content to client
-- **Client**: Converts Markdown images to HTML using regex
-- **Hydration Safety**: Prevents server/client mismatches
-- **Performance**: Fast rendering without external libraries
-
-### Storage Architecture
-- **Supabase Storage**: Secure file storage with public read access
-- **Image Organization**: Structured folder system for different content types
-- **Optimization**: Automatic format conversion and compression
-- **CDN**: Global content delivery through Vercel
+**Version**: 2.0  
+**Date**: December 2024  
+**Status**: Core Features Complete ✅
 
 ---
 
-*Last updated: January 19, 2025* 
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER                            │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   Desktop   │  │   Tablet    │  │   Mobile    │            │
+│  │   Browser   │  │   Browser   │  │   Browser   │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     PRESENTATION LAYER                         │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                    Next.js 15 App                          │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │ │
+│  │  │   Server    │  │   Client    │  │   Static    │        │ │
+│  │  │ Components  │  │ Components  │  │ Generation  │        │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘        │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │ │
+│  │  │   App       │  │   Pages     │  │   API       │        │ │
+│  │  │   Router    │  │   Router    │  │   Routes    │        │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘        │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      INTEGRATION LAYER                         │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                    Supabase Client                          │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │ │
+│  │  │   Database  │  │   Auth      │  │   Storage   │        │ │
+│  │  │   Client    │  │   Client    │  │   Client    │        │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘        │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       SERVICE LAYER                            │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                    Supabase Platform                        │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │ │
+│  │  │ PostgreSQL  │  │   Auth      │  │   Storage   │        │ │
+│  │  │  Database   │  │   Service   │  │   Service   │        │ │
+│  │  │             │  │             │  │             │        │ │
+│  │  │ ✅ RLS      │  │ ✅ JWT      │  │ ✅ Images   │        │ │
+│  │  │ ✅ Views    │  │ ✅ Sessions │  │ ✅ Files    │        │ │
+│  │  │ ✅ Triggers │  │ ✅ Roles    │  │ ✅ CDN      │        │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘        │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      DEPLOYMENT LAYER                          │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                    Vercel Platform                          │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │ │
+│  │  │   Edge      │  │   Server    │  │   Static    │        │ │
+│  │  │   Network   │  │   Functions │  │   Assets    │        │ │
+│  │  │             │  │             │  │             │        │ │
+│  │  │ ✅ CDN      │  │ ✅ SSR      │  │ ✅ Images   │        │ │
+│  │  │ ✅ Caching  │  │ ✅ API      │  │ ✅ CSS/JS   │        │ │
+│  │  │ ✅ SSL      │  │ ✅ Auth     │  │ ✅ Fonts    │        │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘        │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Architecture
+
+### Frontend Components (✅ Complete)
+
+```
+src/
+├── app/                          # App Router (Next.js 15)
+│   ├── [lang]/                   # Internationalized routes ✅
+│   │   ├── blog/                 # Blog pages ✅
+│   │   │   ├── [slug]/           # Individual posts ✅
+│   │   │   └── page.tsx          # Blog list ✅
+│   │   └── page.tsx              # Homepage ✅
+│   ├── admin/                    # Admin panel ✅
+│   │   ├── blog/                 # Blog management ✅
+│   │   ├── categories/           # Category management ✅
+│   │   └── page.tsx              # Admin dashboard ✅
+│   ├── about/                    # About page ✅
+│   ├── portfolio/                # Portfolio page 🔄
+│   └── api/                      # API routes ✅
+├── components/                   # Reusable components ✅
+│   ├── Navigation.tsx            # Site navigation ✅
+│   ├── BlogPostCard.tsx          # Blog post cards ✅
+│   ├── RichTextEditor.tsx        # Content editor ✅
+│   ├── LanguageSwitcher.tsx      # Language toggle ✅
+│   └── AdminLayout.tsx           # Admin layout ✅
+├── lib/                          # Utility functions ✅
+│   ├── supabase-server.ts        # Server client ✅
+│   ├── supabase.ts               # Client client ✅
+│   └── utils.ts                  # Helper functions ✅
+└── types/                        # TypeScript definitions ✅
+```
+
+### Database Schema (✅ Complete)
+
+```
+Database Tables:
+├── blog_posts                    # Main post data ✅
+│   ├── id (SERIAL PRIMARY KEY)   ✅
+│   ├── slug (VARCHAR UNIQUE)     ✅
+│   ├── status (TEXT)             ✅
+│   ├── published_at (TIMESTAMP)  ✅
+│   └── created_at (TIMESTAMP)    ✅
+├── blog_post_translations        # Bilingual content ✅
+│   ├── id (SERIAL PRIMARY KEY)   ✅
+│   ├── blog_post_id (FOREIGN KEY) ✅
+│   ├── language_code (VARCHAR)   ✅
+│   ├── title (TEXT)              ✅
+│   ├── summary (TEXT)            ✅
+│   └── content (TEXT)            ✅
+├── categories                    # Content categories ✅
+│   ├── id (SERIAL PRIMARY KEY)   ✅
+│   ├── slug (VARCHAR UNIQUE)     ✅
+│   └── created_at (TIMESTAMP)    ✅
+├── category_translations         # Category names ✅
+│   ├── id (SERIAL PRIMARY KEY)   ✅
+│   ├── category_id (FOREIGN KEY) ✅
+│   ├── language_code (VARCHAR)   ✅
+│   └── name (TEXT)               ✅
+├── users                         # User accounts ✅
+│   ├── id (UUID PRIMARY KEY)     ✅
+│   ├── email (VARCHAR)           ✅
+│   └── role (TEXT)               ✅
+├── about_me                      # About page content 🔄
+└── about_me_translations         # About translations 🔄
+```
+
+---
+
+## Data Flow Architecture
+
+### Content Display Flow (✅ Complete)
+
+```
+1. User Request
+   └── Next.js App Router
+       └── Server Component
+           └── Supabase Server Client
+               └── PostgreSQL Database
+                   └── Query Results
+                       └── Server-Side Rendering
+                           └── HTML Response
+                               └── Client Hydration
+                                   └── Interactive Features
+```
+
+### Admin Content Management Flow (✅ Complete)
+
+```
+1. Admin Login
+   └── Supabase Auth
+       └── JWT Token
+           └── Protected Routes
+               └── Admin Interface
+                   └── Rich Text Editor
+                       └── Image Upload
+                           └── Supabase Storage
+                               └── Database Update
+                                   └── Content Published
+```
+
+### Language Switching Flow (✅ Complete)
+
+```
+1. Language Selection
+   └── URL Update
+       └── Server Component
+           └── Language-Specific Query
+               └── Translation Data
+                   └── Content Rendering
+                       └── UI Update
+```
+
+---
+
+## Security Architecture
+
+### Authentication & Authorization (✅ Complete)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        SECURITY LAYER                          │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   Public    │  │   Protected │  │   Admin     │            │
+│  │   Routes    │  │   Routes    │  │   Routes    │            │
+│  │             │  │             │  │             │            │
+│  │ ✅ Blog     │  │ ✅ User     │  │ ✅ Admin    │            │
+│  │ ✅ About    │  │ ✅ Profile  │  │ ✅ Content  │            │
+│  │ ✅ Portfolio│  │ ✅ Settings │  │ ✅ Users    │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    ROW LEVEL SECURITY                          │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   Public    │  │   User      │  │   Admin     │            │
+│  │   Access    │  │   Access    │  │   Access    │            │
+│  │             │  │             │  │             │            │
+│  │ ✅ Read     │  │ ✅ Read     │  │ ✅ Full     │            │
+│  │ ✅ Published│  │ ✅ Own Data │  │ ✅ CRUD     │            │
+│  │ ✅ Content  │  │ ✅ Profile  │  │ ✅ All Data │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Performance Architecture
+
+### Caching Strategy (✅ Complete)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CACHING LAYER                           │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   Browser   │  │   CDN       │  │   Database  │            │
+│  │   Cache     │  │   Cache     │  │   Cache     │            │
+│  │             │  │             │  │             │            │
+│  │ ✅ Static   │  │ ✅ Images   │  │ ✅ Queries  │            │
+│  │ ✅ CSS/JS   │  │ ✅ Assets   │  │ ✅ Results  │            │
+│  │ ✅ Fonts    │  │ ✅ HTML     │  │ ✅ Views    │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Optimization Features (✅ Complete)
+
+- ✅ **Server-Side Rendering**: Fast initial page loads
+- ✅ **Static Generation**: Pre-built pages for performance
+- ✅ **Image Optimization**: Automatic resizing and format conversion
+- ✅ **Code Splitting**: Lazy loading of components
+- ✅ **Database Indexing**: Optimized queries
+- ✅ **CDN Integration**: Global content delivery
+
+---
+
+## Current Status Summary
+
+### ✅ **Fully Implemented**
+- **Frontend Architecture**: Next.js 15 with App Router
+- **Backend Integration**: Supabase platform integration
+- **Database Design**: PostgreSQL with RLS policies
+- **Authentication**: Supabase Auth with JWT
+- **Content Management**: Full CRUD operations
+- **Internationalization**: Bilingual support
+- **Admin Panel**: Complete administrative interface
+- **Media Management**: Image upload and optimization
+- **Security**: Row Level Security and authentication
+- **Performance**: Server-side rendering and caching
+
+### 🔄 **In Progress**
+- **Portfolio Features**: Needs server-side rendering fix
+- **Service Role Key**: Missing environment variable
+- **About Me Database**: Tables need to be created
+
+### 🟢 **Future Enhancements**
+- **Advanced Search**: Full-text search capabilities
+- **Analytics**: User engagement tracking
+- **Comment System**: User interaction features
+- **Email Newsletter**: Subscriber management
+
+---
+
+## Technology Stack
+
+### Frontend
+- ✅ **Next.js 15**: React framework with App Router
+- ✅ **TypeScript**: Type-safe development
+- ✅ **Tailwind CSS**: Utility-first styling
+- ✅ **React**: Component-based UI
+
+### Backend
+- ✅ **Supabase**: Backend-as-a-Service
+- ✅ **PostgreSQL**: Relational database
+- ✅ **Row Level Security**: Database security
+- ✅ **JWT Authentication**: Secure authentication
+
+### Deployment
+- ✅ **Vercel**: Hosting and deployment platform
+- ✅ **Edge Network**: Global CDN
+- ✅ **Serverless Functions**: API endpoints
+- ✅ **Automatic Scaling**: Performance optimization
+
+---
+
+**Diagram Version**: 2.0  
+**Last Updated**: December 2024  
+**Status**: Core architecture complete and functional 

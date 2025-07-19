@@ -20,7 +20,13 @@ interface Post {
   created_at: string
   thumbnail_url?: string
   category_id?: string
-  translations: Array<{
+  translations?: Array<{
+    language_code: string
+    title: string
+    summary: string
+    content: string
+  }>
+  blog_post_translations?: Array<{
     language_code: string
     title: string
     summary: string
@@ -33,14 +39,19 @@ function stripHtml(html: string) {
   return html.replace(/<[^>]+>/g, '');
 }
 
-export default function BlogListClient() {
+interface BlogListClientProps {
+  initialPosts?: any[]
+  error?: string
+}
+
+export default function BlogListClient({ initialPosts = [], error: initialError }: BlogListClientProps) {
   const { language } = useLanguage()
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [posts, setPosts] = useState<Post[]>(initialPosts)
+  const [loading, setLoading] = useState(initialPosts.length === 0 && !initialError)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError || null)
 
   // Memoize the getThumbnailUrl function
   const getThumbnailUrl = useCallback((post: Post) => {
@@ -59,20 +70,39 @@ export default function BlogListClient() {
       const supabase = createClient()
       console.log('✅ Blog: Supabase client created successfully')
       
-      // Single optimized query with joins instead of multiple queries
+      // Simplified query to debug the issue
+      console.log('🔍 Blog: Testing simple query first...')
+      
+      // First, let's test if we can get any posts at all
+      const { data: testPosts, error: testError } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('status', 'published')
+        .limit(5)
+
+      console.log('🔍 Blog: Test query result:', { data: testPosts, error: testError, count: testPosts?.length || 0 })
+
+      if (testError) {
+        console.error('❌ Blog: Test query failed:', testError)
+        throw new Error(`Test query failed: ${testError.message}`)
+      }
+
+      if (!testPosts || testPosts.length === 0) {
+        console.log('⚠️ Blog: No published posts found in simple query')
+        setPosts([])
+        setHasMore(false)
+        setError('No blog posts found. Please add some posts to your database.')
+        return
+      }
+
+      // Now let's get the full data with translations
       const { data: postsData, error: postsError } = await supabase
         .from('blog_posts')
         .select(`
           *,
-          blog_post_translations!inner(*),
-          categories(
-            id, 
-            slug, 
-            category_translations(name, language_code)
-          )
+          blog_post_translations(*)
         `)
         .eq('status', 'published')
-        .eq('blog_post_translations.language_code', language)
         .order('published_at', { ascending: false })
         .limit(POSTS_PER_PAGE)
 
@@ -123,8 +153,11 @@ export default function BlogListClient() {
   }, [language])
 
   useEffect(() => {
-    fetchPosts()
-  }, [fetchPosts])
+    // Only fetch posts if we don't have initial posts and no error
+    if (initialPosts.length === 0 && !initialError) {
+      fetchPosts()
+    }
+  }, [fetchPosts, initialPosts.length, initialError])
 
   // Optimized load more function
   const loadMorePosts = useCallback(async () => {
@@ -141,7 +174,7 @@ export default function BlogListClient() {
         .from('blog_posts')
         .select(`
           *,
-          blog_post_translations!inner(*),
+          blog_post_translations(*),
           categories(
             id, 
             slug, 
@@ -149,7 +182,6 @@ export default function BlogListClient() {
           )
         `)
         .eq('status', 'published')
-        .eq('blog_post_translations.language_code', language)
         .order('published_at', { ascending: false })
         .range(offset, offset + POSTS_PER_PAGE - 1)
 
@@ -201,9 +233,18 @@ export default function BlogListClient() {
   // Memoize rendered posts to prevent unnecessary re-renders
   const renderedPosts = useMemo(() => {
     return posts.map((post) => {
-      const translation = post.translations.find(t => t.language_code === language) || post.translations[0]
+      // Ensure translations array exists and is not undefined
+      const translations = post.translations || post.blog_post_translations || []
+      
+      // Check if translations array exists and has items
+      if (!translations || translations.length === 0) {
+        console.warn('⚠️ Blog: No translations found for post:', post.id)
+        return null
+      }
+      
+      const translation = translations.find(t => t.language_code === language) || translations[0]
       if (!translation) {
-        console.warn('⚠️ Blog: No translation found for post:', post.id, 'Available translations:', post.translations)
+        console.warn('⚠️ Blog: No translation found for post:', post.id, 'Available translations:', translations)
         return null
       }
 
