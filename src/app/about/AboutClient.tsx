@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLanguage } from '@/components/LanguageProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
@@ -31,11 +31,7 @@ export default function AboutClient() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchAboutMe()
-  }, [])
-
-  const fetchAboutMe = async () => {
+  const fetchAboutMe = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -73,7 +69,11 @@ export default function AboutClient() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    fetchAboutMe()
+  }, [fetchAboutMe])
 
   if (loading) {
     return (

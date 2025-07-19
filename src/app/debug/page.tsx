@@ -9,7 +9,6 @@ export default function DebugPage() {
 
   useEffect(() => {
     async function checkConnection() {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const info: any = {}
 
       // Check environment variables

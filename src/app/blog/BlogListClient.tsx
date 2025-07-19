@@ -168,16 +168,21 @@ export default function BlogListClient() {
           translations: post.blog_post_translations || []
         }))
 
-        setPosts(prevPosts => [...prevPosts, ...newPostsWithTranslations])
-        setPage(nextPage)
-        
-        // Check if there are more posts
+        // Get total count first
         const { count: totalCount } = await supabase
           .from('blog_posts')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'published')
-        
-        setHasMore((totalCount || 0) > (posts.length + newPostsWithTranslations.length))
+
+        setPosts(prevPosts => {
+          const updatedPosts = [...prevPosts, ...newPostsWithTranslations]
+          
+          // Check if there are more posts using the updated posts array
+          setHasMore((totalCount || 0) > updatedPosts.length)
+          
+          return updatedPosts
+        })
+        setPage(nextPage)
       } else {
         setHasMore(false)
       }

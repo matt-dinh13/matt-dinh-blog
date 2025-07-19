@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase-server'
 
 // GET: Retrieve shared images for a blog post
 export async function GET(request: NextRequest) {
@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'blogPostId and imageUrl are required' }, { status: 400 })
     }
 
-    const supabase = await createServerSupabaseClient()
+    // Use admin client to bypass RLS policies
+    const supabase = createAdminSupabaseClient()
     
     // Prepare insert data
     const insertData: any = {
@@ -107,7 +108,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'blogPostId and imageUrl are required' }, { status: 400 })
     }
 
-    const supabase = await createServerSupabaseClient()
+    // Use admin client to bypass RLS policies
+    const supabase = createAdminSupabaseClient()
     
     // Remove the image by setting is_active to false
     const { error } = await supabase

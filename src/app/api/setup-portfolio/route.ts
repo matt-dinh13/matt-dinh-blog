@@ -44,7 +44,7 @@ export async function POST() {
       return NextResponse.json({ error: projectsError.message }, { status: 500 })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Get project IDs for translations
     const projectIds = projects?.map((p: any) => p.id) || []
 
     // Add English translations
