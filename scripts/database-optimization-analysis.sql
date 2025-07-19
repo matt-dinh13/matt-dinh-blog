@@ -33,14 +33,14 @@ ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 SELECT '=== EXISTING INDEXES ===' as analysis;
 
 SELECT 
-    t.tablename,
+    t.table_name,
     i.indexname,
     i.indexdef
 FROM pg_indexes i
-JOIN pg_tables t ON i.tablename = t.tablename
+JOIN information_schema.tables t ON i.tablename = t.table_name
 WHERE i.schemaname = 'public' 
-AND t.schemaname = 'public'
-ORDER BY t.tablename, i.indexname;
+AND t.table_schema = 'public'
+ORDER BY t.table_name, i.indexname;
 
 -- 4. Check for missing indexes on foreign keys
 SELECT '=== MISSING FOREIGN KEY INDEXES ===' as analysis;
@@ -65,6 +65,7 @@ FROM
     LEFT JOIN pg_indexes idx ON 
         idx.tablename = tc.table_name 
         AND idx.indexdef LIKE '%' || kcu.column_name || '%'
+        AND idx.schemaname = 'public'
 WHERE tc.constraint_type = 'FOREIGN KEY' 
     AND tc.table_schema = 'public'
 ORDER BY tc.table_name, kcu.column_name;
@@ -182,6 +183,7 @@ WITH recommendations AS (
         SELECT 1 FROM pg_indexes 
         WHERE tablename = 'blog_post_translations' 
         AND indexdef LIKE '%blog_post_id%language_code%'
+        AND schemaname = 'public'
     )
     UNION ALL
     SELECT 'Add index on portfolio_project_translations(portfolio_project_id, language_code)' as recommendation
@@ -189,6 +191,7 @@ WITH recommendations AS (
         SELECT 1 FROM pg_indexes 
         WHERE tablename = 'portfolio_project_translations' 
         AND indexdef LIKE '%portfolio_project_id%language_code%'
+        AND schemaname = 'public'
     )
     UNION ALL
     SELECT 'Consider partitioning blog_post_translations by language_code for large datasets' as recommendation
@@ -199,6 +202,7 @@ WITH recommendations AS (
         SELECT 1 FROM pg_indexes 
         WHERE tablename = 'blog_posts' 
         AND indexdef LIKE '%published_at%'
+        AND schemaname = 'public'
     )
     UNION ALL
     SELECT 'Consider adding full-text search index on blog_post_translations(content)' as recommendation
@@ -206,6 +210,7 @@ WITH recommendations AS (
         SELECT 1 FROM pg_indexes 
         WHERE tablename = 'blog_post_translations' 
         AND indexdef LIKE '%to_tsvector%'
+        AND schemaname = 'public'
     )
 )
 SELECT recommendation FROM recommendations;
