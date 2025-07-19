@@ -221,3 +221,50 @@ body {
   height: auto !important;
   display: block !important;
 }
+
+/* Article content images - limit height while maintaining aspect ratio */
+.text-base img.max-h-\[400px\] {
+  max-height: 400px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  margin: 1rem auto !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Dark mode adjustments for article images */
+.dark .text-base img.max-h-\[400px\] {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* RichTextEditor image styling */
+.ProseMirror img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 0.5rem !important;
+  margin: 0.5rem 0 !important;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dark mode for editor images */
+.dark .ProseMirror img {
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Prose content images - ensure height limitation */
+.prose img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 0.5rem !important;
+  margin: 1rem auto !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Dark mode for prose images */
+.dark .prose img {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}

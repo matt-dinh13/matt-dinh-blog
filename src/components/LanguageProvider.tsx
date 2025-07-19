@@ -27,13 +27,7 @@ export function getLanguageFromCookie(): Language {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const lang = Cookies.get('lang')
-      return lang === 'en' ? 'en' : 'vi'
-    }
-    return 'vi'
-  })
+  const [language, setLanguageState] = useState<Language>('vi')
 
   useEffect(() => {
     // On mount, sync language from cookie

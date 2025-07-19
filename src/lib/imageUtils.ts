@@ -1,5 +1,5 @@
-import heic2any from 'heic2any';
-import imageCompression from 'browser-image-compression';
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
 
 export interface ImageConversionResult {
   file: File;
@@ -67,7 +67,19 @@ export async function cleanupOldThumbnail(oldThumbnailUrl: string | null, supaba
  * Convert HEIC file to JPG using multiple fallback methods
  */
 export async function convertHeicToJpg(file: File): Promise<ImageConversionResult> {
+  if (!isBrowser) {
+    return {
+      file: file,
+      preview: '',
+      success: false,
+      error: 'HEIC conversion is only available in browser environment'
+    };
+  }
+
   try {
+    // Dynamically import heic2any
+    const heic2any = (await import('heic2any')).default;
+    
     console.log('Attempting HEIC conversion for:', file.name);
     
     // Method 1: Try heic2any with default settings
@@ -219,6 +231,15 @@ export async function convertHeicToJpg(file: File): Promise<ImageConversionResul
  * Process any image file (JPG, PNG, HEIC) and convert to JPG if needed
  */
 export async function processImageFile(file: File): Promise<ImageConversionResult> {
+  if (!isBrowser) {
+    return {
+      file: file,
+      preview: '',
+      success: false,
+      error: 'Image processing is only available in browser environment'
+    };
+  }
+
   try {
     // Check if it's a HEIC file
     if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
@@ -229,6 +250,9 @@ export async function processImageFile(file: File): Promise<ImageConversionResul
     // For JPG and PNG files, just compress them
     if (file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/png') {
       console.log('Processing JPG/PNG file:', file.name);
+      
+      // Dynamically import imageCompression
+      const imageCompression = (await import('browser-image-compression')).default;
       
       // Compress the image
       const compressed = await imageCompression(file, { 
@@ -266,6 +290,10 @@ export async function processImageFile(file: File): Promise<ImageConversionResul
  * Validate file size and type
  */
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
+  if (!isBrowser) {
+    return { valid: false, error: 'File validation is only available in browser environment' };
+  }
+
   const maxSize = 50 * 1024 * 1024; // 50MB
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic'];
   

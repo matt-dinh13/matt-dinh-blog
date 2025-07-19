@@ -90,12 +90,99 @@ export default function AdminBlogNewPage() {
   }, [tagInput, tags, selectedTags])
 
   const generateSlug = (title: string) => {
-    return title
+    // Vietnamese character mapping to English equivalents
+    const vietnameseMap: { [key: string]: string } = {
+      'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
+      'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
+      'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
+      'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
+      'ê': 'e', 'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
+      'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
+      'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
+      'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
+      'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
+      'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
+      'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
+      'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y',
+      'đ': 'd',
+      'À': 'A', 'Á': 'A', 'Ả': 'A', 'Ã': 'A', 'Ạ': 'A',
+      'Ă': 'A', 'Ằ': 'A', 'Ắ': 'A', 'Ẳ': 'A', 'Ẵ': 'A', 'Ặ': 'A',
+      'Â': 'A', 'Ầ': 'A', 'Ấ': 'A', 'Ẩ': 'A', 'Ẫ': 'A', 'Ậ': 'A',
+      'È': 'E', 'É': 'E', 'Ẻ': 'E', 'Ẽ': 'E', 'Ẹ': 'E',
+      'Ê': 'E', 'Ề': 'E', 'Ế': 'E', 'Ể': 'E', 'Ễ': 'E', 'Ệ': 'E',
+      'Ì': 'I', 'Í': 'I', 'Ỉ': 'I', 'Ĩ': 'I', 'Ị': 'I',
+      'Ò': 'O', 'Ó': 'O', 'Ỏ': 'O', 'Õ': 'O', 'Ọ': 'O',
+      'Ô': 'O', 'Ồ': 'O', 'Ố': 'O', 'Ổ': 'O', 'Ỗ': 'O', 'Ộ': 'O',
+      'Ơ': 'O', 'Ờ': 'O', 'Ớ': 'O', 'Ở': 'O', 'Ỡ': 'O', 'Ợ': 'O',
+      'Ù': 'U', 'Ú': 'U', 'Ủ': 'U', 'Ũ': 'U', 'Ụ': 'U',
+      'Ư': 'U', 'Ừ': 'U', 'Ứ': 'U', 'Ử': 'U', 'Ữ': 'U', 'Ự': 'U',
+      'Ỳ': 'Y', 'Ý': 'Y', 'Ỷ': 'Y', 'Ỹ': 'Y', 'Ỵ': 'Y',
+      'Đ': 'D'
+    }
+
+    let slug = title
+    
+    // Replace Vietnamese characters with English equivalents
+    for (const [vietnamese, english] of Object.entries(vietnameseMap)) {
+      slug = slug.replace(new RegExp(vietnamese, 'g'), english)
+    }
+    
+    // Convert to lowercase and clean up
+    slug = slug
       .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^a-z0-9 -]/g, '') // Remove any remaining special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
       .trim()
+    
+    // Handle edge cases
+    if (!slug) {
+      slug = 'untitled'
+    }
+    
+    // Ensure slug is not too long (max 100 characters)
+    if (slug.length > 100) {
+      slug = slug.substring(0, 100)
+    }
+    
+    return slug
+  }
+
+  // Generate unique slug that doesn't conflict with existing ones
+  const generateUniqueSlug = async (title: string) => {
+    const baseSlug = generateSlug(title)
+    let slug = baseSlug
+    let counter = 1
+    
+    const supabase = createClient()
+    
+    // Keep checking until we find a unique slug
+    while (true) {
+      const { data: existingPost } = await supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('slug', slug)
+        .single()
+      
+      if (!existingPost) {
+        // Slug is unique, return it
+        return slug
+      }
+      
+      // Slug exists, try with counter suffix
+      slug = `${baseSlug}-${counter}`
+      counter++
+      
+      // Prevent infinite loop (shouldn't happen in practice)
+      if (counter > 100) {
+        // Fallback: add timestamp to make it unique
+        slug = `${baseSlug}-${Date.now()}`
+        break
+      }
+    }
+    
+    return slug
   }
 
   // Add tag
@@ -186,6 +273,12 @@ export default function AdminBlogNewPage() {
     setThumbnailError('')
     let uploadedThumbnailUrl = ''
     try {
+      if (!titleVi.trim()) {
+        setError('Vietnamese title is required.')
+        setLoading(false)
+        return
+      }
+      
       if (!thumbnailPreview) {
         setThumbnailError('Thumbnail is required.')
         setLoading(false)
@@ -221,7 +314,11 @@ export default function AdminBlogNewPage() {
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
       uploadedThumbnailUrl = urlData?.publicUrl
       if (!uploadedThumbnailUrl) throw new Error('Failed to get public URL for thumbnail.')
-      const slug = generateSlug(titleVi)
+      
+      // Generate unique slug
+      const slug = await generateUniqueSlug(titleVi)
+      console.log('Generated unique slug:', slug)
+      
       // Insert base post
       const { data: postData, error } = await supabase
         .from('blog_posts')
@@ -240,6 +337,9 @@ export default function AdminBlogNewPage() {
         .single()
       if (error) {
         console.error('Post creation error:', error)
+        if (error.code === '23505' && error.message.includes('blog_posts_slug_key')) {
+          throw new Error('A blog post with this title already exists. Please use a different title.')
+        }
         throw new Error(`Database error: ${error.message}`)
       }
       const postId = postData.id
@@ -297,9 +397,14 @@ export default function AdminBlogNewPage() {
         },
         user_id: user?.id || null,
       });
-      setSuccess('Article created successfully!')
+      setSuccess('Article created successfully! Redirecting to edit page...')
       setThumbnailPreview('')
       if (fileInputRef.current) fileInputRef.current.value = ''
+      
+      // Redirect to edit page after a short delay
+      setTimeout(() => {
+        router.push(`/admin/blog/edit/${postId}`)
+      }, 1500)
     } catch (err: any) {
       setError('Error creating blog post')
       setThumbnailError(err?.message || 'Unknown error')
@@ -336,20 +441,35 @@ export default function AdminBlogNewPage() {
           )}
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1574px] mx-auto">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
-                  Title *
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  value={activeLang === 'vi' ? titleVi : titleEn}
-                  onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                  placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
-                />
-              </div>
+            {/* Language Switcher - Moved to top */}
+            <div className="flex gap-2 mb-6">
+              <button type="button" className={`px-3 py-2 rounded-md font-medium transition-colors ${activeLang === 'vi' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`} onClick={() => setActiveLang('vi')}>
+                🇻🇳 VN
+              </button>
+              <button type="button" className={`px-3 py-2 rounded-md font-medium transition-colors ${activeLang === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`} onClick={() => setActiveLang('en')}>
+                🇺🇸 EN
+              </button>
+            </div>
+
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium mb-1" style={cardTextColor}>
+                Title *
+              </label>
+              <input
+                id="title"
+                type="text"
+                value={activeLang === 'vi' ? titleVi : titleEn}
+                onChange={e => activeLang === 'vi' ? setTitleVi(e.target.value) : setTitleEn(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                placeholder={activeLang === 'vi' ? 'Tiêu đề bài viết (VN)' : 'Blog post title (EN)'}
+              />
+              {titleVi && (
+                <div className="mt-1 text-xs text-gray-500">
+                  URL preview: <span className="font-mono">/blog/{generateSlug(titleVi)}</span>
+                </div>
+              )}
+            </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1 text-gray-900" htmlFor="thumbnail">Thumbnail Image <span className="text-red-500">*</span></label>
               <div className="border-2 border-gray-300 rounded-lg p-3 flex items-center gap-4 bg-gray-50">
@@ -385,14 +505,6 @@ export default function AdminBlogNewPage() {
               </div>
               {thumbnailError && <div className="text-xs text-red-500 mt-1">{thumbnailError}</div>}
             </div>
-            <div className="flex gap-2 mb-4">
-              <button type="button" className={`px-2 py-1 rounded ${activeLang === 'vi' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white'}`} onClick={() => setActiveLang('vi')}>
-                🇻🇳 VN
-              </button>
-              <button type="button" className={`px-2 py-1 rounded ${activeLang === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white'}`} onClick={() => setActiveLang('en')}>
-                🇺🇸 EN
-              </button>
-            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mt-4">
                 <label htmlFor="content" className="block text-sm font-medium mb-1" style={cardTextColor}>
@@ -404,6 +516,8 @@ export default function AdminBlogNewPage() {
                     onChange={md => activeLang === 'vi' ? setContentVi(md) : setContentEn(md)}
                     language={activeLang}
                     className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md"
+                    enableSharedImages={false}
+                    showSharedImagesLibrary={false}
                   />
                 </div>
               </div>

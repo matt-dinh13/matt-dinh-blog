@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
@@ -45,19 +45,22 @@ const SIDEBAR_WIDTH_COLLAPSED = 'w-20';
 
 export default function AdminLayout({ children, title = 'Admin Panel', subtitle }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('sidebarCollapsed')
-      if (stored === 'true') return true
-      if (stored === 'false') return false
-    }
-    return false
-  })
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
   const { signOut } = useAuth()
   const router = useRouter()
 
-  // Remove the useEffect for initial sidebarCollapsed state
+  // Handle hydration safely
+  useEffect(() => {
+    setIsClient(true)
+    const stored = localStorage.getItem('sidebarCollapsed')
+    if (stored === 'true') {
+      setSidebarCollapsed(true)
+    } else if (stored === 'false') {
+      setSidebarCollapsed(false)
+    }
+  }, [])
 
   const handleSidebarToggle = () => {
     setSidebarCollapsed((prev) => {
@@ -86,19 +89,19 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
 
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col h-screen
-        ${sidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED}`}
+        ${isClient && sidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED}`}
       >
         {/* Sidebar Header */}
-        <div className={`flex items-center justify-between h-20 px-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 ${sidebarCollapsed ? 'justify-center' : ''}`}>
-          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center w-full' : 'space-x-3'}`}>
-            {!sidebarCollapsed && (
+        <div className={`flex items-center justify-between h-20 px-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 ${isClient && sidebarCollapsed ? 'justify-center' : ''}`}>
+          <div className={`flex items-center ${isClient && sidebarCollapsed ? 'justify-center w-full' : 'space-x-3'}`}>
+            {!(isClient && sidebarCollapsed) && (
               <img
                 src="/logo-square.jpg"
                 alt="Logo"
                 className="rounded w-8 h-8"
               />
             )}
-            {!sidebarCollapsed && (
+            {!(isClient && sidebarCollapsed) && (
               <span className="text-xl font-bold" style={cardTextColor}>Admin</span>
             )}
           </div>
@@ -133,20 +136,20 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center ${sidebarCollapsed ? 'justify-center' : ''} px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  className={`group flex items-center ${isClient && sidebarCollapsed ? 'justify-center' : ''} px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
                     isActive
                       ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                   onClick={() => setSidebarOpen(false)}
-                  title={sidebarCollapsed ? item.name : undefined}
+                  title={isClient && sidebarCollapsed ? item.name : undefined}
                 >
                   <item.icon 
                     size={20} 
-                    className={`mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'} ${sidebarCollapsed ? 'mr-0' : ''}`}
+                    className={`mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'} ${isClient && sidebarCollapsed ? 'mr-0' : ''}`}
                   />
-                  {!sidebarCollapsed && item.name}
-                  {isActive && !sidebarCollapsed && <ChevronRight size={16} className="ml-auto" />}
+                  {!(isClient && sidebarCollapsed) && item.name}
+                  {isActive && !(isClient && sidebarCollapsed) && <ChevronRight size={16} className="ml-auto" />}
                 </Link>
               )
             })}
@@ -154,14 +157,14 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
         </nav>
 
         {/* User section */}
-        <div className={`p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 ${isClient && sidebarCollapsed ? 'justify-center' : ''}`}>
           <button
             onClick={handleSignOut}
-            className={`flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 ${sidebarCollapsed ? 'justify-center' : ''}`}
-            title={sidebarCollapsed ? 'Sign Out' : undefined}
+            className={`flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 ${isClient && sidebarCollapsed ? 'justify-center' : ''}`}
+            title={isClient && sidebarCollapsed ? 'Sign Out' : undefined}
           >
-            <LogOut size={20} className={`mr-3 text-gray-400 ${sidebarCollapsed ? 'mr-0' : ''}`} />
-            {!sidebarCollapsed && 'Sign Out'}
+            <LogOut size={20} className={`mr-3 text-gray-400 ${isClient && sidebarCollapsed ? 'mr-0' : ''}`} />
+            {!(isClient && sidebarCollapsed) && 'Sign Out'}
           </button>
         </div>
       </div>
@@ -201,21 +204,26 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
         {/* Breadcrumbs */}
         <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
           <div className="px-4 sm:px-6 lg:px-8 py-3">
-            <nav className="flex" aria-label="Breadcrumb">
+            <nav className="flex" aria-label="Breadcrumb" data-testid="admin-breadcrumb">
               <ol className="flex items-center space-x-2">
                 <li>
                   <Link href="/admin" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     Dashboard
                   </Link>
                 </li>
-                {pathname !== '/admin' && (
+                {isClient && pathname !== '/admin' && pathname !== '/' && (
                   <>
                     <li>
                       <ChevronRight size={16} className="text-gray-400" />
                     </li>
                     <li>
-                      <span className="text-gray-700 dark:text-gray-300" style={cardTextColor}>
-                        {navigation.find(item => pathname.startsWith(item.href))?.name || title}
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {(() => {
+                          const currentNavItem = navigation.find(item => 
+                            item.href !== '/admin' && pathname.startsWith(item.href)
+                          );
+                          return currentNavItem?.name || title;
+                        })()}
                       </span>
                     </li>
                   </>

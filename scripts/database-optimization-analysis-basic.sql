@@ -1,21 +1,7 @@
--- Simplified Database Optimization Analysis for Matt Dinh Blog
+-- Basic Database Optimization Analysis for Matt Dinh Blog
 -- Run this in your Supabase SQL Editor to analyze your database
 
--- 1. Check current database size and table statistics
-SELECT '=== DATABASE SIZE ANALYSIS ===' as analysis;
-
-SELECT 
-    schemaname,
-    tablename,
-    attname,
-    n_distinct,
-    correlation
-FROM pg_stats 
-WHERE schemaname = 'public' 
-AND tablename IN ('blog_posts', 'blog_post_translations', 'portfolio_projects', 'portfolio_project_translations', 'tags', 'tag_translations')
-ORDER BY tablename, attname;
-
--- 2. Check table sizes
+-- 1. Check table sizes
 SELECT '=== TABLE SIZES ===' as analysis;
 
 SELECT 
@@ -27,7 +13,7 @@ FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 
--- 3. Check existing indexes
+-- 2. Check existing indexes
 SELECT '=== EXISTING INDEXES ===' as analysis;
 
 SELECT 
@@ -39,7 +25,7 @@ FROM pg_indexes
 WHERE schemaname = 'public' 
 ORDER BY tablename, indexname;
 
--- 4. Check for missing indexes on foreign keys
+-- 3. Check for missing indexes on foreign keys
 SELECT '=== MISSING FOREIGN KEY INDEXES ===' as analysis;
 
 SELECT 
@@ -67,41 +53,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
     AND tc.table_schema = 'public'
 ORDER BY tc.table_name, kcu.column_name;
 
--- 5. Check for unused indexes
-SELECT '=== POTENTIALLY UNUSED INDEXES ===' as analysis;
-
-SELECT 
-    schemaname,
-    relname as tablename,
-    indexname,
-    idx_scan as index_scans,
-    idx_tup_read as tuples_read,
-    idx_tup_fetch as tuples_fetched
-FROM pg_stat_user_indexes 
-WHERE schemaname = 'public'
-AND idx_scan = 0
-ORDER BY relname, indexname;
-
--- 6. Check table statistics and vacuum status
-SELECT '=== TABLE STATISTICS ===' as analysis;
-
-SELECT 
-    schemaname,
-    relname as tablename,
-    n_tup_ins as inserts,
-    n_tup_upd as updates,
-    n_tup_del as deletes,
-    n_live_tup as live_tuples,
-    n_dead_tup as dead_tuples,
-    last_vacuum,
-    last_autovacuum,
-    last_analyze,
-    last_autoanalyze
-FROM pg_stat_user_tables 
-WHERE schemaname = 'public'
-ORDER BY n_dead_tup DESC;
-
--- 7. Check for large content fields that might need optimization
+-- 4. Check for large content fields that might need optimization
 SELECT '=== CONTENT SIZE ANALYSIS ===' as analysis;
 
 SELECT 
@@ -120,7 +72,7 @@ SELECT
     SUM(LENGTH(content)) as total_content_size
 FROM public.portfolio_project_translations;
 
--- 8. Check for duplicate or redundant data
+-- 5. Check for duplicate or redundant data
 SELECT '=== DUPLICATE DATA CHECK ===' as analysis;
 
 -- Check for duplicate slugs
@@ -137,7 +89,7 @@ FROM public.portfolio_projects
 GROUP BY slug 
 HAVING COUNT(*) > 1;
 
--- 9. Check RLS policy performance
+-- 6. Check RLS policies
 SELECT '=== RLS POLICY ANALYSIS ===' as analysis;
 
 SELECT 
@@ -146,31 +98,12 @@ SELECT
     policyname,
     permissive,
     roles,
-    cmd,
-    qual,
-    with_check
+    cmd
 FROM pg_policies 
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
--- 10. Check for potential query performance issues
-SELECT '=== QUERY PERFORMANCE ANALYSIS ===' as analysis;
-
--- Check for slow queries (if available)
-SELECT 
-    query,
-    calls,
-    total_time,
-    mean_time,
-    rows
-FROM pg_stat_statements 
-WHERE query LIKE '%blog_posts%' 
-   OR query LIKE '%blog_post_translations%'
-   OR query LIKE '%portfolio%'
-ORDER BY mean_time DESC
-LIMIT 10;
-
--- 11. Recommendations based on analysis
+-- 7. Recommendations based on analysis
 SELECT '=== OPTIMIZATION RECOMMENDATIONS ===' as analysis;
 
 -- Create a summary of recommendations
@@ -212,7 +145,7 @@ WITH recommendations AS (
 )
 SELECT recommendation FROM recommendations;
 
--- 12. Check for storage optimization opportunities
+-- 8. Check for storage optimization opportunities
 SELECT '=== STORAGE OPTIMIZATION ===' as analysis;
 
 -- Check for large text fields that could be compressed
@@ -224,8 +157,8 @@ SELECT
 FROM public.blog_post_translations
 WHERE LENGTH(content) > 10000;
 
--- 13. Check connection and performance stats
-SELECT '=== PERFORMANCE STATS ===' as analysis;
+-- 9. Check basic database stats
+SELECT '=== BASIC DATABASE STATS ===' as analysis;
 
 SELECT 
     datname,

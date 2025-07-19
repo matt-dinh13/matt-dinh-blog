@@ -12,31 +12,27 @@ export default function LanguageSwitcher() {
     if (newLang === language) return
     setLanguage(newLang)
 
-    // Try to switch to the same page in the new language
-    let newPath = window.location.pathname
-    if (newPath.startsWith('/vi/')) {
-      newPath = '/en' + newPath.slice(3)
-    } else if (newPath.startsWith('/en/')) {
-      newPath = '/vi' + newPath.slice(3)
-    } else if (newPath === '/vi') {
-      newPath = '/en'
-    } else if (newPath === '/en') {
-      newPath = '/vi'
-    } else {
-      // If not in a language path, default to new language homepage
-      newPath = '/' + newLang
+    // Get current pathname
+    const currentPath = window.location.pathname
+    
+    // Handle homepage routing
+    if (currentPath === '/' || currentPath === '/vi' || currentPath === '/en') {
+      // For homepage, just switch to the new language homepage
+      router.push('/' + newLang)
+      return
     }
 
-    // Check if the new page exists (HEAD request)
-    try {
-      const res = await fetch(newPath, { method: 'HEAD' })
-      if (res.ok) {
-        router.push(newPath)
-        return
-      }
-    } catch {}
-    // Fallback to homepage in selected language
-    router.push('/' + newLang)
+    // Handle other pages with language prefixes
+    const pathSegments = currentPath.split('/')
+    if (pathSegments[1] === 'vi' || pathSegments[1] === 'en') {
+      // Replace language prefix
+      pathSegments[1] = newLang
+      const newPath = pathSegments.join('/')
+      router.push(newPath)
+    } else {
+      // Add language prefix
+      router.push('/' + newLang + currentPath)
+    }
   }
 
   return (

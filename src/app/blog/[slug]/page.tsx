@@ -224,6 +224,17 @@ export default async function BlogPostPage({ params }: Props) {
         <Head>
           <title>{metaTitle}</title>
           <meta name="description" content={metaDescription} />
+          {/* Hreflang tags for language versions */}
+          {translations?.map((t: any) => (
+            <link 
+              key={t.language_code}
+              rel="alternate" 
+              hrefLang={t.language_code} 
+              href={`/${t.language_code}/blog/${post.slug}`}
+            />
+          ))}
+          {/* Default hreflang */}
+          <link rel="alternate" hrefLang="x-default" href={`/vi/blog/${post.slug}`} />
         </Head>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
           <Navigation />
@@ -258,6 +269,7 @@ export default async function BlogPostPage({ params }: Props) {
               thumbnailUrl={post.thumbnail_url}
               languageCode={translation.language_code}
               relatedPosts={relatedPosts}
+              availableLanguages={translations?.map((t: any) => t.language_code) || []}
             />
           </main>
           <Footer />

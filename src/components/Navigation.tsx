@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useMemo, useCallback, memo } from 'react'
+import React, { useState, useMemo, useCallback, memo, useEffect } from 'react'
 import { Menu, X, Search } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 import SearchBar from './SearchBar'
@@ -58,9 +58,13 @@ export default function Navigation() {
   const handleSearchToggle = useCallback(() => setIsSearchOpen(open => !open), [])
 
   // Only show language switcher on public-facing pages
-  const isPublicPage = typeof window !== 'undefined' ?
-    !window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/api')
-    : true
+  const [isPublicPage, setIsPublicPage] = useState(true)
+
+  // Use useEffect to check the pathname after hydration
+  useEffect(() => {
+    const pathname = window.location.pathname
+    setIsPublicPage(!pathname.startsWith('/admin') && !pathname.startsWith('/api'))
+  }, [])
 
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
@@ -102,7 +106,11 @@ export default function Navigation() {
               <MenuItem key={item.name} item={item} />
             ))}
             {/* Language Switcher (public pages only) */}
-            {isPublicPage && <div className="ml-2"><LanguageSwitcher /></div>}
+            {isPublicPage && (
+              <div className="ml-2">
+                <LanguageSwitcher />
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -142,7 +150,11 @@ export default function Navigation() {
                 <MobileMenuItem key={item.name} item={item} onClick={handleMenuClose} />
               ))}
               {/* Language Switcher (public pages only) */}
-              {isPublicPage && <div className="mt-2"><LanguageSwitcher /></div>}
+              {isPublicPage && (
+                <div className="mt-2">
+                  <LanguageSwitcher />
+                </div>
+              )}
             </div>
           </div>
         )}

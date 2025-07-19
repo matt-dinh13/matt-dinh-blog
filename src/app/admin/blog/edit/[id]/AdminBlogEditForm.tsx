@@ -19,14 +19,14 @@ type BlogPost = {
   thumbnail_url?: string
 }
 
-interface BlogPostTranslation {
-  id: number
-  blog_post_id: number
-  language_code: string
-  title: string
-  summary: string
-  content: string
-}
+// interface BlogPostTranslation {
+//   id: number
+//   blog_post_id: number
+//   language_code: string
+//   title: string
+//   summary: string
+//   content: string
+// }
 
 interface AdminBlogEditFormProps {
   id: string
@@ -49,7 +49,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   const [selectedTags, setSelectedTags] = useState<{ id?: number; slug: string; name: string }[]>([])
   const [tagInput, setTagInput] = useState('')
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; slug: string; name: string }[]>([])
-  const [translation, setTranslation] = useState<BlogPostTranslation | null>(null)
+  // const [translation, setTranslation] = useState<BlogPostTranslation | null>(null)
   const [translationLang, setTranslationLang] = useState('vi') // Always prefer Vietnamese
   const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
   const [success, setSuccess] = useState('')
@@ -68,20 +68,37 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         .single()
       if (postError) throw postError
       setPost(postData)
-      // Fetch translations (prefer VI, fallback to EN, fallback to any)
+      
+      // Fetch all translations
       const { data: translations } = await supabase
         .from('blog_post_translations')
         .select('*')
         .eq('blog_post_id', id)
-      let tr = translations?.find((t: any) => t.language_code === 'vi')
-      if (!tr) tr = translations?.find((t: any) => t.language_code === 'en')
-      if (!tr && translations && translations.length > 0) tr = translations[0]
-      setTranslation(tr || null)
-      setTranslationLang(tr?.language_code || 'vi')
-      setTitleVi(tr?.title || '')
-      setTitleEn(tr?.title || '')
-      setContentVi(tr?.content || '')
-      setContentEn(tr?.content || '')
+      
+      if (translations) {
+        // Find VIE translation
+        const vieTranslation = translations.find((t: any) => t.language_code === 'vi')
+        // Find ENG translation
+        const engTranslation = translations.find((t: any) => t.language_code === 'en')
+        
+        // Set VIE content
+        if (vieTranslation) {
+          setTitleVi(vieTranslation.title || '')
+          setContentVi(vieTranslation.content || '')
+        }
+        
+        // Set ENG content
+        if (engTranslation) {
+          setTitleEn(engTranslation.title || '')
+          setContentEn(engTranslation.content || '')
+        }
+        
+        // Set default translation for backward compatibility
+        const defaultTranslation = vieTranslation || engTranslation || translations[0]
+        // setTranslation(defaultTranslation || null) // This line was commented out in the original file
+        setTranslationLang(defaultTranslation?.language_code || 'vi')
+      }
+      
       setStatus(postData.status)
       setCategoryId(postData.category_id ? String(postData.category_id) : '')
     } catch (err) {
@@ -96,7 +113,9 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     fetchPost()
   }, [fetchPost])
 
-  // Sync translation content to state
+  // This useEffect is no longer needed since we load both translations properly
+  // Keeping it commented for reference
+  /*
   useEffect(() => {
     if (translationLang === 'vi') {
       setContentVi(translation?.content || '')
@@ -106,6 +125,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       setTitleEn(translation?.title || '')
     }
   }, [translation, translationLang])
+  */
 
   // When switching language, update content fields
   const handleLangSwitch = (lang: 'vi' | 'en') => {
@@ -487,7 +507,6 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Blog Post</h1>
-        <span className="text-xs text-gray-500">Editing language: {translationLang.toUpperCase()}</span>
         <button
           onClick={() => router.back()}
           className="text-blue-600 hover:underline"
@@ -577,6 +596,9 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
               onChange={md => activeLang === 'vi' ? setContentVi(md) : setContentEn(md)}
               language={activeLang}
               className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md"
+              blogPostId={parseInt(id)}
+              enableSharedImages={true}
+              showSharedImagesLibrary={true} // Show for both languages
             />
           </div>
 

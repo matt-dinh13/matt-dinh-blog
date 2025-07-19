@@ -11,6 +11,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import { Markdown } from 'tiptap-markdown';
 import { createClient } from '@/lib/supabase';
 import { processImageFile, validateImageFile } from '@/lib/imageUtils';
+import SharedImagesLibrary from './SharedImagesLibrary';
 import styles from './RichTextEditor.module.css';
 
 interface RichTextEditorProps {
@@ -18,11 +19,14 @@ interface RichTextEditorProps {
   onChange: (markdown: string) => void;
   language: 'vi' | 'en';
   className?: string;
+  blogPostId?: number; // Optional: for shared image functionality
+  enableSharedImages?: boolean; // Optional: enable cross-language image sharing
+  showSharedImagesLibrary?: boolean; // Optional: show the shared images library panel
 }
 
 const menuButton = 'px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-gray-700 cursor-pointer';
 
-export default function RichTextEditor({ value, onChange, language, className }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, language, className, blogPostId, enableSharedImages = false, showSharedImagesLibrary = false }: RichTextEditorProps) {
   const [uploading, setUploading] = useState(false);
   const editor = useEditor({
     extensions: [
@@ -108,6 +112,35 @@ export default function RichTextEditor({ value, onChange, language, className }:
       if (!urlData?.publicUrl) throw new Error('Failed to get public URL');
       
       console.log('🔗 Public URL:', urlData.publicUrl);
+      
+      // If shared images are enabled and we have a blog post ID, sync across translations
+      if (enableSharedImages && blogPostId) {
+        try {
+          console.log('🔄 Syncing image across all language translations...');
+          const response = await fetch('/api/shared-images', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              blogPostId,
+              imageUrl: urlData.publicUrl,
+              originalFilename: file.name,
+              fileSize: result.file.size
+            }),
+          });
+
+          if (!response.ok) {
+            console.warn('⚠️ Failed to sync image across translations, but continuing with local insert');
+          } else {
+            console.log('✅ Image synced across all language translations');
+          }
+        } catch (syncError) {
+          console.warn('⚠️ Error syncing image across translations:', syncError);
+        }
+      }
+      
+      // Insert image into current editor
       editor?.chain().focus().setImage({ src: urlData.publicUrl }).run();
       console.log('✅ Image inserted into editor');
     } catch (error: any) {
@@ -116,7 +149,7 @@ export default function RichTextEditor({ value, onChange, language, className }:
     } finally {
       setUploading(false);
     }
-  }, [editor]);
+  }, [editor, enableSharedImages, blogPostId]);
 
   // Drag-and-drop image
   const handleDrop = useCallback((event: React.DragEvent) => {
@@ -136,9 +169,53 @@ export default function RichTextEditor({ value, onChange, language, className }:
   };
 
   // Insert image by URL
-  const handleImageUrl = () => {
+  const handleImageUrl = async () => {
     const url = prompt('Enter image URL');
-    if (url) editor?.chain().focus().setImage({ src: url }).run();
+    if (url) {
+      // If shared images are enabled and we have a blog post ID, sync across translations
+      if (enableSharedImages && blogPostId) {
+        try {
+          console.log('🔄 Syncing external image across all language translations...');
+          const response = await fetch('/api/shared-images', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              blogPostId,
+              imageUrl: url,
+              originalFilename: 'external-image',
+              fileSize: null
+            }),
+          });
+
+          if (!response.ok) {
+            console.warn('⚠️ Failed to sync external image across translations, but continuing with local insert');
+          } else {
+            console.log('✅ External image synced across all language translations');
+          }
+        } catch (syncError) {
+          console.warn('⚠️ Error syncing external image across translations:', syncError);
+        }
+      }
+      
+      editor?.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  // Insert shared image at cursor position
+  const handleInsertSharedImage = (imageUrl: string, caption?: string) => {
+    if (!editor) return;
+    
+    // Create markdown image syntax with optional caption
+    let imageMarkdown = `![](${imageUrl})`;
+    if (caption) {
+      imageMarkdown = `![](${imageUrl})\n\n*${caption}*`;
+    }
+    
+    // Insert at current cursor position
+    const { from } = editor.state.selection;
+    editor.chain().focus().insertContentAt(from, imageMarkdown).run();
   };
 
   // Update image size
@@ -172,6 +249,9 @@ export default function RichTextEditor({ value, onChange, language, className }:
             <button className={menuButton} onClick={() => editor.chain().focus().setYoutubeVideo({ src: prompt('YouTube URL') || '' }).run()}>YT</button>
             <button className={menuButton} onClick={handleImageButton} disabled={uploading}>🖼️</button>
             <button className={menuButton} onClick={handleImageUrl}>🌐</button>
+            {showSharedImagesLibrary && blogPostId && (
+              <button className={menuButton} title="Shared Images Library">📚</button>
+            )}
           </div>
           {/* Contextual menus remain for selection-based actions */}
           <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
@@ -220,6 +300,19 @@ export default function RichTextEditor({ value, onChange, language, className }:
         onChange={handleFileChange}
       />
       <EditorContent editor={editor} className={`text-gray-900 bg-white w-full min-h-[300px] ${styles.forceDarkText}`} style={{ fontWeight: 400 }} />
+      
+      {/* Shared Images Library Panel */}
+      {showSharedImagesLibrary && blogPostId && (
+        <div className="mt-4">
+          <SharedImagesLibrary
+            blogPostId={blogPostId}
+            language={language}
+            onInsertImage={handleInsertSharedImage}
+            className="mt-2"
+          />
+        </div>
+      )}
+      
       {/* Image size controls (if image selected) */}
       {editor && editor.isActive('image') && (
         <div className="flex gap-2 mt-2 items-center">
