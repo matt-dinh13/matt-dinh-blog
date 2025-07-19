@@ -1,67 +1,6 @@
 {
   "version": 2,
-  "name": "matt-dinh-blog",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/admin/(.*)",
-      "dest": "/admin/$1",
-      "headers": {
-        "X-Frame-Options": "DENY",
-        "X-Content-Type-Options": "nosniff",
-        "Referrer-Policy": "strict-origin-when-cross-origin"
-      }
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    },
-    {
-      "src": "/blog/(.*)",
-      "dest": "/blog/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=3600, s-maxage=86400"
-      }
-    },
-    {
-      "src": "/portfolio/(.*)",
-      "dest": "/portfolio/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=3600, s-maxage=86400"
-      }
-    },
-    {
-      "src": "/search",
-      "dest": "/search",
-      "headers": {
-        "Cache-Control": "public, max-age=300, s-maxage=3600"
-      }
-    },
-    {
-      "src": "/about",
-      "dest": "/about",
-      "headers": {
-        "Cache-Control": "public, max-age=3600, s-maxage=86400"
-      }
-    },
-    {
-      "src": "/",
-      "dest": "/",
-      "headers": {
-        "Cache-Control": "public, max-age=300, s-maxage=3600"
-      }
-    }
-  ],
+
   "redirects": [
     {
       "source": "/home",
@@ -126,17 +65,6 @@
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
-    }
-  },
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key"
-    }
+        }
   }
 } 

@@ -20,9 +20,6 @@ interface SharedImagesLibraryProps {
   className?: string
 }
 
-// Constants
-const IMAGE_CONTAINER_HEIGHT = '118px'
-
 // Component
 export default function SharedImagesLibrary({ 
   blogPostId, 

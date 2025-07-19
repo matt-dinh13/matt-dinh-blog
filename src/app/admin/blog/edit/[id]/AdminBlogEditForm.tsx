@@ -50,7 +50,6 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   const [tagInput, setTagInput] = useState('')
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; slug: string; name: string }[]>([])
   // const [translation, setTranslation] = useState<BlogPostTranslation | null>(null)
-  const [translationLang, setTranslationLang] = useState('vi') // Always prefer Vietnamese
   const [activeLang, setActiveLang] = useState<'vi' | 'en'>('vi')
   const [success, setSuccess] = useState('')
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
@@ -93,10 +92,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
           setContentEn(engTranslation.content || '')
         }
         
-        // Set default translation for backward compatibility
-        const defaultTranslation = vieTranslation || engTranslation || translations[0]
         // setTranslation(defaultTranslation || null) // This line was commented out in the original file
-        setTranslationLang(defaultTranslation?.language_code || 'vi')
       }
       
       setStatus(postData.status)
