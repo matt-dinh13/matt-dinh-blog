@@ -46,12 +46,15 @@ A bilingual (Vietnamese/English) blog and portfolio website built with Next.js 1
    ```
 
 3. **Environment Setup**
-   Create `.env.local` with your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```bash
+   # Copy the example environment file
+   cp env.example .env.local
+   
+   # Edit with your actual Supabase credentials
+   nano .env.local
    ```
+   
+   **⚠️ Security Note**: Never commit `.env` files to the repository. They are already in `.gitignore`.
 
 4. **Database Setup**
    Run the SQL scripts in the `scripts/` folder:
@@ -106,11 +109,14 @@ src/
 3. Deploy automatically on push to main branch
 
 ### Environment Variables for Production
+Set these in your Vercel dashboard under Settings > Environment Variables:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
 ```
+
+**🔒 Security**: Never commit real credentials to the repository. Use environment variables for all sensitive data.
 
 ## 📝 Recent Updates
 
@@ -146,6 +152,17 @@ SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
    - Check TypeScript types for Next.js 15 compatibility
    - Verify all imports and component paths
    - Ensure proper Promise handling for params
+
+## 🔒 Security
+
+This repository is public and serves as a proof of concept. For security:
+
+- **Environment Variables**: Never commit `.env` files
+- **API Keys**: Use environment variables for all secrets
+- **Database**: Use separate databases for development and production
+- **Access Control**: Implement proper authentication and authorization
+
+See [SECURITY.md](./SECURITY.md) for detailed security guidelines.
 
 ## 📄 License
 
