@@ -18,6 +18,8 @@ graph TB
         Middleware[Middleware]
         Auth_Provider[Auth Provider]
         Language_Provider[Language Provider]
+        Rich_Text_Editor[Rich Text Editor]
+        Image_Processor[Image Processor]
     end
 
     %% Backend Services
@@ -45,6 +47,7 @@ graph TB
         Tags[Tags Table]
         Portfolio[Portfolio Table]
         Views[Page Views Table]
+        Media[Media Table]
     end
 
     %% Connections
@@ -56,6 +59,9 @@ graph TB
     API_Routes --> Middleware
     Middleware --> Auth_Provider
     Auth_Provider --> Language_Provider
+
+    Rich_Text_Editor --> Image_Processor
+    Image_Processor --> Storage
 
     API_Routes --> Auth
     API_Routes --> Database
@@ -77,6 +83,7 @@ graph TB
     Database --> Tags
     Database --> Portfolio
     Database --> Views
+    Database --> Media
 
     %% Styling
     classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
@@ -86,10 +93,10 @@ graph TB
     classDef databaseClass fill:#fce4ec,stroke:#880e4f,stroke-width:2px
 
     class Admin,Reader,Mobile userClass
-    class Pages,API_Routes,Middleware,Auth_Provider,Language_Provider frontendClass
+    class Pages,API_Routes,Middleware,Auth_Provider,Language_Provider,Rich_Text_Editor,Image_Processor frontendClass
     class Auth,Database,Storage,RLS,RealTime backendClass
     class Vercel,CDN,Analytics externalClass
-    class Users,Posts,Translations,Categories,Tags,Portfolio,Views databaseClass
+    class Users,Posts,Translations,Categories,Tags,Portfolio,Views,Media databaseClass
 ```
 
 ## Component Architecture
@@ -123,6 +130,7 @@ graph LR
         LoadingSpinner[Loading Spinner]
         Tooltip[Tooltip]
         Breadcrumbs[Breadcrumbs]
+        ImageDisplay[Image Display]
     end
 
     %% Admin Components
@@ -130,8 +138,10 @@ graph LR
         AdminLayout[Admin Layout]
         AdminDashboard[Admin Dashboard]
         PostEditor[Post Editor]
+        RichTextEditor[Rich Text Editor]
         MediaManager[Media Manager]
         UserManager[User Manager]
+        ImageProcessor[Image Processor]
     end
 
     %% Data Layer
@@ -140,6 +150,7 @@ graph LR
         Utils[Utility Functions]
         Constants[Constants]
         Types[Type Definitions]
+        ImageUtils[Image Utilities]
     end
 
     %% Connections
@@ -151,6 +162,7 @@ graph LR
     HomePage --> BlogCard
     BlogPage --> PostCard
     PostPage --> Breadcrumbs
+    PostPage --> ImageDisplay
     PortfolioPage --> PostCard
     AdminPage --> AdminLayout
     LoginPage --> AuthProvider
@@ -160,14 +172,20 @@ graph LR
     AdminLayout --> MediaManager
     AdminLayout --> UserManager
 
+    PostEditor --> RichTextEditor
+    RichTextEditor --> ImageProcessor
+    ImageProcessor --> ImageUtils
+
     BlogCard --> SupabaseClient
     PostCard --> SupabaseClient
     SearchBar --> SupabaseClient
     PostEditor --> SupabaseClient
+    ImageDisplay --> SupabaseClient
 
     SupabaseClient --> Utils
     Utils --> Constants
     Utils --> Types
+    ImageUtils --> Utils
 
     %% Styling
     classDef coreClass fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
@@ -178,9 +196,68 @@ graph LR
 
     class Layout,Navigation,Footer,AuthProvider,LanguageProvider coreClass
     class HomePage,BlogPage,PostPage,PortfolioPage,AdminPage,LoginPage pageClass
-    class BlogCard,PostCard,SearchBar,LoadingSpinner,Tooltip,Breadcrumbs uiClass
-    class AdminLayout,AdminDashboard,PostEditor,MediaManager,UserManager adminClass
-    class SupabaseClient,Utils,Constants,Types dataClass
+    class BlogCard,PostCard,SearchBar,LoadingSpinner,Tooltip,Breadcrumbs,ImageDisplay uiClass
+    class AdminLayout,AdminDashboard,PostEditor,RichTextEditor,MediaManager,UserManager,ImageProcessor adminClass
+    class SupabaseClient,Utils,Constants,Types,ImageUtils dataClass
+```
+
+## Image Processing Flow
+
+```mermaid
+sequenceDiagram
+    participant U as Admin User
+    participant E as Rich Text Editor
+    participant P as Image Processor
+    participant S as Supabase Storage
+    participant D as Database
+    participant R as Reader
+
+    %% Image Upload Flow
+    U->>E: Upload Image
+    E->>P: Process Image
+    P->>P: Resize to 800px width
+    P->>P: Convert to JPG format
+    P->>P: Optimize quality
+    P->>S: Upload processed image
+    S-->>P: Return image URL
+    P-->>E: Insert image in content
+    E->>D: Save content with image URL
+    D-->>E: Confirm save
+    E-->>U: Show updated content
+
+    %% Image Display Flow
+    R->>R: Visit blog post
+    R->>D: Fetch post content
+    D-->>R: Return content with image URLs
+    R->>S: Request image
+    S-->>R: Serve optimized image
+    R-->>R: Display image in content
+```
+
+## Content Rendering Flow
+
+```mermaid
+sequenceDiagram
+    participant S as Server
+    participant C as Client
+    participant D as Database
+    participant R as Reader
+
+    %% Server-Side Rendering
+    S->>D: Fetch blog post content
+    D-->>S: Return Markdown content
+    S->>S: Pass raw content to client
+    S-->>C: Send HTML with raw content
+
+    %% Client-Side Processing
+    C->>C: Parse Markdown content
+    C->>C: Convert image syntax to HTML
+    C->>C: Render content safely
+    C-->>R: Display content with images
+
+    %% Hydration Safety
+    Note over S,C: No server-side Markdown processing
+    Note over C,R: Client-side image conversion prevents hydration errors
 ```
 
 ## Data Flow Architecture
@@ -198,120 +275,55 @@ sequenceDiagram
     U->>P: Access Admin Page
     P->>M: Check Authentication
     M->>S: Validate Session
-    S->>D: Query User Data
-    D-->>S: User Data
-    S-->>M: Session Valid
-    M-->>P: Allow Access
-    P-->>U: Show Admin Page
+    S-->>M: Session Valid/Invalid
+    M-->>P: Allow/Deny Access
+    P-->>U: Show Admin Page/Login
 
     %% Content Creation Flow
     U->>P: Create Blog Post
     P->>A: Submit Post Data
-    A->>S: Insert Post
-    S->>D: Save Post Data
-    D-->>S: Post Created
-    S-->>A: Success Response
-    A-->>P: Post Created
+    A->>S: Store in Database
+    S-->>A: Confirm Storage
+    A-->>P: Success Response
     P-->>U: Show Success Message
 
-    %% Content Display Flow
-    U->>P: View Blog Page
-    P->>A: Fetch Posts
-    A->>S: Query Posts
-    S->>D: Execute Query
-    D-->>S: Post Data
-    S-->>A: Posts Data
-    A-->>P: Posts Data
-    P-->>U: Display Posts
+    %% Image Upload Flow
+    U->>P: Upload Image in Editor
+    P->>A: Process Image
+    A->>S: Store Image
+    S-->>A: Return Image URL
+    A-->>P: Update Content
+    P-->>U: Show Image in Editor
 
-    %% Search Flow
-    U->>P: Search Content
-    P->>A: Search Query
-    A->>S: Full-text Search
-    S->>D: Search Database
-    D-->>S: Search Results
-    S-->>A: Results Data
-    A-->>P: Search Results
-    P-->>U: Display Results
+    %% Content Display Flow
+    U->>P: View Blog Post
+    P->>A: Fetch Post Data
+    A->>S: Query Database
+    S-->>A: Return Post Data
+    A-->>P: Send Post Data
+    P-->>U: Display Post with Images
 ```
 
-## Technology Stack Architecture
+## Updated Architecture Notes
 
-```mermaid
-graph TB
-    %% Frontend Technologies
-    subgraph "Frontend Stack"
-        NextJS[Next.js 15]
-        React[React 18]
-        TypeScript[TypeScript]
-        TailwindCSS[Tailwind CSS]
-        LucideIcons[Lucide Icons]
-    end
+### Image Processing Components
+- **Rich Text Editor**: TipTap-based editor with image upload integration
+- **Image Processor**: Client-side image processing with Canvas API
+- **Image Utilities**: Helper functions for image manipulation and optimization
+- **Image Display**: Responsive image rendering component
 
-    %% Backend Technologies
-    subgraph "Backend Stack"
-        Supabase[Supabase]
-        PostgreSQL[PostgreSQL]
-        Auth[Supabase Auth]
-        Storage[Supabase Storage]
-    end
+### Content Rendering Strategy
+- **Server**: Passes raw Markdown content to client
+- **Client**: Converts Markdown images to HTML using regex
+- **Hydration Safety**: Prevents server/client mismatches
+- **Performance**: Fast rendering without external libraries
 
-    %% Development Tools
-    subgraph "Development Tools"
-        ESLint[ESLint]
-        Prettier[Prettier]
-        Git[Git]
-        VSCode[VS Code]
-    end
+### Storage Architecture
+- **Supabase Storage**: Secure file storage with public read access
+- **Image Organization**: Structured folder system for different content types
+- **Optimization**: Automatic format conversion and compression
+- **CDN**: Global content delivery through Vercel
 
-    %% Deployment & Hosting
-    subgraph "Deployment & Hosting"
-        Vercel[Vercel]
-        CDN[Global CDN]
-        SSL[SSL Certificates]
-        CI_CD[CI/CD Pipeline]
-    end
+---
 
-    %% External Services
-    subgraph "External Services"
-        Analytics[Analytics]
-        Monitoring[Monitoring]
-        Backup[Backup Services]
-    end
-
-    %% Connections
-    NextJS --> React
-    React --> TypeScript
-    NextJS --> TailwindCSS
-    NextJS --> LucideIcons
-
-    Supabase --> PostgreSQL
-    Supabase --> Auth
-    Supabase --> Storage
-
-    NextJS --> Supabase
-    TypeScript --> ESLint
-    TypeScript --> Prettier
-
-    NextJS --> Vercel
-    Vercel --> CDN
-    Vercel --> SSL
-    Vercel --> CI_CD
-
-    Vercel --> Analytics
-    Vercel --> Monitoring
-    Supabase --> Backup
-
-    %% Styling
-    classDef frontendClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef backendClass fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef devClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef deployClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-
-    class NextJS,React,TypeScript,TailwindCSS,LucideIcons frontendClass
-    class Supabase,PostgreSQL,Auth,Storage backendClass
-    class ESLint,Prettier,Git,VSCode devClass
-    class Vercel,CDN,SSL,CI_CD deployClass
-    class Analytics,Monitoring,Backup externalClass
-``` 
+*Last updated: January 19, 2025* 

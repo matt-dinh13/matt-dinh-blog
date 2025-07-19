@@ -1,8 +1,8 @@
 # Software Requirements Specification (SRS)
 ## Matt Dinh Blog Platform
 
-**Document Version:** 1.0  
-**Date:** July 17, 2025  
+**Document Version:** 1.1  
+**Date:** January 19, 2025  
 **Author:** Matt Dinh  
 **Project:** Personal Blog & Portfolio Platform
 
@@ -24,6 +24,8 @@ The system encompasses a complete content management platform with public-facing
 - **UI/UX:** User Interface/User Experience
 - **SEO:** Search Engine Optimization
 - **i18n:** Internationalization
+- **RLS:** Row Level Security
+- **JPG:** Joint Photographic Experts Group (image format)
 
 ### 1.4 References
 - Next.js Documentation: https://nextjs.org/docs
@@ -41,6 +43,7 @@ The platform follows a modern web application architecture:
 - **Styling:** Tailwind CSS
 - **Deployment:** Vercel
 - **Database:** PostgreSQL with Row Level Security (RLS)
+- **Image Processing:** Client-side resizing and format conversion
 
 ### 2.2 System Context
 ```
@@ -67,6 +70,7 @@ The platform follows a modern web application architecture:
 - **Maintainability:** Clean, well-documented codebase
 - **Security:** Protected admin area and secure data handling
 - **Accessibility:** WCAG 2.1 AA compliance
+- **Image Optimization:** Efficient image processing and delivery
 
 ---
 
@@ -93,71 +97,77 @@ The platform follows a modern web application architecture:
 - **FR-010:** Delete blog posts with confirmation
 - **FR-011:** Publish/unpublish posts with status management
 - **FR-012:** Support for draft and published states
-- **FR-013:** Rich text editing with HTML content support
+- **FR-013:** Rich text editing with Markdown content support
 - **FR-014:** Image upload and management for post thumbnails
 - **FR-015:** Category and tag assignment for posts
+- **FR-016:** Inline image upload within rich text editor
+- **FR-017:** Automatic image processing (resize, format conversion)
+- **FR-018:** Markdown to HTML conversion for image display
+- **FR-019:** Hydration-safe content rendering
 
 #### 3.2.2 Portfolio Projects
-- **FR-016:** Create portfolio projects with detailed descriptions
-- **FR-017:** Edit project information and media
-- **FR-018:** Delete projects with confirmation
-- **FR-019:** Project status management (active/inactive)
-- **FR-020:** Image gallery support for project showcases
+- **FR-020:** Create portfolio projects with detailed descriptions
+- **FR-021:** Edit project information and media
+- **FR-022:** Delete projects with confirmation
+- **FR-023:** Project status management (active/inactive)
+- **FR-024:** Image gallery support for project showcases
 
 #### 3.2.3 Categories and Tags
-- **FR-021:** Create and manage content categories
-- **FR-022:** Create and manage content tags
-- **FR-023:** Assign categories and tags to blog posts
-- **FR-024:** Filter content by categories and tags
+- **FR-025:** Create and manage content categories
+- **FR-026:** Create and manage content tags
+- **FR-027:** Assign categories and tags to blog posts
+- **FR-028:** Filter content by categories and tags
 
 ### 3.3 Public Interface
 
 #### 3.3.1 Blog Display
-- **FR-025:** Display blog posts in chronological order
-- **FR-026:** Pagination support for large content collections
-- **FR-027:** Individual blog post pages with full content
-- **FR-028:** Related posts suggestions
-- **FR-029:** Social sharing capabilities
+- **FR-029:** Display blog posts in chronological order
+- **FR-030:** Pagination support for large content collections
+- **FR-031:** Individual blog post pages with full content
+- **FR-032:** Related posts suggestions
+- **FR-033:** Social sharing capabilities
+- **FR-034:** Proper image rendering in blog content
+- **FR-035:** Responsive image display with optimization
 
 #### 3.3.2 Portfolio Display
-- **FR-030:** Display portfolio projects in grid layout
-- **FR-031:** Individual project detail pages
-- **FR-032:** Project filtering and sorting options
+- **FR-036:** Display portfolio projects in grid layout
+- **FR-037:** Individual project detail pages
+- **FR-038:** Project filtering and sorting options
 
 #### 3.3.3 Search Functionality
-- **FR-033:** Search blog posts by title and content
-- **FR-034:** Search results with relevance ranking
-- **FR-035:** Search suggestions and autocomplete
-- **FR-036:** Search within specific categories or tags
+- **FR-039:** Search blog posts by title and content
+- **FR-040:** Search results with relevance ranking
+- **FR-041:** Search suggestions and autocomplete
+- **FR-042:** Search within specific categories or tags
 
 ### 3.4 Internationalization
 
 #### 3.4.1 Language Support
-- **FR-037:** Full English language support
-- **FR-038:** Full Vietnamese language support
-- **FR-039:** Language switching without page reload
-- **FR-040:** Persistent language preference storage
-- **FR-041:** Bilingual content management for all posts
+- **FR-043:** Full English language support
+- **FR-044:** Full Vietnamese language support
+- **FR-045:** Language switching without page reload
+- **FR-046:** Persistent language preference storage
+- **FR-047:** Bilingual content management for all posts
 
 #### 3.4.2 Content Localization
-- **FR-042:** Separate content for each language
-- **FR-043:** Language-specific URLs and routing
-- **FR-044:** Localized date and time formatting
-- **FR-045:** Reading time estimates for each language
+- **FR-048:** Separate content for each language
+- **FR-049:** Language-specific URLs and routing
+- **FR-050:** Localized date and time formatting
+- **FR-051:** Reading time estimates for each language
 
 ### 3.5 Administrative Features
 
 #### 3.5.1 Dashboard
-- **FR-046:** Overview of content statistics
-- **FR-047:** Recent activity and changes
-- **FR-048:** Quick access to common functions
-- **FR-049:** System status and health indicators
+- **FR-052:** Overview of content statistics
+- **FR-053:** Recent activity and changes
+- **FR-054:** Quick access to common functions
+- **FR-055:** System status and health indicators
 
 #### 3.5.2 Analytics
-- **FR-050:** Page view tracking and statistics
-- **FR-051:** Popular content identification
-- **FR-052:** User engagement metrics
-- **FR-053:** Traffic source analysis
+- **FR-056:** Page view tracking and statistics
+- **FR-057:** Popular content identification
+- **FR-058:** User engagement metrics
+- **FR-059:** Traffic source analysis
 
 ---
 
@@ -169,300 +179,144 @@ The platform follows a modern web application architecture:
 - **NFR-003:** Image optimization must reduce file sizes by >50%
 - **NFR-004:** Database queries must complete within 500ms
 - **NFR-005:** API responses must be cached appropriately
+- **NFR-006:** Image processing must complete within 5 seconds
+- **NFR-007:** Markdown to HTML conversion must be <100ms
 
 ### 4.2 Security Requirements
-- **NFR-006:** All admin routes must require authentication
-- **NFR-007:** Passwords must be hashed using bcrypt
-- **NFR-008:** HTTPS must be enforced for all connections
-- **NFR-009:** Input validation must prevent XSS attacks
-- **NFR-010:** CSRF protection must be implemented
-- **NFR-011:** Rate limiting must prevent abuse
+- **NFR-008:** All admin routes must require authentication
+- **NFR-009:** Passwords must be hashed using bcrypt
+- **NFR-010:** HTTPS must be enforced for all connections
+- **NFR-011:** Input validation must prevent XSS attacks
+- **NFR-012:** CSRF protection must be implemented
+- **NFR-013:** Rate limiting must prevent abuse
+- **NFR-014:** Image upload must validate file types and sizes
+- **NFR-015:** Storage access must be properly secured
 
 ### 4.3 Usability Requirements
-- **NFR-012:** Interface must be responsive on all device sizes
-- **NFR-013:** Navigation must be intuitive and accessible
-- **NFR-014:** Error messages must be clear and actionable
-- **NFR-015:** Loading states must provide user feedback
-- **NFR-016:** WCAG 2.1 AA accessibility compliance
+- **NFR-016:** Interface must be responsive on all device sizes
+- **NFR-017:** Navigation must be intuitive and accessible
+- **NFR-018:** Error messages must be clear and actionable
+- **NFR-019:** Loading states must provide user feedback
+- **NFR-020:** WCAG 2.1 AA accessibility compliance
+- **NFR-021:** Image upload must provide progress feedback
+- **NFR-022:** Content editing must be intuitive and error-free
 
 ### 4.4 Reliability Requirements
-- **NFR-017:** System uptime must be >99.9%
-- **NFR-018:** Data backup must occur daily
-- **NFR-019:** Error logging must capture all system errors
-- **NFR-020:** Graceful degradation for non-critical features
+- **NFR-023:** System uptime must be >99.9%
+- **NFR-024:** Data backup must occur daily
+- **NFR-025:** Error logging must capture all system errors
+- **NFR-026:** Graceful degradation for non-critical features
+- **NFR-027:** Image processing must handle failures gracefully
+- **NFR-028:** Content rendering must be consistent across browsers
 
 ### 4.5 Scalability Requirements
-- **NFR-021:** System must support 10,000+ monthly visitors
-- **NFR-022:** Database must handle 1000+ blog posts
-- **NFR-023:** File storage must scale to 10GB+ of content
-- **NFR-024:** Performance must not degrade with content growth
+- **NFR-029:** System must support 10,000+ monthly visitors
+- **NFR-030:** Database must handle 1000+ blog posts
+- **NFR-031:** File storage must scale to 10GB+ of content
+- **NFR-032:** Performance must not degrade with content growth
+- **NFR-033:** Image storage must efficiently handle large files
+- **NFR-034:** Content delivery must be optimized for global access
 
 ---
 
-## 5. System Architecture
+## 5. Image Management Requirements
 
-### 5.1 Frontend Architecture
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── admin/             # Admin pages
-│   ├── blog/              # Blog pages
-│   ├── portfolio/         # Portfolio pages
-│   ├── api/               # API routes
-│   └── layout.tsx         # Root layout
-├── components/            # Reusable components
-│   ├── ui/               # Basic UI components
-│   ├── forms/            # Form components
-│   └── layout/           # Layout components
-├── lib/                  # Utilities and helpers
-│   ├── supabase.ts       # Supabase client
-│   ├── utils.ts          # Utility functions
-│   └── constants.ts      # Application constants
-└── types/                # TypeScript type definitions
-```
+### 5.1 Image Upload
+- **IMG-001:** Support for common image formats (JPG, PNG, GIF, WebP)
+- **IMG-002:** Automatic image resizing to 800px maximum width
+- **IMG-003:** Format conversion to JPG for optimization
+- **IMG-004:** Client-side image processing before upload
+- **IMG-005:** Progress indication during upload process
+- **IMG-006:** Error handling for failed uploads
 
-### 5.2 Database Schema
-```sql
--- Core tables
-users (id, email, full_name, created_at, updated_at)
-blog_posts (id, slug, status, published_at, created_at, updated_at)
-blog_post_translations (blog_post_id, language_code, title, summary, content)
-portfolio_projects (id, slug, status, created_at, updated_at)
-portfolio_translations (project_id, language_code, title, description, content)
+### 5.2 Image Storage
+- **IMG-007:** Secure storage in Supabase Storage
+- **IMG-008:** Organized folder structure for different content types
+- **IMG-009:** Public read access for blog images
+- **IMG-010:** Authenticated write access for uploads
+- **IMG-011:** Automatic cleanup of orphaned images
 
--- Organization tables
-categories (id, slug, created_at)
-category_translations (category_id, language_code, name, description)
-tags (id, slug, created_at)
-tag_translations (tag_id, language_code, name)
+### 5.3 Image Display
+- **IMG-012:** Responsive image rendering
+- **IMG-013:** Lazy loading for performance
+- **IMG-014:** Alt text support for accessibility
+- **IMG-015:** Proper aspect ratio maintenance
+- **IMG-016:** Fallback handling for broken images
 
--- Relationship tables
-blog_post_tags (blog_post_id, tag_id)
-blog_post_categories (blog_post_id, category_id)
-
--- Analytics tables
-page_views (id, page_url, user_agent, ip_address, created_at)
-activity_logs (id, user_id, action, details, created_at)
-```
-
-### 5.3 API Design
-```typescript
-// Blog Posts API
-GET /api/posts - List blog posts
-GET /api/posts/[slug] - Get specific post
-POST /api/posts - Create new post
-PUT /api/posts/[id] - Update post
-DELETE /api/posts/[id] - Delete post
-
-// Portfolio API
-GET /api/projects - List portfolio projects
-GET /api/projects/[slug] - Get specific project
-POST /api/projects - Create new project
-PUT /api/projects/[id] - Update project
-DELETE /api/projects/[id] - Delete project
-
-// Search API
-GET /api/search?q=query - Search content
-GET /api/search/suggestions?q=query - Get search suggestions
-```
+### 5.4 Content Integration
+- **IMG-017:** Markdown image syntax support
+- **IMG-018:** HTML image tag generation
+- **IMG-019:** Hydration-safe rendering
+- **IMG-020:** Consistent display across languages
 
 ---
 
-## 6. Data Models
+## 6. Technical Constraints
 
-### 6.1 Blog Post Model
-```typescript
-interface BlogPost {
-  id: number;
-  slug: string;
-  status: 'draft' | 'published';
-  thumbnail_url: string | null;
-  published_at: string | null;
-  created_at: string;
-  updated_at: string;
-  translations: BlogPostTranslation[];
-  categories: Category[];
-  tags: Tag[];
-  view_count: number;
-}
+### 6.1 Browser Support
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+- Progressive enhancement for older browsers
 
-interface BlogPostTranslation {
-  blog_post_id: number;
-  language_code: 'en' | 'vi';
-  title: string;
-  summary: string;
-  content: string;
-}
-```
+### 6.2 Device Support
+- Desktop computers (1920x1080 and above)
+- Tablets (768px and above)
+- Mobile phones (320px and above)
 
-### 6.2 Portfolio Project Model
-```typescript
-interface PortfolioProject {
-  id: number;
-  slug: string;
-  status: 'active' | 'inactive';
-  thumbnail_url: string | null;
-  created_at: string;
-  updated_at: string;
-  translations: PortfolioTranslation[];
-}
-
-interface PortfolioTranslation {
-  project_id: number;
-  language_code: 'en' | 'vi';
-  title: string;
-  description: string;
-  content: string;
-}
-```
-
-### 6.3 User Model
-```typescript
-interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  role: 'admin' | 'editor' | 'viewer';
-  created_at: string;
-  updated_at: string;
-  last_login: string | null;
-}
-```
+### 6.3 Network Constraints
+- Support for slow 3G connections
+- Graceful degradation for offline scenarios
+- Efficient caching strategies
 
 ---
 
-## 7. User Interface Requirements
+## 7. System Interfaces
 
-### 7.1 Design System
-- **Color Palette:** Navy blue (#1e3a8a), white, gray scale
-- **Typography:** Inter font family for modern readability
-- **Spacing:** Consistent 8px grid system
-- **Components:** Reusable UI components with consistent styling
+### 7.1 User Interfaces
+- Web-based admin interface
+- Public-facing blog and portfolio
+- Mobile-responsive design
+- Accessibility-compliant components
 
-### 7.2 Responsive Design
-- **Mobile:** 320px - 768px
-- **Tablet:** 768px - 1024px
-- **Desktop:** 1024px+
-- **Breakpoints:** Tailwind CSS responsive utilities
+### 7.2 Hardware Interfaces
+- Standard web server requirements
+- Sufficient storage for image content
+- CDN integration for global delivery
 
-### 7.3 Accessibility
-- **Keyboard Navigation:** Full keyboard accessibility
-- **Screen Readers:** ARIA labels and semantic HTML
-- **Color Contrast:** WCAG 2.1 AA compliant contrast ratios
-- **Focus Management:** Visible focus indicators
-
----
-
-## 8. External Interfaces
-
-### 8.1 Supabase Integration
-- **Authentication:** Supabase Auth for user management
-- **Database:** PostgreSQL with Row Level Security
-- **Storage:** Supabase Storage for file management
-- **Real-time:** Supabase real-time subscriptions
-
-### 8.2 Vercel Deployment
-- **Hosting:** Vercel platform for hosting
-- **CDN:** Global content delivery network
-- **SSL:** Automatic SSL certificate management
-- **CI/CD:** Git-based deployment pipeline
-
-### 8.3 External APIs
-- **Search:** Internal search with PostgreSQL full-text search
-- **Analytics:** Custom analytics implementation
-- **Social Sharing:** Open Graph and Twitter Card meta tags
+### 7.3 Software Interfaces
+- Supabase API integration
+- Next.js framework
+- Vercel deployment platform
+- Image processing libraries
 
 ---
 
-## 9. Quality Attributes
+## 8. Quality Attributes
 
-### 9.1 Performance
-- **Lighthouse Score:** >90 for all pages
-- **Core Web Vitals:** Pass all metrics
-- **Bundle Size:** <500KB initial JavaScript
-- **Image Optimization:** WebP format with fallbacks
+### 8.1 Performance
+- Fast page load times
+- Efficient image processing
+- Optimized database queries
+- Effective caching strategies
 
-### 9.2 Security
-- **Authentication:** Secure session management
-- **Authorization:** Role-based access control
-- **Data Protection:** Encrypted data transmission
-- **Input Validation:** Comprehensive input sanitization
+### 8.2 Security
+- Secure authentication
+- Protected admin areas
+- Input validation
+- Secure file handling
 
-### 9.3 Maintainability
-- **Code Quality:** ESLint and Prettier configuration
-- **Type Safety:** Full TypeScript implementation
-- **Documentation:** Comprehensive code documentation
-- **Testing:** Unit and integration test coverage
+### 8.3 Usability
+- Intuitive navigation
+- Clear error messages
+- Responsive design
+- Accessibility compliance
 
-### 9.4 Scalability
-- **Database:** Efficient indexing and query optimization
-- **Caching:** Strategic caching implementation
-- **CDN:** Global content delivery
-- **Monitoring:** Performance and error monitoring
-
----
-
-## 10. Constraints and Assumptions
-
-### 10.1 Technical Constraints
-- **Browser Support:** Modern browsers only (Chrome 90+, Firefox 88+, Safari 14+)
-- **JavaScript:** ES2020+ features required
-- **Network:** Minimum 3G connection for mobile users
-- **Storage:** Local storage for user preferences
-
-### 10.2 Business Constraints
-- **Budget:** Limited hosting and development costs
-- **Timeline:** Rapid development and deployment
-- **Team Size:** Single developer initially
-- **Maintenance:** Ongoing technical maintenance required
-
-### 10.3 Assumptions
-- **User Behavior:** Primarily read-only audience
-- **Content Volume:** Moderate content creation rate
-- **Technical Skills:** Users have basic web browsing skills
-- **Network:** Reliable internet connectivity
+### 8.4 Maintainability
+- Clean code structure
+- Comprehensive documentation
+- Modular architecture
+- Version control
 
 ---
 
-## 11. Testing Requirements
-
-### 11.1 Unit Testing
-- **Coverage:** >80% code coverage
-- **Components:** All React components tested
-- **Utilities:** All utility functions tested
-- **API Routes:** All API endpoints tested
-
-### 11.2 Integration Testing
-- **Database:** Database operations tested
-- **Authentication:** Login/logout flow tested
-- **Content Management:** CRUD operations tested
-- **Search:** Search functionality tested
-
-### 11.3 End-to-End Testing
-- **User Flows:** Complete user journeys tested
-- **Cross-Browser:** Testing on multiple browsers
-- **Mobile:** Mobile device testing
-- **Performance:** Load testing and optimization
-
----
-
-## 12. Deployment and Operations
-
-### 12.1 Deployment Strategy
-- **Environment:** Production deployment on Vercel
-- **Database:** Supabase production instance
-- **Monitoring:** Vercel Analytics and error tracking
-- **Backup:** Automated daily database backups
-
-### 12.2 Maintenance
-- **Updates:** Regular dependency updates
-- **Security:** Security patch management
-- **Performance:** Ongoing performance optimization
-- **Content:** Regular content updates and management
-
----
-
-**Document Approval:**
-- **Technical Lead:** Matt Dinh
-- **Architect:** [To be assigned]
-- **Date:** [To be completed] 
+*Document last updated: January 19, 2025* 

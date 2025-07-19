@@ -1,8 +1,8 @@
 # Functional Requirements Document (FRD)
 ## Matt Dinh Blog Platform
 
-**Document Version:** 1.0  
-**Date:** July 17, 2025  
+**Document Version:** 1.1  
+**Date:** January 19, 2025  
 **Author:** Matt Dinh  
 **Project:** Personal Blog & Portfolio Platform
 
@@ -101,19 +101,23 @@
 **Acceptance Criteria:**
 - Admin can access blog post creation form
 - Form includes title, content, summary, and metadata fields
-- Support for rich text editing with HTML content
+- Support for rich text editing with Markdown content
+- Inline image upload within rich text editor
 - Image upload for post thumbnails
 - Category and tag assignment
 - Draft/published status selection
 - Bilingual content support (EN/VI)
 - Auto-save functionality for drafts
+- Real-time content preview
 
 **Technical Requirements:**
-- Rich text editor with HTML support
+- Rich text editor with Markdown support
+- Inline image upload and processing
 - Image upload to Supabase Storage
 - Form validation and error handling
 - Auto-save to prevent data loss
 - SEO-friendly URL generation
+- Client-side image processing
 
 #### FR-005: Edit Blog Post
 **Priority:** High  
@@ -128,12 +132,14 @@
 - Version history tracking
 - Conflict resolution for concurrent edits
 - Maintain SEO URLs when possible
+- Inline image management within content
 
 **Technical Requirements:**
 - Form pre-population with existing data
 - Real-time preview functionality
 - Optimistic locking for concurrent edits
 - URL slug management
+- Image content integration
 
 #### FR-006: Delete Blog Post
 **Priority:** Medium  
@@ -147,12 +153,14 @@
 - Cascade deletion of related data
 - Update search indexes
 - Maintain referential integrity
+- Clean up associated images
 
 **Technical Requirements:**
 - Soft delete implementation
 - Cascade delete handling
 - Search index updates
 - Audit trail for deletions
+- Image cleanup procedures
 
 ### 2.2 Portfolio Management
 
@@ -198,36 +206,38 @@
 **User Story:** As an admin, I want to organize content with categories so that readers can easily find related content.
 
 **Acceptance Criteria:**
-- Create, edit, and delete categories
-- Category hierarchy support
-- Category-specific content filtering
-- Category page with all related posts
-- SEO-friendly category URLs
+- Create new categories with names and descriptions
+- Edit existing category information
+- Delete categories with confirmation
+- Assign categories to blog posts
+- Bilingual category support
+- Category slug management
 
 **Technical Requirements:**
-- Category hierarchy implementation
-- Category slug generation
-- Category page templates
-- Category-based navigation
+- Category CRUD operations
+- Slug generation and validation
+- Bilingual content support
+- Referential integrity maintenance
 
 #### FR-010: Tag Management
 **Priority:** Medium  
 **Description:** Admin users must be able to create and manage content tags.
 
-**User Story:** As an admin, I want to tag content so that readers can discover related topics.
+**User Story:** As an admin, I want to tag content so that readers can find related topics easily.
 
 **Acceptance Criteria:**
-- Create, edit, and delete tags
-- Tag assignment to blog posts
+- Create new tags with names
+- Edit existing tag information
+- Delete tags with confirmation
+- Assign tags to blog posts
+- Tag suggestion system
 - Tag cloud display
-- Tag-specific content filtering
-- Tag page with all related posts
 
 **Technical Requirements:**
-- Tag slug generation
-- Tag cloud algorithms
-- Tag page templates
-- Tag-based search integration
+- Tag CRUD operations
+- Tag suggestion algorithm
+- Tag cloud implementation
+- Tag relationship management
 
 ---
 
@@ -235,88 +245,113 @@
 
 ### 3.1 Blog Display
 
-#### FR-011: Blog Listing Page
+#### FR-011: Blog Listing
 **Priority:** High  
-**Description:** Public users must be able to view a list of published blog posts.
+**Description:** Users must be able to view a list of published blog posts.
 
-**User Story:** As a reader, I want to see a list of blog posts so that I can discover content to read.
+**User Story:** As a reader, I want to see a list of blog posts so that I can browse available content.
 
 **Acceptance Criteria:**
-- Display published posts in chronological order
-- Show post title, summary, and publication date
+- Display posts in chronological order
+- Show post title, summary, and metadata
 - Pagination for large content collections
 - Category and tag filtering
 - Search functionality integration
 - Responsive design for all devices
+- Image thumbnails for posts
 
 **Technical Requirements:**
-- Efficient pagination implementation
-- Image optimization for thumbnails
-- SEO meta tags for listing pages
-- Performance optimization for large datasets
+- Post listing with pagination
+- Filter and search integration
+- Responsive design implementation
+- Image thumbnail display
+- Performance optimization
 
-#### FR-012: Individual Blog Post Page
+#### FR-012: Individual Blog Post
 **Priority:** High  
-**Description:** Public users must be able to view individual blog posts with full content.
+**Description:** Users must be able to view individual blog posts with full content.
 
-**User Story:** As a reader, I want to read full blog posts so that I can consume the complete content.
+**User Story:** As a reader, I want to read full blog posts so that I can access complete content.
 
 **Acceptance Criteria:**
-- Display full post content with proper formatting
-- Show post metadata (author, date, categories, tags)
-- Reading time estimate
-- Social sharing buttons
+- Display full post content with formatting
+- Show post metadata (date, author, categories, tags)
 - Related posts suggestions
-- Comment system (future enhancement)
-- Print-friendly layout
+- Social sharing options
+- Reading time estimate
+- Responsive image display
+- Proper Markdown to HTML rendering
+- No hydration errors
 
 **Technical Requirements:**
 - Rich text content rendering
 - Social media meta tags
-- Related posts algorithms
-- Print CSS styles
-- View count tracking
+- Related posts algorithm
+- Image optimization and display
+- Hydration-safe content rendering
+- Markdown to HTML conversion
+
+#### FR-013: Blog Search
+**Priority:** Medium  
+**Description:** Users must be able to search blog content.
+
+**User Story:** As a reader, I want to search for specific content so that I can find relevant information quickly.
+
+**Acceptance Criteria:**
+- Search by title and content
+- Search results with relevance ranking
+- Search suggestions and autocomplete
+- Filter search results by category/tag
+- Search within specific language
+- Fast search response times
+
+**Technical Requirements:**
+- Full-text search implementation
+- Search result ranking
+- Autocomplete functionality
+- Search performance optimization
 
 ### 3.2 Portfolio Display
 
-#### FR-013: Portfolio Listing Page
+#### FR-014: Portfolio Listing
 **Priority:** High  
-**Description:** Public users must be able to view a list of portfolio projects.
+**Description:** Users must be able to view a list of portfolio projects.
 
-**User Story:** As a visitor, I want to see portfolio projects so that I can understand the author's work and skills.
+**User Story:** As a visitor, I want to see portfolio projects so that I can understand the author's work.
 
 **Acceptance Criteria:**
-- Display active projects in grid layout
-- Show project thumbnails and titles
-- Project filtering and sorting options
-- Responsive grid design
-- Project category filtering
+- Display projects in grid layout
+- Show project thumbnails and basic info
+- Filter by technology or category
+- Sort by date or relevance
+- Responsive design
+- Project status indication
 
 **Technical Requirements:**
-- CSS Grid/Flexbox implementation
-- Image lazy loading
+- Portfolio grid layout
 - Filter and sort functionality
-- SEO optimization
+- Responsive design
+- Image optimization
 
-#### FR-014: Individual Portfolio Project Page
+#### FR-015: Individual Portfolio Project
 **Priority:** High  
-**Description:** Public users must be able to view detailed portfolio project information.
+**Description:** Users must be able to view detailed portfolio project information.
 
-**User Story:** As a visitor, I want to see detailed project information so that I can understand the work and technologies used.
+**User Story:** As a visitor, I want to see detailed project information so that I can understand the work better.
 
 **Acceptance Criteria:**
-- Display project details and description
+- Display full project description
 - Show project images and screenshots
 - Technology stack information
 - Live demo and source code links
-- Project timeline and outcomes
-- Contact information for collaboration
+- Project timeline and details
+- Related projects suggestions
 
 **Technical Requirements:**
+- Project detail page layout
 - Image gallery implementation
 - External link handling
-- Technology stack display
-- SEO optimization for project pages
+- Related projects algorithm
 
 ---
 
@@ -324,195 +359,133 @@
 
 ### 4.1 Language Support
 
-#### FR-015: Language Switching
+#### FR-016: Bilingual Content
 **Priority:** High  
-**Description:** Users must be able to switch between English and Vietnamese languages.
+**Description:** System must support both English and Vietnamese content.
 
-**User Story:** As a user, I want to switch languages so that I can read content in my preferred language.
+**User Story:** As a reader, I want to read content in my preferred language so that I can understand the content better.
 
 **Acceptance Criteria:**
-- Language switcher in navigation
-- Instant language switching without page reload
-- Persistent language preference storage
-- URL-based language routing
+- All content available in both languages
+- Language-specific URLs
+- Language switcher functionality
+- Persistent language preference
 - Fallback to default language
+- Bilingual navigation and UI
 
 **Technical Requirements:**
-- Language context provider
-- Cookie/localStorage for preference
-- URL routing with language codes
-- Fallback language handling
-
-#### FR-016: Bilingual Content Management
-**Priority:** High  
-**Description:** Admin users must be able to manage content in both English and Vietnamese.
-
-**User Story:** As an admin, I want to create content in both languages so that I can reach a broader audience.
-
-**Acceptance Criteria:**
-- Separate content fields for each language
-- Language-specific validation
-- Content synchronization between languages
-- Language-specific SEO optimization
-- Reading time estimates for each language
-
-**Technical Requirements:**
-- Translation table structure
-- Language-specific form validation
-- Content synchronization workflows
-- Language-specific URL generation
-
-### 4.2 Content Localization
-
-#### FR-017: Localized Content Display
-**Priority:** Medium  
-**Description:** Content must be displayed in the user's selected language.
-
-**User Story:** As a user, I want to see content in my selected language so that I can understand it easily.
-
-**Acceptance Criteria:**
-- All UI text in selected language
-- Content in selected language
-- Date and time formatting for locale
-- Number formatting for locale
-- Currency formatting (if applicable)
-
-**Technical Requirements:**
-- i18n library integration
-- Locale-specific formatting
-- Content translation management
+- Multi-language content structure
+- Language routing implementation
+- Language preference storage
 - Fallback content handling
+
+#### FR-017: Content Localization
+**Priority:** Medium  
+**Description:** System must provide localized content and formatting.
+
+**User Story:** As a reader, I want to see localized content so that the experience feels natural.
+
+**Acceptance Criteria:**
+- Localized date and time formatting
+- Localized number formatting
+- Language-specific reading time estimates
+- Localized navigation and UI text
+- Cultural content adaptation
+
+**Technical Requirements:**
+- Date/time localization
+- Number formatting
+- UI text localization
+- Cultural adaptation logic
 
 ---
 
 ## 5. Search & Discovery Module
 
-### 5.1 Search Functionality
+### 5.1 Content Discovery
 
-#### FR-018: Content Search
-**Priority:** High  
-**Description:** Users must be able to search for content by title, content, and tags.
-
-**User Story:** As a user, I want to search for content so that I can find specific topics or information.
-
-**Acceptance Criteria:**
-- Search input in navigation
-- Real-time search suggestions
-- Search results with relevance ranking
-- Search within specific categories or tags
-- Search history and suggestions
-- Advanced search filters
-
-**Technical Requirements:**
-- Full-text search implementation
-- Search result ranking algorithms
-- Search suggestion system
-- Search analytics tracking
-
-#### FR-019: Search Results Page
+#### FR-018: Content Filtering
 **Priority:** Medium  
-**Description:** Users must be able to view and navigate search results.
+**Description:** Users must be able to filter content by various criteria.
 
-**User Story:** As a user, I want to see search results so that I can find the content I'm looking for.
+**User Story:** As a reader, I want to filter content so that I can find specific types of content.
 
 **Acceptance Criteria:**
-- Display search results with snippets
-- Highlight search terms in results
-- Pagination for large result sets
-- Filter results by content type
-- Sort results by relevance or date
+- Filter by category
+- Filter by tags
+- Filter by date range
+- Filter by language
+- Combined filtering options
+- Clear filter indicators
 
 **Technical Requirements:**
-- Search result highlighting
-- Result pagination
-- Filter and sort functionality
-- Search analytics
+- Filter implementation
+- URL parameter handling
+- Filter state management
+- Performance optimization
 
-### 5.2 Content Discovery
-
-#### FR-020: Related Content
+#### FR-019: Related Content
 **Priority:** Medium  
-**Description:** Users must be able to discover related content through various mechanisms.
+**Description:** System must suggest related content to users.
 
-**User Story:** As a user, I want to discover related content so that I can explore more topics of interest.
+**User Story:** As a reader, I want to see related content so that I can discover more interesting articles.
 
 **Acceptance Criteria:**
-- Related posts suggestions
-- Category-based content recommendations
-- Tag-based content discovery
-- Popular content highlighting
-- Recent content display
+- Show related posts based on tags
+- Show related posts based on categories
+- Show related posts based on content similarity
+- Limit related content to reasonable number
+- Exclude current post from suggestions
 
 **Technical Requirements:**
-- Content recommendation algorithms
-- Category and tag relationships
-- Popular content tracking
-- Content discovery analytics
+- Related content algorithm
+- Content similarity calculation
+- Performance optimization
+- Caching for related content
 
 ---
 
 ## 6. Analytics & Reporting Module
 
-### 6.1 Page Analytics
+### 6.1 Content Analytics
 
-#### FR-021: Page View Tracking
+#### FR-020: Page View Tracking
 **Priority:** Medium  
-**Description:** System must track page views and user behavior.
+**Description:** System must track page views for analytics.
 
 **User Story:** As an admin, I want to track page views so that I can understand content performance.
 
 **Acceptance Criteria:**
 - Track page views for all content
-- Record user agent and IP information
-- Track time spent on pages
-- Identify popular content
-- Generate view count reports
+- Store view data with timestamps
+- Aggregate view statistics
+- Display view counts on content
+- Privacy-compliant tracking
+
+**Technical Requirements:**
+- View tracking implementation
+- Data aggregation
+- Privacy compliance
+- Performance optimization
+
+#### FR-021: Content Performance
+**Priority:** Low  
+**Description:** System must provide content performance analytics.
+
+**User Story:** As an admin, I want to see content performance so that I can optimize my content strategy.
+
+**Acceptance Criteria:**
+- Popular content identification
+- Content engagement metrics
+- Traffic source analysis
+- Content performance trends
+- Export analytics data
 
 **Technical Requirements:**
 - Analytics data collection
-- Privacy-compliant tracking
-- Data aggregation and reporting
-- Performance impact minimization
-
-#### FR-022: User Behavior Analytics
-**Priority:** Low  
-**Description:** System must track user behavior patterns for content optimization.
-
-**User Story:** As an admin, I want to understand user behavior so that I can optimize content and user experience.
-
-**Acceptance Criteria:**
-- Track user navigation patterns
-- Monitor search queries
-- Analyze content engagement
-- Identify drop-off points
-- Generate behavior reports
-
-**Technical Requirements:**
-- User behavior tracking
-- Data privacy compliance
-- Analytics dashboard
-- Report generation
-
-### 6.2 Content Analytics
-
-#### FR-023: Content Performance
-**Priority:** Medium  
-**Description:** System must provide content performance metrics.
-
-**User Story:** As an admin, I want to see content performance metrics so that I can optimize my content strategy.
-
-**Acceptance Criteria:**
-- View count tracking per post
-- Popular content identification
-- Content engagement metrics
-- Search performance tracking
-- Content recommendation effectiveness
-
-**Technical Requirements:**
 - Performance metrics calculation
 - Data visualization
-- Trend analysis
-- Performance alerts
+- Export functionality
 
 ---
 
@@ -520,28 +493,115 @@
 
 ### 7.1 Image Management
 
-#### FR-024: Image Upload
+#### FR-022: Rich Text Image Upload
 **Priority:** High  
-**Description:** Admin users must be able to upload and manage images for content.
+**Description:** Admin users must be able to upload images directly within the rich text editor.
 
-**User Story:** As an admin, I want to upload images so that I can enhance my content with visual elements.
+**User Story:** As an admin, I want to upload images while writing content so that I can create rich, visual content easily.
 
 **Acceptance Criteria:**
-- Drag-and-drop image upload
-- Image format validation
-- Automatic image optimization
-- Thumbnail generation
-- Image metadata management
-- Storage quota management
+- Drag-and-drop image upload in editor
+- Click-to-upload functionality
+- Image format validation (JPG, PNG, GIF, WebP)
+- Automatic image processing and optimization
+- Real-time upload progress indication
+- Error handling for failed uploads
+- Image insertion at cursor position
+- Support for image alt text
 
 **Technical Requirements:**
+- Rich text editor integration
+- Client-side image processing
 - Supabase Storage integration
-- Image optimization libraries
-- Thumbnail generation
-- File type validation
-- Storage management
+- Image format conversion to JPG
+- Progress indication implementation
+- Error handling and recovery
 
-#### FR-025: Image Gallery
+#### FR-023: Image Processing
+**Priority:** High  
+**Description:** System must automatically process uploaded images for optimization.
+
+**User Story:** As an admin, I want images to be automatically optimized so that my content loads quickly and looks professional.
+
+**Acceptance Criteria:**
+- Automatic image resizing to 800px maximum width
+- Format conversion to JPG for better compression
+- Quality optimization while maintaining visual quality
+- Thumbnail generation for different use cases
+- Processing progress indication
+- Fallback handling for processing failures
+
+**Technical Requirements:**
+- Client-side image processing
+- Canvas-based image manipulation
+- Format conversion implementation
+- Quality optimization algorithms
+- Error handling and recovery
+
+#### FR-024: Image Display
+**Priority:** High  
+**Description:** System must properly display images in blog content with optimization.
+
+**User Story:** As a reader, I want images to display properly so that I can see visual content clearly and quickly.
+
+**Acceptance Criteria:**
+- Responsive image display
+- Proper aspect ratio maintenance
+- Lazy loading for performance
+- Alt text support for accessibility
+- Fallback handling for broken images
+- Consistent display across browsers
+- No hydration errors during rendering
+
+**Technical Requirements:**
+- Responsive image implementation
+- Lazy loading functionality
+- Accessibility compliance
+- Hydration-safe rendering
+- Error handling for missing images
+
+#### FR-025: Content Rendering
+**Priority:** High  
+**Description:** System must properly render Markdown content with embedded images.
+
+**User Story:** As a reader, I want content to render properly so that I can read articles without display issues.
+
+**Acceptance Criteria:**
+- Markdown to HTML conversion
+- Image syntax parsing and rendering
+- Consistent rendering across browsers
+- No server/client hydration mismatches
+- Fast rendering performance
+- Proper image styling and layout
+
+**Technical Requirements:**
+- Markdown parsing implementation
+- Image syntax conversion
+- Hydration-safe rendering
+- Performance optimization
+- Cross-browser compatibility
+
+#### FR-026: Media Library
+**Priority:** Medium  
+**Description:** Admin users must have access to a media library for managing uploaded images.
+
+**User Story:** As an admin, I want to manage my uploaded images so that I can reuse them and keep my media organized.
+
+**Acceptance Criteria:**
+- View all uploaded images
+- Search and filter images
+- Delete unused images
+- Image metadata management
+- Image usage tracking
+- Bulk operations support
+
+**Technical Requirements:**
+- Media library interface
+- Image metadata storage
+- Usage tracking implementation
+- Bulk operation handling
+
+#### FR-027: Image Gallery
 **Priority:** Medium  
 **Description:** Users must be able to view image galleries for portfolio projects.
 
@@ -566,7 +626,7 @@
 
 ### 8.1 Navigation
 
-#### FR-026: Site Navigation
+#### FR-028: Site Navigation
 **Priority:** High  
 **Description:** Users must be able to navigate the site easily and intuitively.
 
@@ -588,7 +648,7 @@
 
 ### 8.2 Responsive Design
 
-#### FR-027: Mobile Responsiveness
+#### FR-029: Mobile Responsiveness
 **Priority:** High  
 **Description:** Site must be fully responsive and optimized for all device sizes.
 
@@ -609,7 +669,7 @@
 
 ### 8.3 Accessibility
 
-#### FR-028: Accessibility Compliance
+#### FR-030: Accessibility Compliance
 **Priority:** Medium  
 **Description:** Site must meet WCAG 2.1 AA accessibility standards.
 
@@ -635,7 +695,7 @@
 
 ### 9.1 Dashboard Overview
 
-#### FR-029: Admin Dashboard
+#### FR-031: Admin Dashboard
 **Priority:** High  
 **Description:** Admin users must have access to a comprehensive dashboard for content management.
 
@@ -657,7 +717,7 @@
 
 ### 9.2 Content Management Interface
 
-#### FR-030: Content Management Interface
+#### FR-032: Content Management Interface
 **Priority:** High  
 **Description:** Admin users must have an intuitive interface for managing all content types.
 
@@ -683,7 +743,7 @@
 
 ### 10.1 External Integrations
 
-#### FR-031: Social Media Integration
+#### FR-033: Social Media Integration
 **Priority:** Low  
 **Description:** System must integrate with social media platforms for content sharing.
 
@@ -702,7 +762,7 @@
 - Share tracking
 - Preview generation
 
-#### FR-032: SEO Integration
+#### FR-034: SEO Integration
 **Priority:** High  
 **Description:** System must be optimized for search engines.
 
@@ -717,40 +777,12 @@
 - Performance optimization
 
 **Technical Requirements:**
-- SEO meta tag management
+- URL optimization
+- Meta tag implementation
 - Sitemap generation
-- Structured data implementation
-- SEO performance monitoring
+- Structured data markup
+- SEO monitoring tools
 
 ---
 
-## Acceptance Criteria Summary
-
-### High Priority Requirements
-- User authentication and authorization
-- Blog post creation, editing, and management
-- Portfolio project management
-- Public content display
-- Language switching and bilingual support
-- Search functionality
-- Responsive design
-- Admin dashboard
-
-### Medium Priority Requirements
-- Category and tag management
-- Media management
-- Analytics and reporting
-- Content discovery features
-- Accessibility compliance
-
-### Low Priority Requirements
-- Advanced analytics
-- Social media integration
-- Advanced user behavior tracking
-
----
-
-**Document Approval:**
-- **Product Owner:** Matt Dinh
-- **Technical Lead:** [To be assigned]
-- **Date:** [To be completed] 
+*Document last updated: January 19, 2025* 
