@@ -1,4 +1,4 @@
--- Database Optimization Analysis for Matt Dinh Blog
+-- Simplified Database Optimization Analysis for Matt Dinh Blog
 -- Run this in your Supabase SQL Editor to analyze your database
 
 -- 1. Check current database size and table statistics
@@ -9,9 +9,7 @@ SELECT
     tablename,
     attname,
     n_distinct,
-    correlation,
-    most_common_vals,
-    most_common_freqs
+    correlation
 FROM pg_stats 
 WHERE schemaname = 'public' 
 AND tablename IN ('blog_posts', 'blog_post_translations', 'portfolio_projects', 'portfolio_project_translations', 'tags', 'tag_translations')
@@ -33,14 +31,13 @@ ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 SELECT '=== EXISTING INDEXES ===' as analysis;
 
 SELECT 
-    t.table_name,
-    i.indexname,
-    i.indexdef
-FROM pg_indexes i
-JOIN information_schema.tables t ON i.tablename = t.table_name
-WHERE i.schemaname = 'public' 
-AND t.table_schema = 'public'
-ORDER BY t.table_name, i.indexname;
+    schemaname,
+    tablename,
+    indexname,
+    indexdef
+FROM pg_indexes
+WHERE schemaname = 'public' 
+ORDER BY tablename, indexname;
 
 -- 4. Check for missing indexes on foreign keys
 SELECT '=== MISSING FOREIGN KEY INDEXES ===' as analysis;
