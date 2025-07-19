@@ -38,6 +38,30 @@
 - **Removed Notification Banner**: Hidden "Shared Images Active" green notification banner
 - **Files Modified**: `src/app/admin/blog/edit/[id]/AdminBlogEditForm.tsx`
 
+#### 5. **Critical Bug Fixes (Latest Session)**
+- **Shared Images RLS Policy Errors**: Fixed by implementing admin client with service role key
+  - Added `createAdminSupabaseClient()` function to bypass RLS policies
+  - Updated shared images API to use admin client for POST/DELETE operations
+  - Resolved "new row violates row-level security policy" errors
+- **Build Manifest Errors**: Fixed by cleaning `.next` directory and rebuilding
+  - Removed corrupted build cache files
+  - Resolved ENOENT errors for missing manifest files
+- **React Hook Dependency Warnings**: Fixed multiple useEffect and useCallback issues
+  - Fixed `fetchAboutMe` dependency in AboutClient using useCallback
+  - Fixed `loadMorePosts` dependency in BlogListClient using functional updates
+  - Improved state management patterns
+- **Code Quality Improvements**: Removed unused eslint-disable directives
+  - Cleaned up setup-portfolio route
+  - Cleaned up debug page
+  - Improved TypeScript compliance
+- **Files Modified**:
+  - `src/lib/supabase-server.ts` - Added admin client
+  - `src/app/api/shared-images/route.ts` - Updated to use admin client
+  - `src/app/about/AboutClient.tsx` - Fixed useCallback dependencies
+  - `src/app/blog/BlogListClient.tsx` - Fixed useCallback dependencies
+  - `src/app/api/setup-portfolio/route.ts` - Removed unused eslint-disable
+  - `src/app/debug/page.tsx` - Removed unused eslint-disable
+
 ### 🔧 Technical Improvements
 
 #### **CSS and Styling**
