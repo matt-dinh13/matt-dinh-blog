@@ -52,6 +52,7 @@ interface RecentPost {
   status: string
   created_at: string
   slug: string
+  translations?: { language_code: string }[]
 }
 
 export default function AdminDashboard() {
@@ -64,6 +65,7 @@ export default function AdminDashboard() {
   })
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [translationFilter, setTranslationFilter] = useState<'all' | 'missingEN' | 'missingVI' | 'missingBoth'>('all')
 
   useEffect(() => {
     fetchDashboardData()
@@ -96,10 +98,10 @@ export default function AdminDashboard() {
           slug, 
           status, 
           created_at,
-          blog_post_translations(title, language_code)
+          blog_post_translations(language_code)
         `)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(20)
 
       const totalViews = posts?.reduce((sum: number, post: any) => sum + (post.view_count || 0), 0) || 0
       const publishedPosts = posts?.filter((post: any) => post.status === 'published').length || 0
@@ -118,7 +120,8 @@ export default function AdminDashboard() {
         title: post.blog_post_translations?.[0]?.title || 'Untitled',
         status: post.status,
         created_at: post.created_at,
-        slug: post.slug
+        slug: post.slug,
+        translations: post.blog_post_translations || []
       })) || []
 
       setRecentPosts(processedPosts)
@@ -128,6 +131,15 @@ export default function AdminDashboard() {
       setLoading(false)
     }
   }
+
+  // Filter logic
+  const filteredPosts = recentPosts.filter(post => {
+    const langs = post.translations?.map(t => t.language_code) || []
+    if (translationFilter === 'missingEN') return !langs.includes('en')
+    if (translationFilter === 'missingVI') return !langs.includes('vi')
+    if (translationFilter === 'missingBoth') return !langs.includes('en') && !langs.includes('vi')
+    return true
+  })
 
   if (loading) {
     return (
@@ -221,15 +233,27 @@ export default function AdminDashboard() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold" style={cardTextColor}>Recent Posts</h3>
-          <Link href="/admin/blog" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            View all
-          </Link>
+          <div className="flex items-center gap-2">
+            <select
+              value={translationFilter}
+              onChange={e => setTranslationFilter(e.target.value as any)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900"
+            >
+              <option value="all">All</option>
+              <option value="missingEN">Missing EN</option>
+              <option value="missingVI">Missing VI</option>
+              <option value="missingBoth">Missing Both</option>
+            </select>
+            <Link href="/admin/blog" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              View all
+            </Link>
+          </div>
         </div>
-        {recentPosts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">No posts yet</p>
         ) : (
           <div className="space-y-3">
-            {recentPosts.map((post) => (
+            {filteredPosts.map((post) => (
               <div key={post.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
                 <div className="flex-1">
                   <p className="font-medium" style={cardTextColor}>{post.title}</p>

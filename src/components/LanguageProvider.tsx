@@ -45,7 +45,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
-    Cookies.set('lang', lang, { expires: 365 })
+    Cookies.set('lang', lang, { expires: 365 }) // 1 year
   }, [])
 
   // Memoize context value to prevent unnecessary re-renders

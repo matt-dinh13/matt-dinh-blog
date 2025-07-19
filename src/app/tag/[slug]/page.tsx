@@ -46,14 +46,14 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
 }
 
 type Props = {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string, lang?: string }>
   searchParams: Promise<{ lang?: string, page?: string }>
 }
 
 export default async function TagPage({ params, searchParams }: Props) {
-  const { slug } = await params
+  const { slug, lang } = await params
   const resolvedSearchParams = await searchParams
-  const languageCode = resolvedSearchParams?.lang === 'vi' ? 'vi' : 'en'
+  const languageCode = lang === 'en' ? 'en' : 'vi'
   const page = parseInt(resolvedSearchParams?.page || '1', 10)
   const supabase = createClient()
 

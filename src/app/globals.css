@@ -195,3 +195,29 @@ body {
 .force-dark {
   color: #111 !important;
 }
+
+/* Fix for images inside tables in blog content */
+.text-base table {
+  width: 100% !important;
+  min-width: auto !important;
+}
+
+.text-base table img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+.text-base table th,
+.text-base table td {
+  min-width: auto !important;
+  width: auto !important;
+}
+
+/* Ensure images are visible even in constrained containers */
+.text-base img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+}

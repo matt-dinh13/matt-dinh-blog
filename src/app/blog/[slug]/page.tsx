@@ -6,16 +6,17 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import ArticleDetailsClient from './ArticleDetailsClient'
 import { ArrowLeft } from 'lucide-react'
+import Head from 'next/head'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
+const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
 type Props = {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string, lang: string }>
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params
-  
+  const { slug, lang } = await params
+  const language = lang === 'en' ? 'en' : 'vi'
   try {
     console.log('🔍 Blog Post: Fetching post with slug:', slug)
     
@@ -52,7 +53,7 @@ export default async function BlogPostPage({ params }: Props) {
       }
     }
 
-    // Then, fetch the translations for this post
+    // Fetch translations for this post
     const { data: translations, error: translationsError } = await supabase
       .from('blog_post_translations')
       .select('*')
@@ -65,13 +66,41 @@ export default async function BlogPostPage({ params }: Props) {
       notFound()
     }
 
-    // For now, we'll use English content (you can add language detection later)
-    const translation = translations?.find((t: any) => t.language_code === 'en') || translations?.[0]
+    // Find translation for current language
+    const translation = translations?.find((t: any) => t.language_code === language)
 
     if (!translation) {
-      console.error('❌ Blog Post: No translation found for post:', post.id)
-      notFound()
+      // Show not available message
+      return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+          <Navigation />
+          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
+            <Breadcrumbs items={[
+              { label: language === 'vi' ? 'Trang chủ' : 'Home', href: '/' },
+              { label: language === 'vi' ? 'Blog' : 'Blog', href: '/blog' },
+            ]} />
+            <div className="text-center text-red-600 dark:text-red-400 font-semibold my-12">
+              {language === 'vi'
+                ? 'Bài viết này chưa có bản dịch tiếng Việt.'
+                : 'This article is not available in English.'}
+            </div>
+            <Link href={`/${language}/blog`} className="inline-flex items-center space-x-2 text-blue-600 hover:underline">
+              <ArrowLeft size={16} />
+              <span>{language === 'vi' ? 'Quay lại Blog' : 'Back to Blog'}</span>
+            </Link>
+          </main>
+          <Footer />
+        </div>
+      )
     }
+
+    // Generate meta description
+    function stripHtml(html: string) {
+      if (!html) return '';
+      return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    }
+    const metaTitle = translation.title || 'Matt Dinh Blog'
+    const metaDescription = stripHtml(translation.content).slice(0, 160)
 
     // Fetch tags for this post
     const { data: tagLinks, error: tagLinksError } = await supabase
@@ -82,17 +111,20 @@ export default async function BlogPostPage({ params }: Props) {
     let tags: { slug: string, name: string }[] = []
     if (!tagLinksError && Array.isArray(tagLinks) && tagLinks.length > 0) {
       const tagIds = tagLinks.map((t: any) => t.tag_id)
-      // Fetch tag slugs and names (English for now)
+      // Fetch tag slugs and names (current language)
       const { data: tagData, error: tagDataError } = await supabase
         .from('tags')
-        .select('id, slug, tag_translations(name)')
+        .select('id, slug, tag_translations(name, language_code)')
         .in('id', tagIds)
 
       if (!tagDataError && tagData) {
-        tags = tagData.map((tag: any) => ({
-          slug: tag.slug,
-          name: tag.tag_translations?.[0]?.name || tag.slug
-        }))
+        tags = tagData.map((tag: any) => {
+          const tr = tag.tag_translations.find((t: any) => t.language_code === translation.language_code) || tag.tag_translations[0]
+          return {
+            slug: tag.slug,
+            name: tr?.name || tag.slug
+          }
+        })
       }
     }
 
@@ -101,18 +133,17 @@ export default async function BlogPostPage({ params }: Props) {
     if (post.category_id) {
       const { data: catData, error: catError } = await supabase
         .from('categories')
-        .select('slug, category_translations(name)')
+        .select('slug, category_translations(name, language_code)')
         .eq('id', post.category_id)
         .single()
       if (!catError && catData) {
+        const tr = catData.category_translations.find((t: any) => t.language_code === translation.language_code) || catData.category_translations[0]
         category = {
           slug: catData.slug,
-          name: catData.category_translations?.[0]?.name || catData.slug
+          name: tr?.name || catData.slug
         }
       }
     }
-
-    console.log('✅ Blog Post: Successfully fetched post and translation')
 
     // Fetch related posts
     let relatedPosts: any[] = []
@@ -189,44 +220,49 @@ export default async function BlogPostPage({ params }: Props) {
     }
 
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
-        <Navigation />
-        
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
-          <Breadcrumbs items={[
-            { label: 'Home', href: '/' },
-            { label: 'Blog', href: '/blog' },
-            { label: translation.title }
-          ]} />
-          {/* Back Button and Draft Badge Row */}
-          <div className="flex items-center justify-between mb-8">
-          <Link 
-            href="/blog"
-              className="inline-flex items-center space-x-2 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Blog</span>
-          </Link>
-            {post.status === 'draft' && (
-              <div className="inline-block px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full font-semibold text-xs">Draft (visible to admin only)</div>
-            )}
-          </div>
-          <ArticleDetailsClient
-            postId={post.id}
-            title={post.title}
-            content={post.content}
-            publishedAt={post.published_at}
-            createdAt={post.created_at}
-            viewCount={post.view_count}
-            category={category}
-            tags={tags}
-            thumbnailUrl={post.thumbnail_url}
-            languageCode={translation.language_code}
-            relatedPosts={relatedPosts}
-          />
-        </main>
-        <Footer />
-      </div>
+      <>
+        <Head>
+          <title>{metaTitle}</title>
+          <meta name="description" content={metaDescription} />
+        </Head>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+          <Navigation />
+          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
+            <Breadcrumbs items={[
+              { label: 'Home', href: '/' },
+              { label: 'Blog', href: '/blog' },
+              { label: translation.title }
+            ]} />
+            {/* Back Button and Draft Badge Row */}
+            <div className="flex items-center justify-between mb-8">
+            <Link 
+              href="/blog"
+                className="inline-flex items-center space-x-2 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Blog</span>
+            </Link>
+              {post.status === 'draft' && (
+                <div className="inline-block px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full font-semibold text-xs">Draft (visible to admin only)</div>
+              )}
+            </div>
+            <ArticleDetailsClient
+              postId={post.id}
+              title={post.title}
+              content={translation.content}
+              publishedAt={post.published_at}
+              createdAt={post.created_at}
+              viewCount={post.view_count}
+              category={category}
+              tags={tags}
+              thumbnailUrl={post.thumbnail_url}
+              languageCode={translation.language_code}
+              relatedPosts={relatedPosts}
+            />
+          </main>
+          <Footer />
+        </div>
+      </>
     )
   } catch (error) {
     console.error('💥 Blog Post: Error fetching blog post:', error)

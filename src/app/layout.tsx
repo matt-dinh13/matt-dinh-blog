@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import CookieConsentBanner from '@/components/CookieConsentBanner'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -32,6 +33,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/logo-square.jpg" type="image/jpeg" />
         <link rel="apple-touch-icon" href="/logo-square.jpg" type="image/jpeg" />
+        {/* hreflang tags for SEO */}
+        <link rel="alternate" href="https://mattdinh.com/vi" hrefLang="vi" />
+        <link rel="alternate" href="https://mattdinh.com/en" hrefLang="en" />
+        <link rel="alternate" href="https://mattdinh.com" hrefLang="x-default" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -41,6 +46,7 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               {children}
+              <CookieConsentBanner />
             </AuthProvider>
           </LanguageProvider>
         </div>

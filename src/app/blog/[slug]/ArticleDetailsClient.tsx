@@ -20,6 +20,13 @@ function stripHtml(html: string) {
   return html.replace(/<[^>]+>/g, '');
 }
 
+// Simple function to convert Markdown images to HTML
+function convertMarkdownImages(content: string): string {
+  if (!content) return '';
+  // Convert ![](url) to <img src="url" alt="" />
+  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg my-4" />');
+}
+
 export default function ArticleDetailsClient({
   postId,
   title,
@@ -49,6 +56,9 @@ export default function ArticleDetailsClient({
   const formattedDate = new Date(publishedAt || createdAt).toLocaleDateString(locale, {
     year: 'numeric', month: 'long', day: 'numeric'
   });
+
+  // Convert Markdown images to HTML
+  const processedContent = convertMarkdownImages(content);
 
   return (
     <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -82,7 +92,7 @@ export default function ArticleDetailsClient({
         {/* Article Content */}
         <div
           className="text-base leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: processedContent }}
         />
         {/* Category & Hashtags Row */}
         <div className="mt-8 flex flex-row items-center justify-between">

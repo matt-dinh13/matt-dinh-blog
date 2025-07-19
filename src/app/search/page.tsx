@@ -40,6 +40,7 @@ export default function SearchPage() {
       )
       .or(`title.ilike.%${query}%,summary.ilike.%${query}%,content.ilike.%${query}%`)
       .eq("blog_posts.status", "published")
+      .eq("language_code", language)
       .range(from, to);
     if (error) {
       setResults([]);
@@ -50,7 +51,7 @@ export default function SearchPage() {
     setResults(reset ? data : [...results, ...data]);
     setHasMore((count || 0) > to + 1);
     setLoading(false);
-  }, [query, page, results]);
+  }, [query, page, results, language]);
 
   useEffect(() => {
     setPage(1);
@@ -91,6 +92,10 @@ export default function SearchPage() {
   const getThumbnailUrl = useCallback((post: any) => {
     return post.blog_posts?.thumbnail_url || '/window.svg'
   }, [])
+
+  if (!loading && results.length === 0) {
+    return <div className="text-center text-gray-500 dark:text-gray-400 py-12">{language === 'vi' ? 'Không tìm thấy kết quả.' : 'No results found.'}</div>;
+  }
 
   return (
     <>

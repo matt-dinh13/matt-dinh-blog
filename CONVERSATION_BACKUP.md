@@ -89,3 +89,15 @@
 - The previous darker color was too harsh and difficult to read.
 - This lighter color maintains good contrast while being easier on the eyes in both light and dark modes.
 - All article card components automatically use this updated color since they reference the centralized constant. 
+
+## [Context Update] Language Feature Overhaul (EN/VI, SEO, Admin, Consent)
+
+- **URL Structure:** `/` redirects to `/vi`, `/vi` and `/en` are parallel, legacy URLs redirect to `/vi/...`.
+- **Language Preference:** Default is Vietnamese, stored in a cookie for 1 year, set via language switcher.
+- **Language Switcher:** Only on public pages, switches to same page if translation exists, otherwise to language homepage.
+- **Content Visibility:** Only show posts/projects with a translation in the current language; direct access to missing translation shows a friendly message.
+- **Publishing Workflow:** Drafts allowed in one language, "published" only if both EN and VI are present; warning near publish button if missing.
+- **Admin Dashboard Filter:** Simple dropdown to filter posts missing EN, missing VI, or both.
+- **SEO:** hreflang tags in `<head>`, dynamic meta title/description from content (first 150–160 chars, HTML stripped).
+- **Cookie Consent Banner:** Simple banner with "OK" button, shown on first visit, persists in localStorage.
+- **All changes are robust, maintainable, and match user’s detailed requirements and preferences.** 

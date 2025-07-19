@@ -1,138 +1,164 @@
 # Matt Dinh Blog
 
-![Logo](public/logo.png)
-
-A modern, bilingual (EN/VI) personal blog and portfolio platform built with Next.js, Supabase, and Vercel. Designed for performance, maintainability, and a seamless authoring experience.
-
----
+A bilingual (Vietnamese/English) blog and portfolio website built with Next.js 15, Supabase, and TypeScript.
 
 ## 🚀 Features
 
-- ✍️ **Blog & Portfolio**: Publish articles and showcase projects
-- 🌐 **Bilingual**: Full English & Vietnamese support
-- 🔒 **Admin Dashboard**: Manage posts, categories, tags, users, and more
-- 🖼️ **Rich Media**: Cover images, thumbnails, and responsive design
-- 📊 **Analytics**: View counts, activity logs, and dashboard stats
-- 🧩 **Modular Components**: Reusable, maintainable React components
-- 🌓 **Dark Mode**: Accessible, high-contrast UI
-- 🔍 **Search**: Fast, language-aware article search
-- 🕒 **Reading Time**: Language-specific reading time estimates
-- 🧭 **Breadcrumbs & Navigation**: User-friendly, responsive navigation
-- 🗂️ **Collapsible Sidebar**: Persistent admin sidebar with tooltips
-- 🛡️ **Protected Routes**: Authenticated admin area
-- ☁️ **Deployed on Vercel**: Fast, global CDN
+### Core Features
+- **Bilingual Support**: Full Vietnamese and English content with language switching
+- **Blog System**: Rich text editor with image upload and processing
+- **Portfolio**: Project showcase with detailed descriptions
+- **Admin Panel**: Complete content management system
+- **Responsive Design**: Mobile-first approach with dark/light mode
+- **SEO Optimized**: Meta tags, Open Graph, and structured data
 
----
+### Image Management
+- **Rich Text Editor**: TipTap-based editor with image upload
+- **Image Processing**: Automatic resizing, format conversion (JPG), and compression
+- **Storage**: Supabase storage with optimized image delivery
+- **Markdown Support**: Images embedded in Markdown content with HTML rendering
 
-## 🛠️ Tech Stack
+### Technical Stack
+- **Frontend**: Next.js 15 (App Router), React 18, TypeScript
+- **Styling**: Tailwind CSS with custom color scheme
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Editor**: TipTap with custom extensions
+- **Deployment**: Vercel
 
-- [Next.js](https://nextjs.org/) (App Router, SSR, SSG)
-- [Supabase](https://supabase.com/) (Postgres, Auth, Storage)
-- [React](https://react.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Vercel](https://vercel.com/) (CI/CD, hosting)
-- [Lucide Icons](https://lucide.dev/)
+## 🛠️ Setup
 
----
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
 
-## ⚡ Quick Start
+### Installation
 
-1. **Clone the repo:**
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/matt-dinh13/matt-dinh-blog.git
+   git clone <repository-url>
    cd matt-dinh-blog
    ```
-2. **Install dependencies:**
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
-3. **Set up environment variables:**
-   - Copy `.env.local.example` to `.env.local` and fill in your Supabase credentials.
-4. **Run the development server:**
+
+3. **Environment Setup**
+   Create `.env.local` with your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```
+
+4. **Database Setup**
+   Run the SQL scripts in the `scripts/` folder:
+   ```bash
+   # Execute these in your Supabase SQL editor
+   scripts/create-tables.sql
+   scripts/seed-data.sql
+   ```
+
+5. **Start Development Server**
    ```bash
    npm run dev
    ```
-5. **Visit:** [http://localhost:3000](http://localhost:3000)
-
----
-
-## ⚙️ Environment Variables
-
-Create a `.env.local` file with the following:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
----
-
-## 🧑‍💻 Development Workflow
-
-- **Lint:** `npm run lint`
-- **Type Check:** `npx tsc --noEmit`
-- **Build:** `npm run build`
-- **Format:** `npm run format`
-- **Test:** (add your test command if available)
-
----
-
-## 🚀 Deployment
-
-- **Production:** Automatically deployed to [Vercel](https://vercel.com/)
-- **Manual Deploy:**
-  ```bash
-  vercel --prod
-  ```
-
----
 
 ## 📁 Project Structure
 
 ```
 src/
-  app/           # Next.js app directory (pages, API routes)
-  components/    # Reusable React components
-  lib/           # Utilities, Supabase client, helpers
-  public/        # Static assets (images, icons, etc.)
-  scripts/       # SQL and setup scripts
+├── app/                    # Next.js App Router
+│   ├── [lang]/            # Language-specific routes
+│   ├── admin/             # Admin panel
+│   ├── api/               # API routes
+│   ├── blog/              # Blog pages
+│   └── portfolio/         # Portfolio pages
+├── components/            # Reusable components
+├── lib/                   # Utilities and configurations
+└── styles/                # Global styles
 ```
 
----
+## 🔧 Key Components
 
-## 🎨 Customization & Theming
+### Rich Text Editor
+- **Location**: `src/components/RichTextEditor.tsx`
+- **Features**: Image upload, processing, and Markdown conversion
+- **Image Processing**: Resizes to 800px width, converts to JPG format
 
-- **Colors:** Centralized in `src/components/constants.ts` for easy updates
-- **Dark/Light Mode:** Automatic and manual switching
-- **Layout:** Easily extendable with modular components
+### Blog System
+- **Content Storage**: Markdown format in Supabase
+- **Image Rendering**: Converts Markdown images to HTML
+- **Hydration Safe**: Prevents server/client mismatches
 
----
+### Admin Panel
+- **Authentication**: Supabase Auth integration
+- **Content Management**: CRUD operations for posts, categories, tags
+- **Image Management**: Upload and processing workflow
 
-## 🌏 Internationalization (i18n)
+## 🚀 Deployment
 
-- **Languages:** English (`en`), Vietnamese (`vi`)
-- **LanguageProvider:** Centralized context for language switching
-- **Content:** Articles and UI support both languages
+### Vercel Deployment
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
 
----
+### Environment Variables for Production
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
+```
+
+## 📝 Recent Updates
+
+### Image Upload & Display (Latest)
+- ✅ Fixed image upload in rich text editor
+- ✅ Implemented image processing (resize, format conversion)
+- ✅ Resolved hydration errors with Markdown rendering
+- ✅ Added proper image display in blog posts
+- ✅ Optimized build process and TypeScript fixes
+
+### Previous Updates
+- ✅ Bilingual content management
+- ✅ Admin panel with full CRUD operations
+- ✅ Portfolio system implementation
+- ✅ SEO optimization and meta tags
+- ✅ Responsive design improvements
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Image Not Displaying**
+   - Check Supabase storage permissions
+   - Verify image URLs in database content
+   - Ensure proper Markdown to HTML conversion
+
+2. **Hydration Errors**
+   - Avoid using `marked` library on client side
+   - Use simple regex for Markdown image conversion
+   - Ensure server/client rendering consistency
+
+3. **Build Errors**
+   - Check TypeScript types for Next.js 15 compatibility
+   - Verify all imports and component paths
+   - Ensure proper Promise handling for params
+
+## 📄 License
+
+This project is licensed under the MIT License.
 
 ## 🤝 Contributing
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ---
 
-## 🗃️ Backup & Context
-
-- See `CONVERSATION_BACKUP.md` for AI-assisted design decisions, context, and refactor history.
-- All major UI/UX and architectural decisions are documented for future maintainers.
-
----
-
-## 📝 License
-
-[MIT](LICENSE)
+Built with ❤️ using Next.js and Supabase

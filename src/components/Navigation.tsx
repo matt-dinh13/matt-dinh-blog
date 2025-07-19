@@ -6,6 +6,7 @@ import { useState, useMemo, useCallback, memo } from 'react'
 import { Menu, X, Search } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 import SearchBar from './SearchBar'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const NAV_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const NAV_BORDER_BASE = 'border-2 border-transparent box-border';
@@ -56,6 +57,11 @@ export default function Navigation() {
   const handleMenuClose = useCallback(() => setIsMenuOpen(false), [])
   const handleSearchToggle = useCallback(() => setIsSearchOpen(open => !open), [])
 
+  // Only show language switcher on public-facing pages
+  const isPublicPage = typeof window !== 'undefined' ?
+    !window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/api')
+    : true
+
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,6 +101,8 @@ export default function Navigation() {
             {menuItems.map((item) => (
               <MenuItem key={item.name} item={item} />
             ))}
+            {/* Language Switcher (public pages only) */}
+            {isPublicPage && <div className="ml-2"><LanguageSwitcher /></div>}
           </div>
 
           {/* Mobile menu button */}
@@ -130,10 +138,11 @@ export default function Navigation() {
                   <SearchBar compact={true} />
                 </div>
               )}
-              
               {menuItems.map((item) => (
                 <MobileMenuItem key={item.name} item={item} onClick={handleMenuClose} />
               ))}
+              {/* Language Switcher (public pages only) */}
+              {isPublicPage && <div className="mt-2"><LanguageSwitcher /></div>}
             </div>
           </div>
         )}

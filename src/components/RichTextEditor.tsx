@@ -10,6 +10,7 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import { Markdown } from 'tiptap-markdown';
 import { createClient } from '@/lib/supabase';
+import { processImageFile, validateImageFile } from '@/lib/imageUtils';
 import styles from './RichTextEditor.module.css';
 
 interface RichTextEditorProps {
@@ -63,20 +64,55 @@ export default function RichTextEditor({ value, onChange, language, className }:
     }
   }, [value, editor, language]);
 
-  // Image upload handler
+  // Image upload handler - using same logic as thumbnail uploader
   const handleImageUpload = useCallback(async (file: File) => {
+    console.log('🖼️ Starting image upload:', { name: file.name, type: file.type, size: file.size });
     setUploading(true);
     try {
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error || 'Invalid file');
+      }
+
+      // Process the image (convert HEIC to JPG, compress, etc.)
+      const result = await processImageFile(file);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to process image');
+      }
+
+      // Check final file size
+      if (result.file.size > 5 * 1024 * 1024) {
+        throw new Error('Image is too large after processing (max 5MB).');
+      }
+
+      console.log('✅ Image processed successfully:', {
+        originalName: file.name,
+        processedName: result.file.name,
+        originalSize: file.size,
+        processedSize: result.file.size,
+        type: result.file.type
+      });
+
+      // Upload to Supabase
       const supabase = createClient();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      const uploadResult = await supabase.storage.from('blog-images').upload(fileName, file);
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
+      
+      console.log('📤 Uploading to Supabase:', fileName);
+      const uploadResult = await supabase.storage.from('blog-images').upload(fileName, result.file);
       if (uploadResult.error) throw uploadResult.error;
+      
+      console.log('✅ Upload successful:', uploadResult.data);
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
       if (!urlData?.publicUrl) throw new Error('Failed to get public URL');
+      
+      console.log('🔗 Public URL:', urlData.publicUrl);
       editor?.chain().focus().setImage({ src: urlData.publicUrl }).run();
-    } catch {
-      alert('Image upload failed');
+      console.log('✅ Image inserted into editor');
+    } catch (error: any) {
+      console.error('❌ Image upload failed:', error);
+      alert(`Image upload failed: ${error.message}`);
     } finally {
       setUploading(false);
     }
@@ -178,7 +214,7 @@ export default function RichTextEditor({ value, onChange, language, className }:
       )}
       <input
         type="file"
-        accept="image/*"
+        accept="image/heic,image/jpeg,image/jpg,image/png"
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleFileChange}
