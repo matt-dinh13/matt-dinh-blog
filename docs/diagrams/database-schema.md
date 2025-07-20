@@ -7,426 +7,693 @@
 
 ---
 
-## Database Overview
+## Database Schema Overview
 
-The Matt Dinh Blog platform uses PostgreSQL with Supabase, featuring Row Level Security (RLS) policies and a normalized schema design optimized for bilingual content management.
-
----
-
-## Core Tables Schema
-
-### 1. Blog Posts Management (✅ Complete)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        blog_posts                               │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    SERIAL PRIMARY KEY                       │
-│  slug                  VARCHAR(255) UNIQUE NOT NULL             │
-│  status                TEXT DEFAULT 'draft'                     │
-│  author_id             UUID REFERENCES users(id)                │
-│  published_at          TIMESTAMP WITH TIME ZONE                 │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  thumbnail_url         TEXT                                     │
-│  category_id           INTEGER REFERENCES categories(id)        │
-│  view_count            INTEGER DEFAULT 0                        │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  blog_post_translations                         │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    SERIAL PRIMARY KEY                       │
-│  blog_post_id          INTEGER REFERENCES blog_posts(id)        │
-│  language_code         VARCHAR(2) NOT NULL                      │
-│  title                 TEXT NOT NULL                            │
-│  summary               TEXT                                     │
-│  content               TEXT                                     │
-│  meta_title            VARCHAR(255)                             │
-│  meta_description      TEXT                                     │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### 2. Category Management (✅ Complete)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        categories                               │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    SERIAL PRIMARY KEY                       │
-│  slug                  VARCHAR(255) UNIQUE NOT NULL             │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  category_translations                          │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    SERIAL PRIMARY KEY                       │
-│  category_id           INTEGER REFERENCES categories(id)        │
-│  language_code         VARCHAR(2) NOT NULL                      │
-│  name                  TEXT NOT NULL                            │
-│  description           TEXT                                     │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### 3. User Management (✅ Complete)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                           users                                 │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    UUID PRIMARY KEY                         │
-│  email                 VARCHAR(255) UNIQUE NOT NULL             │
-│  role                  TEXT DEFAULT 'user'                      │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### 4. About Me Content (🔄 In Progress)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        about_me                                 │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    SERIAL PRIMARY KEY                       │
-│  status                TEXT DEFAULT 'draft'                     │
-│  author_id             UUID REFERENCES users(id)                │
-│  published_at          TIMESTAMP WITH TIME ZONE                 │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  about_me_translations                          │
-├─────────────────────────────────────────────────────────────────┤
-│  id                    SERIAL PRIMARY KEY                       │
-│  about_me_id           INTEGER REFERENCES about_me(id)          │
-│  language_code         VARCHAR(2) NOT NULL                      │
-│  title                 TEXT NOT NULL                            │
-│  subtitle              TEXT                                     │
-│  content               TEXT                                     │
-│  meta_title            VARCHAR(255)                             │
-│  meta_description      TEXT                                     │
-│  created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-│  updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()   │
-└─────────────────────────────────────────────────────────────────┘
-```
+The Matt Dinh Blog platform uses a PostgreSQL database with a normalized schema designed for bilingual content management, user authentication, and content organization.
 
 ---
 
-## Relationships Diagram
+## Entity Relationship Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        DATABASE RELATIONSHIPS                   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  users (1) ────────────┐                                        │
-│                         │                                        │
-│  categories (1) ────────┼─── (1) blog_posts (1) ──── (N)        │
-│                         │                                        │
-│  about_me (1) ──────────┘                                        │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │                    TRANSLATION TABLES                       │ │
-│  │                                                             │ │
-│  │  blog_post_translations (N) ──── (1) blog_posts            │ │
-│  │  category_translations (N) ──── (1) categories             │ │
-│  │  about_me_translations (N) ──── (1) about_me               │ │
-│  │                                                             │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+erDiagram
+    %% Core Content Tables
+    blog_posts {
+        serial id PK
+        varchar slug UK "URL-friendly identifier"
+        text status "published, draft, archived"
+        timestamp published_at "Publication date"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+        varchar thumbnail_url "Featured image URL"
+        int category_id FK "Category reference"
+        uuid author_id FK "Author reference"
+        int view_count "View counter"
+    }
+    
+    blog_post_translations {
+        serial id PK
+        int blog_post_id FK "Post reference"
+        varchar language_code "vi, en"
+        text title "Post title"
+        text summary "Post summary"
+        text content "Full post content"
+        text meta_title "SEO title"
+        text meta_description "SEO description"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    categories {
+        serial id PK
+        varchar slug UK "URL-friendly identifier"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    category_translations {
+        serial id PK
+        int category_id FK "Category reference"
+        varchar language_code "vi, en"
+        text name "Category name"
+        text description "Category description"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    %% User Management Tables
+    users {
+        uuid id PK "Supabase Auth user ID"
+        varchar email "User email"
+        text role "admin, user"
+        timestamp created_at "Account creation"
+        timestamp updated_at "Last update"
+        boolean is_active "Account status"
+    }
+    
+    %% About Me Tables
+    about_me {
+        serial id PK
+        varchar slug UK "URL-friendly identifier"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    about_me_translations {
+        serial id PK
+        int about_me_id FK "About me reference"
+        varchar language_code "vi, en"
+        text title "Page title"
+        text content "Page content"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    %% Portfolio Tables
+    portfolio_projects {
+        serial id PK
+        varchar slug UK "URL-friendly identifier"
+        text status "published, draft, archived"
+        timestamp published_at "Publication date"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+        varchar thumbnail_url "Project thumbnail"
+        varchar demo_url "Live demo URL"
+        varchar github_url "GitHub repository"
+        int view_count "View counter"
+    }
+    
+    portfolio_translations {
+        serial id PK
+        int portfolio_project_id FK "Project reference"
+        varchar language_code "vi, en"
+        text title "Project title"
+        text description "Project description"
+        text content "Detailed content"
+        text meta_title "SEO title"
+        text meta_description "SEO description"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    %% Tag System Tables
+    tags {
+        serial id PK
+        varchar slug UK "URL-friendly identifier"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    tag_translations {
+        serial id PK
+        int tag_id FK "Tag reference"
+        varchar language_code "vi, en"
+        text name "Tag name"
+        text description "Tag description"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    %% Junction Tables
+    blog_post_tags {
+        int blog_post_id FK "Post reference"
+        int tag_id FK "Tag reference"
+        timestamp created_at "Creation timestamp"
+    }
+    
+    portfolio_project_tags {
+        int portfolio_project_id FK "Project reference"
+        int tag_id FK "Tag reference"
+        timestamp created_at "Creation timestamp"
+    }
+    
+    %% Activity Logging
+    activity_logs {
+        serial id PK
+        uuid user_id FK "User reference"
+        text action "Action performed"
+        text entity_type "Type of entity"
+        int entity_id "Entity ID"
+        jsonb details "Additional details"
+        timestamp created_at "Action timestamp"
+    }
+    
+    %% Shared Images
+    shared_images {
+        serial id PK
+        varchar filename "Image filename"
+        varchar url "Image URL"
+        varchar alt_text "Alt text"
+        varchar caption "Image caption"
+        int width "Image width"
+        int height "Image height"
+        varchar mime_type "MIME type"
+        bigint file_size "File size in bytes"
+        uuid uploaded_by FK "Uploader reference"
+        timestamp created_at "Upload timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+    
+    %% Relationships
+    blog_posts ||--o{ blog_post_translations : "has translations"
+    blog_posts }o--|| categories : "belongs to"
+    categories ||--o{ category_translations : "has translations"
+    blog_posts }o--|| users : "created by"
+    about_me ||--o{ about_me_translations : "has translations"
+    portfolio_projects ||--o{ portfolio_translations : "has translations"
+    tags ||--o{ tag_translations : "has translations"
+    blog_posts }o--o{ tags : "tagged with"
+    portfolio_projects }o--o{ tags : "tagged with"
+    users ||--o{ activity_logs : "performs actions"
+    users ||--o{ shared_images : "uploads images"
 ```
 
 ---
 
-## Row Level Security (RLS) Policies
+## Table Structure Details
 
-### 1. Blog Posts Security (✅ Implemented)
+### Core Content Tables
+
+#### blog_posts
+The main table storing blog post metadata and relationships.
 
 ```sql
--- Public read access for published posts
-CREATE POLICY "Public can view published posts" ON blog_posts
-    FOR SELECT USING (status = 'published');
-
--- Admin full access
-CREATE POLICY "Admins have full access" ON blog_posts
-    FOR ALL USING (auth.role() = 'admin');
-
--- Author can manage their own posts
-CREATE POLICY "Authors can manage own posts" ON blog_posts
-    FOR ALL USING (auth.uid() = author_id);
+CREATE TABLE blog_posts (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    status TEXT DEFAULT 'draft',
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    thumbnail_url VARCHAR(500),
+    category_id INTEGER REFERENCES categories(id),
+    author_id UUID REFERENCES auth.users(id),
+    view_count INTEGER DEFAULT 0
+);
 ```
 
-### 2. Translations Security (✅ Implemented)
+#### blog_post_translations
+Stores bilingual content for blog posts.
 
 ```sql
--- Public read access for translations of published posts
-CREATE POLICY "Public can view translations" ON blog_post_translations
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM blog_posts 
-            WHERE id = blog_post_id AND status = 'published'
-        )
-    );
-
--- Admin full access
-CREATE POLICY "Admins have full access to translations" ON blog_post_translations
-    FOR ALL USING (auth.role() = 'admin');
+CREATE TABLE blog_post_translations (
+    id SERIAL PRIMARY KEY,
+    blog_post_id INTEGER REFERENCES blog_posts(id) ON DELETE CASCADE,
+    language_code VARCHAR(2) NOT NULL,
+    title TEXT NOT NULL,
+    summary TEXT,
+    content TEXT,
+    meta_title TEXT,
+    meta_description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(blog_post_id, language_code)
+);
 ```
 
-### 3. Categories Security (✅ Implemented)
+### Category Management
+
+#### categories
+Stores content categories for organization.
 
 ```sql
--- Public read access for categories
-CREATE POLICY "Public can view categories" ON categories
-    FOR SELECT USING (true);
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
 
--- Admin full access
-CREATE POLICY "Admins have full access to categories" ON categories
-    FOR ALL USING (auth.role() = 'admin');
+#### category_translations
+Bilingual category names and descriptions.
+
+```sql
+CREATE TABLE category_translations (
+    id SERIAL PRIMARY KEY,
+    category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+    language_code VARCHAR(2) NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(category_id, language_code)
+);
+```
+
+### User Management
+
+#### users
+Extended user information beyond Supabase Auth.
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY REFERENCES auth.users(id),
+    email VARCHAR(255) NOT NULL,
+    role TEXT DEFAULT 'user',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_active BOOLEAN DEFAULT true
+);
+```
+
+### About Me Content
+
+#### about_me
+Main about me page metadata.
+
+```sql
+CREATE TABLE about_me (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+#### about_me_translations
+Bilingual about me content.
+
+```sql
+CREATE TABLE about_me_translations (
+    id SERIAL PRIMARY KEY,
+    about_me_id INTEGER REFERENCES about_me(id) ON DELETE CASCADE,
+    language_code VARCHAR(2) NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(about_me_id, language_code)
+);
+```
+
+### Portfolio System
+
+#### portfolio_projects
+Portfolio project metadata and links.
+
+```sql
+CREATE TABLE portfolio_projects (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    status TEXT DEFAULT 'draft',
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    thumbnail_url VARCHAR(500),
+    demo_url VARCHAR(500),
+    github_url VARCHAR(500),
+    view_count INTEGER DEFAULT 0
+);
+```
+
+#### portfolio_translations
+Bilingual portfolio project content.
+
+```sql
+CREATE TABLE portfolio_translations (
+    id SERIAL PRIMARY KEY,
+    portfolio_project_id INTEGER REFERENCES portfolio_projects(id) ON DELETE CASCADE,
+    language_code VARCHAR(2) NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    content TEXT,
+    meta_title TEXT,
+    meta_description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(portfolio_project_id, language_code)
+);
+```
+
+### Tag System
+
+#### tags
+Content tags for categorization.
+
+```sql
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+#### tag_translations
+Bilingual tag names and descriptions.
+
+```sql
+CREATE TABLE tag_translations (
+    id SERIAL PRIMARY KEY,
+    tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
+    language_code VARCHAR(2) NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(tag_id, language_code)
+);
+```
+
+### Junction Tables
+
+#### blog_post_tags
+Many-to-many relationship between posts and tags.
+
+```sql
+CREATE TABLE blog_post_tags (
+    blog_post_id INTEGER REFERENCES blog_posts(id) ON DELETE CASCADE,
+    tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (blog_post_id, tag_id)
+);
+```
+
+#### portfolio_project_tags
+Many-to-many relationship between projects and tags.
+
+```sql
+CREATE TABLE portfolio_project_tags (
+    portfolio_project_id INTEGER REFERENCES portfolio_projects(id) ON DELETE CASCADE,
+    tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (portfolio_project_id, tag_id)
+);
+```
+
+### Activity Logging
+
+#### activity_logs
+System activity tracking for audit purposes.
+
+```sql
+CREATE TABLE activity_logs (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id),
+    action TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id INTEGER,
+    details JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### Shared Images
+
+#### shared_images
+Centralized image management system.
+
+```sql
+CREATE TABLE shared_images (
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    alt_text TEXT,
+    caption TEXT,
+    width INTEGER,
+    height INTEGER,
+    mime_type VARCHAR(100),
+    file_size BIGINT,
+    uploaded_by UUID REFERENCES auth.users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
 ---
 
-## Indexes and Performance
+## Database Indexes
 
-### 1. Primary Indexes (✅ Implemented)
+### Performance Indexes
 
 ```sql
 -- Blog posts indexes
 CREATE INDEX idx_blog_posts_status ON blog_posts(status);
 CREATE INDEX idx_blog_posts_published_at ON blog_posts(published_at DESC);
 CREATE INDEX idx_blog_posts_category_id ON blog_posts(category_id);
-CREATE INDEX idx_blog_posts_slug ON blog_posts(slug);
+CREATE INDEX idx_blog_posts_author_id ON blog_posts(author_id);
 
--- Translations indexes
-CREATE INDEX idx_blog_post_translations_post_id ON blog_post_translations(blog_post_id);
+-- Translation indexes
 CREATE INDEX idx_blog_post_translations_language ON blog_post_translations(language_code);
-CREATE INDEX idx_blog_post_translations_title ON blog_post_translations USING gin(to_tsvector('english', title));
+CREATE INDEX idx_blog_post_translations_post_lang ON blog_post_translations(blog_post_id, language_code);
 
--- Categories indexes
-CREATE INDEX idx_categories_slug ON categories(slug);
-CREATE INDEX idx_category_translations_category_id ON category_translations(category_id);
+-- Category indexes
 CREATE INDEX idx_category_translations_language ON category_translations(language_code);
+CREATE INDEX idx_category_translations_category_lang ON category_translations(category_id, language_code);
+
+-- Portfolio indexes
+CREATE INDEX idx_portfolio_projects_status ON portfolio_projects(status);
+CREATE INDEX idx_portfolio_projects_published_at ON portfolio_projects(published_at DESC);
+
+-- Tag indexes
+CREATE INDEX idx_blog_post_tags_post_id ON blog_post_tags(blog_post_id);
+CREATE INDEX idx_blog_post_tags_tag_id ON blog_post_tags(tag_id);
+
+-- Activity log indexes
+CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
+CREATE INDEX idx_activity_logs_created_at ON activity_logs(created_at DESC);
+CREATE INDEX idx_activity_logs_entity ON activity_logs(entity_type, entity_id);
+
+-- Shared images indexes
+CREATE INDEX idx_shared_images_uploaded_by ON shared_images(uploaded_by);
+CREATE INDEX idx_shared_images_created_at ON shared_images(created_at DESC);
 ```
 
-### 2. Full-Text Search Indexes (✅ Implemented)
+---
+
+## Row Level Security (RLS) Policies
+
+### Public Read Access
 
 ```sql
--- Full-text search for blog post translations
-CREATE INDEX idx_blog_post_translations_search ON blog_post_translations 
-    USING gin(to_tsvector('english', title || ' ' || COALESCE(summary, '') || ' ' || COALESCE(content, '')));
+-- Blog posts - public read access
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view published posts" ON blog_posts
+    FOR SELECT USING (status = 'published');
 
--- Full-text search for Vietnamese content
-CREATE INDEX idx_blog_post_translations_search_vi ON blog_post_translations 
-    USING gin(to_tsvector('vietnamese', title || ' ' || COALESCE(summary, '') || ' ' || COALESCE(content, '')));
+-- Blog post translations - public read access
+ALTER TABLE blog_post_translations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view translations" ON blog_post_translations
+    FOR SELECT USING (true);
+
+-- Categories - public read access
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view categories" ON categories
+    FOR SELECT USING (true);
+
+-- Category translations - public read access
+ALTER TABLE category_translations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view category translations" ON category_translations
+    FOR SELECT USING (true);
 ```
 
----
-
-## Data Integrity Constraints
-
-### 1. Foreign Key Constraints (✅ Implemented)
+### Admin Full Access
 
 ```sql
--- Blog posts foreign keys
-ALTER TABLE blog_posts 
-    ADD CONSTRAINT fk_blog_posts_author 
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL;
+-- Admin full access to blog posts
+CREATE POLICY "Admins have full access to posts" ON blog_posts
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM users 
+            WHERE users.id = auth.uid() 
+            AND users.role = 'admin'
+        )
+    );
 
-ALTER TABLE blog_posts 
-    ADD CONSTRAINT fk_blog_posts_category 
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
-
--- Translations foreign keys
-ALTER TABLE blog_post_translations 
-    ADD CONSTRAINT fk_translations_post 
-    FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE;
-
-ALTER TABLE category_translations 
-    ADD CONSTRAINT fk_category_translations_category 
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE;
-
-ALTER TABLE about_me_translations 
-    ADD CONSTRAINT fk_about_me_translations_about_me 
-    FOREIGN KEY (about_me_id) REFERENCES about_me(id) ON DELETE CASCADE;
+-- Admin full access to translations
+CREATE POLICY "Admins have full access to translations" ON blog_post_translations
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM users 
+            WHERE users.id = auth.uid() 
+            AND users.role = 'admin'
+        )
+    );
 ```
 
-### 2. Check Constraints (✅ Implemented)
+### User-Specific Access
 
 ```sql
--- Status constraints
-ALTER TABLE blog_posts 
-    ADD CONSTRAINT check_blog_posts_status 
-    CHECK (status IN ('draft', 'published'));
+-- Users can view their own posts
+CREATE POLICY "Users can view own posts" ON blog_posts
+    FOR SELECT USING (author_id = auth.uid());
 
-ALTER TABLE about_me 
-    ADD CONSTRAINT check_about_me_status 
-    CHECK (status IN ('draft', 'published'));
-
--- Language code constraints
-ALTER TABLE blog_post_translations 
-    ADD CONSTRAINT check_language_code 
-    CHECK (language_code IN ('en', 'vi'));
-
-ALTER TABLE category_translations 
-    ADD CONSTRAINT check_category_language_code 
-    CHECK (language_code IN ('en', 'vi'));
-
-ALTER TABLE about_me_translations 
-    ADD CONSTRAINT check_about_me_language_code 
-    CHECK (language_code IN ('en', 'vi'));
+-- Users can edit their own posts
+CREATE POLICY "Users can edit own posts" ON blog_posts
+    FOR UPDATE USING (author_id = auth.uid());
 ```
 
 ---
 
-## Triggers and Functions
+## Database Views
 
-### 1. Automatic Timestamps (✅ Implemented)
+### Published Posts View
 
 ```sql
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Triggers for all tables
-CREATE TRIGGER update_blog_posts_updated_at 
-    BEFORE UPDATE ON blog_posts 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_blog_post_translations_updated_at 
-    BEFORE UPDATE ON blog_post_translations 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_categories_updated_at 
-    BEFORE UPDATE ON categories 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_category_translations_updated_at 
-    BEFORE UPDATE ON category_translations 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE VIEW published_posts AS
+SELECT 
+    bp.id,
+    bp.slug,
+    bp.status,
+    bp.published_at,
+    bp.thumbnail_url,
+    bp.category_id,
+    bp.author_id,
+    bp.view_count,
+    bpt.language_code,
+    bpt.title,
+    bpt.summary,
+    bpt.content,
+    bpt.meta_title,
+    bpt.meta_description,
+    c.slug as category_slug,
+    ct.name as category_name
+FROM blog_posts bp
+JOIN blog_post_translations bpt ON bp.id = bpt.blog_post_id
+LEFT JOIN categories c ON bp.category_id = c.id
+LEFT JOIN category_translations ct ON c.id = ct.category_id 
+    AND ct.language_code = bpt.language_code
+WHERE bp.status = 'published'
+ORDER BY bp.published_at DESC;
 ```
 
-### 2. View Count Management (✅ Implemented)
+### Post Statistics View
 
 ```sql
--- Function to increment view count
-CREATE OR REPLACE FUNCTION increment_view_count(post_id INTEGER)
-RETURNS VOID AS $$
-BEGIN
-    UPDATE blog_posts 
-    SET view_count = view_count + 1 
-    WHERE id = post_id;
-END;
-$$ LANGUAGE plpgsql;
+CREATE VIEW post_statistics AS
+SELECT 
+    bp.id,
+    bp.slug,
+    bp.title,
+    bp.view_count,
+    bp.published_at,
+    COUNT(bpt.id) as translation_count,
+    STRING_AGG(bpt.language_code, ', ') as languages
+FROM blog_posts bp
+LEFT JOIN blog_post_translations bpt ON bp.id = bpt.blog_post_id
+GROUP BY bp.id, bp.slug, bp.title, bp.view_count, bp.published_at
+ORDER BY bp.published_at DESC;
 ```
 
 ---
 
-## Sample Data Structure
+## Data Migration Scripts
 
-### 1. Blog Post Example (✅ Working)
+### Initial Setup
 
-```json
-{
-  "id": 44,
-  "slug": "lan-dau-den-hue-mau-tram-cua-mot-thanh-pho-yen",
-  "status": "published",
-  "author_id": "2ca571c8-8ca2-40e5-ae40-cd038b04a446",
-  "published_at": "2025-07-19T09:56:38.573+00:00",
-  "thumbnail_url": "https://jpejuoyhuuwlgqvtwtrm.supabase.co/storage/v1/object/public/blog-images/thumbnails/1752918994525-thumbnail-1752918994525.jpg",
-  "category_id": 2,
-  "view_count": 0,
-  "translations": [
-    {
-      "id": 127,
-      "language_code": "vi",
-      "title": "Lần Đầu Đến Huế – Màu Trầm Của Một Thành Phố Yên",
-      "content": "Tôi từng nghĩ Huế chỉ là một điểm dừng..."
-    },
-    {
-      "id": 128,
-      "language_code": "en",
-      "title": "First Time in Hue – The Quiet Hue of a City at Peace",
-      "content": "I used to think Hue was just a stop..."
-    }
-  ]
-}
+```sql
+-- Create tables in correct order
+-- 1. Categories (no dependencies)
+-- 2. Tags (no dependencies)
+-- 3. Blog posts (depends on categories)
+-- 4. Translations (depend on parent tables)
+-- 5. Junction tables (depend on both parent tables)
+
+-- Enable RLS on all tables
+-- Create indexes for performance
+-- Insert default data
 ```
 
-### 2. Category Example (✅ Working)
+### Sample Data Insertion
 
-```json
-{
-  "id": 2,
-  "slug": "travel",
-  "translations": [
-    {
-      "language_code": "vi",
-      "name": "Du Lịch"
-    },
-    {
-      "language_code": "en",
-      "name": "Travel"
-    }
-  ]
-}
+```sql
+-- Insert default categories
+INSERT INTO categories (slug) VALUES 
+('technology'),
+('lifestyle'),
+('travel'),
+('programming');
+
+-- Insert category translations
+INSERT INTO category_translations (category_id, language_code, name, description) VALUES
+(1, 'en', 'Technology', 'Technology-related articles'),
+(1, 'vi', 'Công nghệ', 'Các bài viết về công nghệ'),
+(2, 'en', 'Lifestyle', 'Lifestyle and personal articles'),
+(2, 'vi', 'Cuộc sống', 'Các bài viết về cuộc sống'),
+(3, 'en', 'Travel', 'Travel experiences and guides'),
+(3, 'vi', 'Du lịch', 'Kinh nghiệm và hướng dẫn du lịch'),
+(4, 'en', 'Programming', 'Programming tutorials and tips'),
+(4, 'vi', 'Lập trình', 'Hướng dẫn và mẹo lập trình');
 ```
 
 ---
 
-## Current Status Summary
+## Database Maintenance
 
-### ✅ **Fully Implemented**
-- **Core Tables**: blog_posts, blog_post_translations, categories, category_translations, users
-- **Security**: Row Level Security policies implemented
-- **Indexes**: Performance indexes for queries and search
-- **Constraints**: Foreign key and check constraints
-- **Triggers**: Automatic timestamp updates
-- **Functions**: View count management
+### Regular Maintenance Tasks
 
-### 🔄 **In Progress**
-- **About Me Tables**: about_me and about_me_translations need to be created
-- **Portfolio Tables**: Portfolio project tables not yet implemented
+```sql
+-- Update view counts (run periodically)
+UPDATE blog_posts 
+SET view_count = COALESCE(view_count, 0) + 1 
+WHERE id = $1;
 
-### 🟢 **Future Enhancements**
-- **Tags System**: Tag management tables
-- **Comments System**: User comment tables
-- **Analytics Tables**: Page view and engagement tracking
-- **Newsletter Tables**: Subscriber management
+-- Clean up orphaned records
+DELETE FROM blog_post_translations 
+WHERE blog_post_id NOT IN (SELECT id FROM blog_posts);
 
----
+DELETE FROM category_translations 
+WHERE category_id NOT IN (SELECT id FROM categories);
 
-## Database Performance Metrics
+-- Vacuum and analyze tables
+VACUUM ANALYZE blog_posts;
+VACUUM ANALYZE blog_post_translations;
+VACUUM ANALYZE categories;
+VACUUM ANALYZE category_translations;
+```
 
-### ✅ **Optimized Queries**
-- **Blog List**: < 100ms response time
-- **Individual Posts**: < 50ms response time
-- **Search**: < 200ms response time
-- **Category Filtering**: < 80ms response time
+### Backup Strategy
 
-### ✅ **Storage Efficiency**
-- **Text Compression**: Automatic compression for content
-- **Index Optimization**: Minimal storage overhead
-- **Query Optimization**: Efficient joins and filters
+```sql
+-- Create backup of critical tables
+-- Run daily automated backups
+-- Store backups in secure location
+-- Test restore procedures regularly
+```
 
 ---
 
-**Schema Version**: 2.0  
-**Last Updated**: December 2024  
-**Status**: Core schema complete and optimized 
+## Performance Optimization
+
+### Query Optimization
+
+```sql
+-- Use prepared statements for frequently executed queries
+-- Implement connection pooling
+-- Monitor slow queries and optimize
+-- Use appropriate indexes for query patterns
+```
+
+### Caching Strategy
+
+```sql
+-- Cache frequently accessed data
+-- Use Redis for session storage
+-- Implement CDN for static assets
+-- Cache database query results
+```
+
+---
+
+*This database schema provides a comprehensive foundation for the Matt Dinh Blog platform, supporting bilingual content, user management, content organization, and scalability requirements.* 

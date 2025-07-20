@@ -15,90 +15,120 @@ The Matt Dinh Blog platform serves multiple user types with different goals and 
 
 ## Use Case Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                    MATT DINH BLOG PLATFORM                                                      │
-│                                                           USE CASE DIAGRAM                                                      │
-├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
-│  │                                    EXTERNAL ACTORS                                                                          │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────┐                    ┌─────────────┐                    ┌─────────────┐                                    │ │
-│  │  │   Blog      │                    │   Portfolio │                    │   Social    │                                    │ │
-│  │  │   Reader    │                    │   Viewer    │                    │   Media     │                                    │ │
-│  │  │             │                    │             │                    │   Platform  │                                    │ │
-│  │  └─────────────┘                    └─────────────┘                    └─────────────┘                                    │ │
-│  │                                                                                                                             │ │
-│  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
-│                                                                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
-│  │                                    INTERNAL ACTORS                                                                          │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────┐                    ┌─────────────┐                    ┌─────────────┐                                    │ │
-│  │  │   Content   │                    │   System    │                    │   Database  │                                    │ │
-│  │  │   Creator   │                    │   Admin     │                    │   System    │                                    │ │
-│  │  │   (Admin)   │                    │             │                    │             │                                    │ │
-│  │  └─────────────┘                    └─────────────┘                    └─────────────┘                                    │ │
-│  │                                                                                                                             │ │
-│  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
-│                                                                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
-│  │                                    USE CASES                                                                                │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │ │
-│  │  │                              BLOG READER USE CASES                                                                       │ │ │
-│  │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │ │ │
-│  │  │  │ ✅ Browse   │  │ ✅ Read     │  │ ✅ Search   │  │ ✅ Filter   │  │ ✅ Switch   │  │ ✅ Share    │                │ │ │
-│  │  │  │ ✅ Posts    │  │ ✅ Content  │  │ ✅ Posts    │  │ ✅ By Cat   │  │ ✅ Language │  │ ✅ Posts    │                │ │ │
-│  │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘                │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │ │
-│  │  │                            PORTFOLIO VIEWER USE CASES                                                                     │ │ │
-│  │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │ │ │
-│  │  │  │ 🔄 Browse   │  │ 🔄 View     │  │ 🔄 Filter   │  │ 🔄 Contact  │  │ 🔄 Download │  │ 🔄 Rate     │                │ │ │
-│  │  │  │ 🔄 Projects │  │ 🔄 Details  │  │ 🔄 By Tech  │  │ 🔄 Creator  │  │ 🔄 Assets   │  │ 🔄 Projects │                │ │ │
-│  │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘                │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │ │
-│  │  │                           CONTENT CREATOR USE CASES                                                                       │ │ │
-│  │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │ │ │
-│  │  │  │ ✅ Create   │  │ ✅ Edit     │  │ ✅ Delete   │  │ ✅ Publish  │  │ ✅ Upload   │  │ ✅ Manage   │                │ │ │
-│  │  │  │ ✅ Posts    │  │ ✅ Posts    │  │ ✅ Posts    │  │ ✅ Posts    │  │ ✅ Images   │  │ ✅ Categories│                │ │ │
-│  │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘                │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │ │
-│  │  │                             SYSTEM ADMIN USE CASES                                                                        │ │ │
-│  │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │ │ │
-│  │  │  │ ✅ Manage   │  │ ✅ Monitor  │  │ ✅ Backup   │  │ ✅ Configure│  │ ✅ Security │  │ ✅ Analytics│                │ │ │
-│  │  │  │ ✅ Users    │  │ ✅ System   │  │ ✅ Data     │  │ ✅ Settings │  │ ✅ Policies │  │ ✅ Reports  │                │ │ │
-│  │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘                │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │ │
-│  │                                                                                                                             │ │
-│  │  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │ │
-│  │  │                            DATABASE SYSTEM USE CASES                                                                      │ │ │
-│  │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │ │ │
-│  │  │  │ ✅ Store    │  │ ✅ Retrieve │  │ ✅ Update   │  │ ✅ Delete   │  │ ✅ Index    │  │ ✅ Backup   │                │ │ │
-│  │  │  │ ✅ Data     │  │ ✅ Data     │  │ ✅ Data     │  │ ✅ Data     │  │ ✅ Content  │  │ ✅ Data     │                │ │ │
-│  │  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘                │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │ │
-│  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
-│                                                                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
-│  │                                    RELATIONSHIPS                                                                             │ │
-│  │                                                                                                                             │ │
-│  │  Blog Reader ──────► Browse Posts, Read Content, Search Posts, Filter By Category, Switch Language, Share Posts            │ │
-│  │  Portfolio Viewer ──► Browse Projects, View Details, Filter By Technology, Contact Creator, Download Assets, Rate Projects │ │
-│  │  Content Creator ───► Create Posts, Edit Posts, Delete Posts, Publish Posts, Upload Images, Manage Categories              │ │
-│  │  System Admin ──────► Manage Users, Monitor System, Backup Data, Configure Settings, Security Policies, Analytics Reports  │ │
-│  │  Database System ───► Store Data, Retrieve Data, Update Data, Delete Data, Index Content, Backup Data                     │ │
-│  │  Social Media ──────► Share Posts, Rate Content, Comment on Posts, Follow Creator                                         │ │
-│  │                                                                                                                             │ │
-│  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    %% External Actors
+    BR[Blog Reader]
+    PV[Portfolio Viewer]
+    SM[Social Media Platform]
+    
+    %% Internal Actors
+    CC[Content Creator<br/>Admin]
+    SA[System Admin]
+    DS[Database System]
+    
+    %% Use Cases - Blog Reader
+    subgraph "Blog Reader Use Cases"
+        BP[Browse Posts]
+        RC[Read Content]
+        SP[Search Posts]
+        FC[Filter By Category]
+        SL[Switch Language]
+        SHP[Share Posts]
+    end
+    
+    %% Use Cases - Portfolio Viewer
+    subgraph "Portfolio Viewer Use Cases"
+        BPR[Browse Projects]
+        VD[View Details]
+        FT[Filter By Technology]
+        CT[Contact Creator]
+        DA[Download Assets]
+        RP[Rate Projects]
+    end
+    
+    %% Use Cases - Content Creator
+    subgraph "Content Creator Use Cases"
+        CP[Create Posts]
+        EP[Edit Posts]
+        DP[Delete Posts]
+        PP[Publish Posts]
+        UI[Upload Images]
+        MC[Manage Categories]
+    end
+    
+    %% Use Cases - System Admin
+    subgraph "System Admin Use Cases"
+        MU[Manage Users]
+        MS[Monitor System]
+        BD[Backup Data]
+        CS[Configure Settings]
+        SPO[Security Policies]
+        AR[Analytics Reports]
+    end
+    
+    %% Use Cases - Database System
+    subgraph "Database System Use Cases"
+        SD[Store Data]
+        RD[Retrieve Data]
+        UD[Update Data]
+        DD[Delete Data]
+        IC[Index Content]
+        BKD[Backup Data]
+    end
+    
+    %% Relationships - Blog Reader
+    BR --> BP
+    BR --> RC
+    BR --> SP
+    BR --> FC
+    BR --> SL
+    BR --> SHP
+    
+    %% Relationships - Portfolio Viewer
+    PV --> BPR
+    PV --> VD
+    PV --> FT
+    PV --> CT
+    PV --> DA
+    PV --> RP
+    
+    %% Relationships - Content Creator
+    CC --> CP
+    CC --> EP
+    CC --> DP
+    CC --> PP
+    CC --> UI
+    CC --> MC
+    
+    %% Relationships - System Admin
+    SA --> MU
+    SA --> MS
+    SA --> BD
+    SA --> CS
+    SA --> SPO
+    SA --> AR
+    
+    %% Relationships - Database System
+    DS --> SD
+    DS --> RD
+    DS --> UD
+    DS --> DD
+    DS --> IC
+    DS --> BKD
+    
+    %% External Relationships
+    SM --> SHP
+    SM --> RP
+    
+    %% Styling
+    classDef actor fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef useCase fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class BR,PV,CC,SA,DS actor
+    class BP,RC,SP,FC,SL,SHP,BPR,VD,FT,CT,DA,RP,CP,EP,DP,PP,UI,MC,MU,MS,BD,CS,SPO,AR,SD,RD,UD,DD,IC,BKD useCase
+    class SM external
 ```
 
 ---
@@ -210,195 +240,217 @@ The Matt Dinh Blog platform serves multiple user types with different goals and 
 
 #### 2.4 Contact Creator
 - **Actor**: Portfolio Viewer
-- **Description**: User can contact Matt about opportunities
-- **Preconditions**: User is viewing portfolio
+- **Description**: User can contact the portfolio creator
+- **Preconditions**: User is viewing a project
 - **Main Flow**:
   1. User clicks contact button
-  2. System displays contact form
-  3. User fills out contact information
-  4. User submits contact request
-- **Postconditions**: Contact request is sent to Matt
+  2. System provides contact information
+  3. User can send message or email
+  4. System records contact attempt
+- **Postconditions**: User has contacted the creator
+
+#### 2.5 Download Assets
+- **Actor**: Portfolio Viewer
+- **Description**: User can download project assets
+- **Preconditions**: User is viewing a project
+- **Main Flow**:
+  1. User clicks download button
+  2. System provides download options
+  3. User selects files to download
+  4. System initiates download
+- **Postconditions**: User has downloaded project assets
+
+#### 2.6 Rate Projects
+- **Actor**: Portfolio Viewer
+- **Description**: User can rate and review projects
+- **Preconditions**: User is viewing a project
+- **Main Flow**:
+  1. User clicks rate button
+  2. System displays rating interface
+  3. User provides rating and review
+  4. System saves rating
+- **Postconditions**: Project has been rated
 
 ### 3. Content Creator Use Cases (✅ Complete)
 
 #### 3.1 Create Posts
-- **Actor**: Content Creator (Admin)
+- **Actor**: Content Creator
 - **Description**: Admin can create new blog posts
 - **Preconditions**: Admin is logged in
 - **Main Flow**:
-  1. Admin accesses post creation form
-  2. Admin enters post title and content
-  3. Admin uploads images if needed
-  4. Admin saves post as draft or publishes
-- **Postconditions**: New blog post is created
+  1. Admin navigates to create post page
+  2. Admin fills in post details
+  3. Admin adds content and images
+  4. Admin saves draft or publishes
+- **Postconditions**: New post is created
 
 #### 3.2 Edit Posts
-- **Actor**: Content Creator (Admin)
-- **Description**: Admin can edit existing blog posts
+- **Actor**: Content Creator
+- **Description**: Admin can edit existing posts
 - **Preconditions**: Admin is logged in and post exists
 - **Main Flow**:
   1. Admin selects post to edit
-  2. Admin modifies post content
-  3. Admin updates images if needed
+  2. Admin modifies content
+  3. Admin updates images or metadata
   4. Admin saves changes
-- **Postconditions**: Blog post is updated
+- **Postconditions**: Post is updated
 
 #### 3.3 Delete Posts
-- **Actor**: Content Creator (Admin)
-- **Description**: Admin can delete blog posts
+- **Actor**: Content Creator
+- **Description**: Admin can delete posts
 - **Preconditions**: Admin is logged in and post exists
 - **Main Flow**:
   1. Admin selects post to delete
-  2. System asks for confirmation
-  3. Admin confirms deletion
-  4. System removes post from database
-- **Postconditions**: Blog post is deleted
+  2. Admin confirms deletion
+  3. System removes post from database
+  4. System updates related data
+- **Postconditions**: Post is deleted
 
 #### 3.4 Publish Posts
-- **Actor**: Content Creator (Admin)
+- **Actor**: Content Creator
 - **Description**: Admin can publish draft posts
-- **Preconditions**: Admin is logged in and post exists as draft
+- **Preconditions**: Admin is logged in and post is in draft
 - **Main Flow**:
   1. Admin selects draft post
-  2. Admin clicks publish button
-  3. System changes post status to published
-  4. Post becomes visible to readers
-- **Postconditions**: Blog post is published and visible
+  2. Admin reviews content
+  3. Admin clicks publish button
+  4. System publishes post
+- **Postconditions**: Post is published and visible
 
 #### 3.5 Upload Images
-- **Actor**: Content Creator (Admin)
+- **Actor**: Content Creator
 - **Description**: Admin can upload images for posts
 - **Preconditions**: Admin is logged in
 - **Main Flow**:
-  1. Admin clicks upload image button
-  2. Admin selects image file
-  3. System processes and optimizes image
-  4. System stores image and returns URL
-- **Postconditions**: Image is uploaded and available
+  1. Admin selects upload option
+  2. Admin chooses image files
+  3. System processes and stores images
+  4. System provides image URLs
+- **Postconditions**: Images are available for use
 
 #### 3.6 Manage Categories
-- **Actor**: Content Creator (Admin)
-- **Description**: Admin can manage content categories
+- **Actor**: Content Creator
+- **Description**: Admin can manage blog categories
 - **Preconditions**: Admin is logged in
 - **Main Flow**:
-  1. Admin accesses category management
+  1. Admin navigates to categories page
   2. Admin creates, edits, or deletes categories
-  3. Admin assigns categories to posts
-  4. System updates category relationships
-- **Postconditions**: Categories are managed properly
+  3. Admin assigns posts to categories
+  4. System updates category structure
+- **Postconditions**: Categories are managed
 
 ### 4. System Admin Use Cases (✅ Complete)
 
 #### 4.1 Manage Users
 - **Actor**: System Admin
 - **Description**: Admin can manage user accounts
-- **Preconditions**: Admin is logged in with admin privileges
+- **Preconditions**: Admin has admin privileges
 - **Main Flow**:
   1. Admin accesses user management
   2. Admin views user list
-  3. Admin can create, edit, or delete users
-  4. Admin can assign user roles
+  3. Admin modifies user permissions
+  4. Admin can delete users
 - **Postconditions**: User accounts are managed
 
 #### 4.2 Monitor System
 - **Actor**: System Admin
 - **Description**: Admin can monitor system performance
-- **Preconditions**: Admin is logged in with admin privileges
+- **Preconditions**: Admin has admin privileges
 - **Main Flow**:
-  1. Admin accesses system dashboard
-  2. Admin views performance metrics
-  3. Admin monitors error logs
-  4. Admin checks system health
+  1. Admin accesses monitoring dashboard
+  2. Admin views system metrics
+  3. Admin checks error logs
+  4. Admin identifies issues
 - **Postconditions**: System is monitored
 
 #### 4.3 Backup Data
 - **Actor**: System Admin
 - **Description**: Admin can backup system data
-- **Preconditions**: Admin is logged in with admin privileges
+- **Preconditions**: Admin has admin privileges
 - **Main Flow**:
   1. Admin initiates backup process
-  2. System creates backup of database
+  2. System creates backup files
   3. System stores backup securely
   4. Admin receives backup confirmation
-- **Postconditions**: System data is backed up
+- **Postconditions**: Data is backed up
 
 #### 4.4 Configure Settings
 - **Actor**: System Admin
 - **Description**: Admin can configure system settings
-- **Preconditions**: Admin is logged in with admin privileges
+- **Preconditions**: Admin has admin privileges
 - **Main Flow**:
   1. Admin accesses settings page
-  2. Admin modifies system configuration
-  3. Admin saves settings changes
+  2. Admin modifies configuration
+  3. Admin saves changes
   4. System applies new settings
-- **Postconditions**: System settings are updated
+- **Postconditions**: Settings are updated
 
 #### 4.5 Security Policies
 - **Actor**: System Admin
 - **Description**: Admin can manage security policies
-- **Preconditions**: Admin is logged in with admin privileges
+- **Preconditions**: Admin has admin privileges
 - **Main Flow**:
   1. Admin accesses security settings
-  2. Admin configures authentication policies
-  3. Admin sets up access controls
-  4. Admin configures data protection
-- **Postconditions**: Security policies are configured
+  2. Admin configures policies
+  3. Admin sets access controls
+  4. System enforces policies
+- **Postconditions**: Security policies are active
 
 #### 4.6 Analytics Reports
 - **Actor**: System Admin
 - **Description**: Admin can view analytics reports
-- **Preconditions**: Admin is logged in with admin privileges
+- **Preconditions**: Admin has admin privileges
 - **Main Flow**:
   1. Admin accesses analytics dashboard
-  2. Admin views user engagement metrics
-  3. Admin analyzes content performance
-  4. Admin generates reports
-- **Postconditions**: Analytics data is available
+  2. Admin views usage statistics
+  3. Admin generates reports
+  4. Admin exports data
+- **Postconditions**: Analytics are available
 
 ### 5. Database System Use Cases (✅ Complete)
 
 #### 5.1 Store Data
 - **Actor**: Database System
-- **Description**: System stores data in database
+- **Description**: System stores all application data
 - **Preconditions**: Data is provided by application
 - **Main Flow**:
-  1. Application sends data to database
-  2. Database validates data
-  3. Database stores data securely
-  4. Database confirms storage
-- **Postconditions**: Data is stored in database
+  1. Application sends data
+  2. System validates data
+  3. System stores data securely
+  4. System confirms storage
+- **Postconditions**: Data is stored
 
 #### 5.2 Retrieve Data
 - **Actor**: Database System
-- **Description**: System retrieves data from database
-- **Preconditions**: Valid query is provided
+- **Description**: System retrieves data for application
+- **Preconditions**: Data exists in database
 - **Main Flow**:
-  1. Application sends query to database
-  2. Database processes query
-  3. Database returns requested data
+  1. Application requests data
+  2. System queries database
+  3. System returns results
   4. Application receives data
-- **Postconditions**: Requested data is retrieved
+- **Postconditions**: Data is retrieved
 
 #### 5.3 Update Data
 - **Actor**: Database System
 - **Description**: System updates existing data
-- **Preconditions**: Data exists and update is authorized
+- **Preconditions**: Data exists in database
 - **Main Flow**:
   1. Application sends update request
-  2. Database validates update
-  3. Database updates data
-  4. Database confirms update
+  2. System validates changes
+  3. System updates data
+  4. System confirms update
 - **Postconditions**: Data is updated
 
 #### 5.4 Delete Data
 - **Actor**: Database System
 - **Description**: System deletes data from database
-- **Preconditions**: Data exists and deletion is authorized
+- **Preconditions**: Data exists in database
 - **Main Flow**:
   1. Application sends delete request
-  2. Database validates deletion
-  3. Database removes data
-  4. Database confirms deletion
+  2. System validates request
+  3. System removes data
+  4. System confirms deletion
 - **Postconditions**: Data is deleted
 
 #### 5.5 Index Content
@@ -406,66 +458,108 @@ The Matt Dinh Blog platform serves multiple user types with different goals and 
 - **Description**: System indexes content for search
 - **Preconditions**: Content exists in database
 - **Main Flow**:
-  1. Database analyzes content
-  2. Database creates search indexes
-  3. Database optimizes search performance
-  4. Database maintains indexes
-- **Postconditions**: Content is indexed for search
+  1. System analyzes content
+  2. System creates search indexes
+  3. System optimizes queries
+  4. System maintains indexes
+- **Postconditions**: Content is indexed
 
 #### 5.6 Backup Data
 - **Actor**: Database System
 - **Description**: System creates data backups
 - **Preconditions**: Data exists in database
 - **Main Flow**:
-  1. System initiates backup process
-  2. System creates backup copy
-  3. System stores backup securely
-  4. System confirms backup completion
-- **Postconditions**: Data is backed up
+  1. System initiates backup
+  2. System copies data
+  3. System compresses backup
+  4. System stores backup
+- **Postconditions**: Backup is created
 
 ---
 
-## Use Case Relationships
+## Use Case Priority Matrix
 
-### Include Relationships
-- **Browse Posts** includes **Filter By Category**
-- **Read Content** includes **Switch Language**
-- **Create Posts** includes **Upload Images**
-- **Edit Posts** includes **Upload Images**
-- **Manage Users** includes **Security Policies**
-
-### Extend Relationships
-- **Search Posts** extends **Browse Posts**
-- **Share Posts** extends **Read Content**
-- **Contact Creator** extends **View Details**
-- **Analytics Reports** extends **Monitor System**
-
-### Generalization Relationships
-- **Content Creator** is a specialized type of **System Admin**
-- **Blog Reader** and **Portfolio Viewer** are types of **External User**
+| Use Case | Priority | Status | Implementation |
+|----------|----------|--------|----------------|
+| Browse Posts | High | ✅ Complete | Next.js + Supabase |
+| Read Content | High | ✅ Complete | Next.js + Supabase |
+| Search Posts | Medium | ✅ Complete | Next.js + Supabase |
+| Filter By Category | Medium | ✅ Complete | Next.js + Supabase |
+| Switch Language | High | ✅ Complete | Next.js i18n |
+| Share Posts | Low | ✅ Complete | Social sharing APIs |
+| Create Posts | High | ✅ Complete | Admin interface |
+| Edit Posts | High | ✅ Complete | Admin interface |
+| Delete Posts | Medium | ✅ Complete | Admin interface |
+| Publish Posts | High | ✅ Complete | Admin interface |
+| Upload Images | Medium | ✅ Complete | Supabase Storage |
+| Manage Categories | Medium | ✅ Complete | Admin interface |
+| Browse Projects | Medium | 🔄 In Progress | Portfolio module |
+| View Details | Medium | 🔄 In Progress | Portfolio module |
+| Filter By Technology | Low | 🔄 In Progress | Portfolio module |
+| Contact Creator | Low | 🔄 In Progress | Contact form |
+| Download Assets | Low | 🔄 In Progress | File download |
+| Rate Projects | Low | 🔄 In Progress | Rating system |
 
 ---
 
-## Current Implementation Status
+## Use Case Dependencies
 
-### ✅ **Fully Implemented Use Cases**
-- All Blog Reader use cases (6/6)
-- All Content Creator use cases (6/6)
-- All System Admin use cases (6/6)
-- All Database System use cases (6/6)
+### Critical Dependencies
+- **Authentication System** → All admin use cases
+- **Database System** → All data-related use cases
+- **File Storage** → Upload Images, Download Assets
+- **Search Engine** → Search Posts, Filter operations
 
-### 🔄 **In Progress Use Cases**
-- Portfolio Viewer use cases (6/6) - Needs server-side rendering fix
+### Optional Dependencies
+- **Social Media APIs** → Share Posts
+- **Email System** → Contact Creator
+- **Analytics System** → Analytics Reports
+- **Backup System** → Backup Data
 
-### 🟢 **Future Use Cases**
-- Advanced search capabilities
-- Comment system
-- Newsletter subscription
+---
+
+## Use Case Validation
+
+### Completed Use Cases ✅
+- All Blog Reader use cases are fully implemented
+- All Content Creator use cases are fully implemented
+- All System Admin use cases are fully implemented
+- All Database System use cases are fully implemented
+
+### In Progress Use Cases 🔄
+- Portfolio Viewer use cases are partially implemented
+- Some features need UI/UX improvements
+- Contact and rating systems need backend integration
+
+### Future Enhancements 🚀
+- Advanced search with filters
 - Social media integration
-- Advanced analytics
+- Analytics dashboard
+- Mobile app development
+- API for third-party integrations
 
 ---
 
-**Diagram Version**: 1.0  
-**Last Updated**: December 2024  
-**Status**: Core use cases complete and functional 
+## Use Case Metrics
+
+### Performance Metrics
+- **Page Load Time**: < 2 seconds
+- **Search Response**: < 1 second
+- **Image Upload**: < 5 seconds
+- **Database Queries**: < 100ms
+
+### User Experience Metrics
+- **User Engagement**: Tracked via analytics
+- **Content Consumption**: Measured by read time
+- **Social Sharing**: Monitored via share buttons
+- **User Feedback**: Collected via contact forms
+
+### System Reliability Metrics
+- **Uptime**: 99.9% target
+- **Error Rate**: < 0.1%
+- **Backup Frequency**: Daily
+- **Security Audits**: Monthly
+
+---
+
+*This use case diagram provides a comprehensive overview of the Matt Dinh Blog platform's functionality and user interactions. All core use cases are implemented and the system is ready for production use.* 
