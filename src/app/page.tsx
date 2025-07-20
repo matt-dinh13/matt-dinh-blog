@@ -2,9 +2,8 @@ import { Metadata } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { BlogPostCard } from '@/components/BlogPostCard'
-import { HeroSection } from '@/components/HeroSection'
-import { POSTS_PER_PAGE, formatDate, getThumbnailUrl } from '@/lib/utils'
+import { HomepageClient } from '@/components/HomepageClient'
+import { POSTS_PER_PAGE } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Matt Dinh Blog',
@@ -19,7 +18,7 @@ export default async function Home() {
     
     const supabase = await createServerSupabaseClient()
     
-    // Fetch latest posts with translations (default to Vietnamese)
+    // Fetch latest posts with translations for all languages
     const { data: posts, error } = await supabase
       .from('blog_posts')
       .select(`
@@ -51,59 +50,12 @@ export default async function Home() {
 
     console.log('✅ Server: Homepage posts fetched successfully:', posts?.length || 0)
 
-    // Render posts for Vietnamese (default language)
-    const renderedPosts = posts?.map((post) => {
-      const translations = post.blog_post_translations || []
-      const translation = translations.find(t => t.language_code === 'vi') || translations[0]
-
-      if (!translation) {
-        console.warn('⚠️ Server: No translation found for post:', post.id)
-        return null
-      }
-
-      return (
-        <BlogPostCard
-          key={post.id}
-          post={post}
-          translation={translation}
-          thumbnailUrl={getThumbnailUrl(post.thumbnail_url)}
-          formatDate={(dateString: string) => formatDate(dateString, 'vi')}
-          language="vi"
-        />
-      )
-    }).filter(Boolean) || []
+    // Pass posts to client component for language-aware rendering
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navigation />
-        
-        <HeroSection language="vi" />
-        
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Bài viết mới nhất
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Khám phá kiến thức, trải nghiệm và chia sẻ từ hành trình của tôi
-            </p>
-          </div>
-
-          {/* Blog Posts Grid */}
-          {renderedPosts.length > 0 ? (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {renderedPosts}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400">
-                Không có bài viết nào được tìm thấy.
-              </p>
-            </div>
-          )}
-        </main>
-
+        <HomepageClient posts={posts || []} />
         <Footer />
       </div>
     )
@@ -114,28 +66,7 @@ export default async function Home() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navigation />
-        
-        <HeroSection language="vi" />
-        
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Bài viết mới nhất
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Khám phá kiến thức, trải nghiệm và chia sẻ từ hành trình của tôi
-            </p>
-          </div>
-
-          {/* Error State */}
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">
-              Có lỗi xảy ra khi tải bài viết. Vui lòng thử lại sau.
-            </p>
-          </div>
-        </main>
-
+        <HomepageClient posts={[]} />
         <Footer />
       </div>
     )

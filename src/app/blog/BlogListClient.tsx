@@ -20,13 +20,12 @@ interface Post {
   created_at: string
   thumbnail_url?: string
   category_id?: string
-  translations?: Array<{
-    language_code: string
-    title: string
-    summary: string
-    content: string
-  }>
-  blog_post_translations?: Array<{
+  // Direct fields (for backward compatibility)
+  title?: string
+  summary?: string
+  content?: string
+  // Translations array
+  blog_post_translations: Array<{
     language_code: string
     title: string
     summary: string
@@ -233,35 +232,53 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
   // Memoize rendered posts to prevent unnecessary re-renders
   const renderedPosts = useMemo(() => {
     return posts.map((post) => {
-      // Ensure translations array exists and is not undefined
-      const translations = post.translations || post.blog_post_translations || []
+      // Handle both data structures: direct fields and translations array
+      let translation = null
       
-      // Check if translations array exists and has items
-      if (!translations || translations.length === 0) {
-        console.warn('⚠️ Blog: No translations found for post:', post.id)
-        return null
+      // First, try to get from blog_post_translations array
+      const translations = post.blog_post_translations || []
+      if (translations && translations.length > 0) {
+        translation = translations.find(t => t.language_code === language) || translations[0]
       }
       
-      const translation = translations.find(t => t.language_code === language) || translations[0]
+      // If no translation found in array, try direct fields (fallback for old data structure)
+      if (!translation) {
+        // Check if post has direct title/summary/content fields
+        if (post.title || post.summary || post.content) {
+          translation = {
+            language_code: 'vi', // Default to Vietnamese for direct fields
+            title: post.title || 'Untitled',
+            summary: post.summary || '',
+            content: post.content || ''
+          }
+        }
+      }
+      
+      // If still no translation, log warning and skip
       if (!translation) {
         console.warn('⚠️ Blog: No translation found for post:', post.id, 'Available translations:', translations)
         return null
       }
 
       const thumbnailUrl = getThumbnailUrl(post)
+      
+      // Create description from content or summary
+      const description = translation.summary && translation.summary.trim() 
+        ? translation.summary 
+        : stripHtml(translation.content || '').slice(0, 256)
 
       return (
         <BlogCard
           key={post.id}
           slug={post.slug}
-          title={translation.title}
-          description={stripHtml(translation.content).slice(0, 256)}
+          title={translation.title || 'Untitled'}
+          description={description}
           thumbnailUrl={thumbnailUrl}
           publishedAt={post.published_at || post.created_at}
           locale={language === 'vi' ? 'vi-VN' : 'en-US'}
         />
       )
-    })
+    }).filter(Boolean) // Remove null items
   }, [posts, language, getThumbnailUrl])
 
   // Memoize the breadcrumb items
@@ -301,7 +318,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-400">
@@ -314,7 +331,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
 
     if (error) {
       return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
               {errorContent.title}
@@ -335,7 +352,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
 
     if (posts.length === 0) {
       return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               {errorContent.noPosts}
@@ -349,7 +366,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
     }
 
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Breadcrumbs items={breadcrumbItems} />
         <div className="mb-8 text-left">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -360,7 +377,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {renderedPosts}
         </div>
 

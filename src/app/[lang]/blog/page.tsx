@@ -75,6 +75,7 @@ export default async function LanguageBlogPage({ params, searchParams }: Props) 
       blog_post_translations!inner(
         title,
         summary,
+        content,
         language_code
       ),
       categories(
