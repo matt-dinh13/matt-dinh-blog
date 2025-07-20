@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import { HomepageClient } from '@/components/HomepageClient'
 import { POSTS_PER_PAGE } from '@/lib/utils'
+import { processTranslationsWithSummaries } from '@/lib/summary-generator'
 
 export const metadata: Metadata = {
   title: 'Matt Dinh Blog',
@@ -50,12 +51,18 @@ export default async function Home() {
 
     console.log('✅ Server: Homepage posts fetched successfully:', posts?.length || 0)
 
+    // Process posts to ensure they have summaries
+    const processedPosts = posts?.map(post => ({
+      ...post,
+      blog_post_translations: processTranslationsWithSummaries(post.blog_post_translations || [])
+    })) || []
+
     // Pass posts to client component for language-aware rendering
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navigation />
-        <HomepageClient posts={posts || []} />
+        <HomepageClient posts={processedPosts} />
         <Footer />
       </div>
     )

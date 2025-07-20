@@ -8,6 +8,7 @@ import Footer from '@/components/Footer'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import BlogCard from '@/components/BlogCard'
 import { Loader2 } from 'lucide-react'
+import { processTranslationsWithSummaries } from '@/lib/summary-generator'
 
 // Move constants outside component to prevent re-renders
 const POSTS_PER_PAGE = 6
@@ -129,10 +130,11 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
       console.log('📊 Blog: Total posts count:', totalCount, 'postsPerPage:', POSTS_PER_PAGE)
       setHasMore((totalCount || 0) > POSTS_PER_PAGE)
 
-      // Transform posts to match expected format
+      // Transform posts to match expected format and process summaries
       const postsWithTranslations = postsData.map((post: any) => ({
         ...post,
-        translations: post.blog_post_translations || []
+        translations: post.blog_post_translations || [],
+        blog_post_translations: processTranslationsWithSummaries(post.blog_post_translations || [])
       }))
 
       console.log('✅ Blog: Successfully combined posts with translations:', postsWithTranslations.length, 'posts')
@@ -193,10 +195,11 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
       }
 
       if (postsData && postsData.length > 0) {
-        // Transform posts to match expected format
+        // Transform posts to match expected format and process summaries
         const newPostsWithTranslations = postsData.map((post: any) => ({
           ...post,
-          translations: post.blog_post_translations || []
+          translations: post.blog_post_translations || [],
+          blog_post_translations: processTranslationsWithSummaries(post.blog_post_translations || [])
         }))
 
         // Get total count first

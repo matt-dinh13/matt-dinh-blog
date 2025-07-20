@@ -5,6 +5,7 @@ import { BlogPostCard } from '@/components/BlogPostCard'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Metadata } from 'next'
+import { processTranslationsWithSummaries } from '@/lib/summary-generator'
 
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const PAGE_SIZE = 9
@@ -91,7 +92,12 @@ export default async function LanguageBlogPage({ params, searchParams }: Props) 
     console.error('Error fetching posts:', error)
   }
 
-  const postsData = posts || []
+  // Process posts to generate summaries from content
+  const postsData = posts?.map((post: any) => ({
+    ...post,
+    blog_post_translations: processTranslationsWithSummaries(post.blog_post_translations || [])
+  })) || []
+  
   const totalPosts = count || 0
   const totalPages = Math.ceil(totalPosts / PAGE_SIZE)
   const hasMore = page < totalPages

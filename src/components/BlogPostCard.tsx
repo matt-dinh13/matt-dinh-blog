@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, ArrowRight } from 'lucide-react'
 import { CARD_TITLE_COLOR, CARD_DESC_COLOR } from './constants'
+import { getBestSummary } from '@/lib/summary-generator'
 
 interface BlogPost {
   id: number
@@ -27,19 +28,8 @@ interface BlogPostCardProps {
 }
 
 // Utility function to strip HTML and create description
-function createDescription(content: string, summary: string): string {
-  // If summary exists and is not empty, use it
-  if (summary && summary.trim()) {
-    return summary
-  }
-  
-  // Otherwise, create description from content
-  if (content) {
-    const strippedContent = content.replace(/<[^>]+>/g, '').trim()
-    return strippedContent.slice(0, 300) + (strippedContent.length > 300 ? '...' : '')
-  }
-  
-  return ''
+function createDescription(content: string): string {
+  return getBestSummary(content, 260)
 }
 
 export function BlogPostCard({ 
@@ -50,7 +40,7 @@ export function BlogPostCard({
   language 
 }: BlogPostCardProps) {
   const isPlaceholder = !post.thumbnail_url
-  const description = createDescription(translation.content, translation.summary)
+        const description = createDescription(translation.content)
 
   return (
     <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col">
