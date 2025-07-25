@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase'
 import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
 import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/imageUtils'
+import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -55,6 +57,18 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
   const [thumbnailError, setThumbnailError] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Track initial values for unsaved changes detection
+  const initialValuesRef = useRef({
+    titleVi: '',
+    titleEn: '',
+    contentVi: '',
+    contentEn: '',
+    status: '',
+    categoryId: '',
+    selectedTags: [] as any[],
+    thumbnailPreview: ''
+  })
 
   const fetchPost = useCallback(async () => {
     try {
@@ -109,19 +123,47 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     fetchPost()
   }, [fetchPost])
 
-  // This useEffect is no longer needed since we load both translations properly
-  // Keeping it commented for reference
-  /*
+  // After loading post, set initial values
   useEffect(() => {
-    if (translationLang === 'vi') {
-      setContentVi(translation?.content || '')
-      setTitleVi(translation?.title || '')
-    } else if (translationLang === 'en') {
-      setContentEn(translation?.content || '')
-      setTitleEn(translation?.title || '')
+    if (!loading && post) {
+      initialValuesRef.current = {
+        titleVi,
+        titleEn,
+        contentVi,
+        contentEn,
+        status,
+        categoryId,
+        selectedTags,
+        thumbnailPreview
+      }
     }
-  }, [translation, translationLang])
-  */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
+
+  // Detect unsaved changes
+  const hasUnsavedChanges =
+    titleVi !== initialValuesRef.current.titleVi ||
+    titleEn !== initialValuesRef.current.titleEn ||
+    contentVi !== initialValuesRef.current.contentVi ||
+    contentEn !== initialValuesRef.current.contentEn ||
+    status !== initialValuesRef.current.status ||
+    categoryId !== initialValuesRef.current.categoryId ||
+    thumbnailPreview !== initialValuesRef.current.thumbnailPreview ||
+    JSON.stringify(selectedTags) !== JSON.stringify(initialValuesRef.current.selectedTags)
+
+  // Use the robust unsaved changes warning hook
+  useUnsavedChangesWarning(hasUnsavedChanges)
+
+  // Handler for breadcrumb navigation
+  const handleBreadcrumbNavigate = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?')
+      if (!confirmed) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+  }
 
   // When switching language, update content fields
   const handleLangSwitch = (lang: 'vi' | 'en') => {
@@ -476,6 +518,17 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     }
   };
 
+  // Helper to wrap navigation with unsaved changes check
+  const confirmAndNavigate = (callback: () => void) => {
+    if (hasUnsavedChanges) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to leave this page?')) {
+        callback()
+      }
+    } else {
+      callback()
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-center">
@@ -499,12 +552,19 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     )
   }
 
+  const breadcrumbs = [
+    { label: 'Admin', href: '/admin' },
+    { label: 'Blog Posts', href: '/admin/posts' },
+    { label: 'Edit Post', href: `/admin/blog/edit/${id}` },
+  ];
+
   return (
     <>
+      <Breadcrumbs items={breadcrumbs} onNavigate={handleBreadcrumbNavigate} />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Blog Post</h1>
         <button
-          onClick={() => router.back()}
+          onClick={() => confirmAndNavigate(() => router.back())}
           className="text-blue-600 hover:underline"
         >
           ← Back
@@ -698,7 +758,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
             )}
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => confirmAndNavigate(() => router.back())}
               className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
               Cancel

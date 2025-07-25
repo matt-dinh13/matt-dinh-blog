@@ -437,3 +437,10 @@ The Matt Dinh Blog platform has successfully met all critical software requireme
 **Document Version**: 2.0  
 **Last Updated**: December 2024  
 **Next Review**: After medium priority fixes 
+
+## 4.2.2 Unsaved Changes Navigation Guard
+
+- The system shall prevent accidental data loss in admin blog edit and create forms.
+- If a user has unsaved changes and attempts to navigate away (via breadcrumbs, navigation bar, sidebar, any `<a>` or `<Link>`, or router navigation), the system shall display a confirmation popup.
+- The navigation guard shall be implemented via a reusable React hook and a navigation guard prop on the Breadcrumbs component.
+- This requirement applies to all admin blog forms (edit and create). 

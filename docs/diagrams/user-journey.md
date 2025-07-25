@@ -1,6 +1,9 @@
 # User Journey Diagram
 ## Matt Dinh Blog Platform
 
+**Update (2024-07-19):**
+- Admin blog edit and create forms now include robust unsaved changes protection. All navigation (breadcrumbs, nav bar, <a>, <Link>, router) is protected by a confirmation popup if there are unsaved changes, implemented via a reusable hook and Breadcrumbs prop.
+
 **Version**: 1.0  
 **Date**: December 2024  
 **Status**: Core Journeys Complete ✅

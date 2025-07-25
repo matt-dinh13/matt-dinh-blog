@@ -1,43 +1,33 @@
-import Link from 'next/link';
-import Tooltip from './Tooltip';
-
-interface Crumb {
-  label: string;
-  href?: string;
-}
+import Link from 'next/link'
 
 interface BreadcrumbsProps {
-  items: Crumb[];
+  items: Array<{ label: string, href?: string }>
+  onNavigate?: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
 }
 
-export default function Breadcrumbs({ items }: BreadcrumbsProps) {
+export default function Breadcrumbs({ items, onNavigate }: BreadcrumbsProps) {
   return (
-    <nav className="text-sm text-gray-500 dark:text-gray-400 mb-4" aria-label="Breadcrumb">
-      <ol className="flex items-center space-x-1 overflow-hidden">
+    <nav className="flex" aria-label="Breadcrumb" data-testid="admin-breadcrumb">
+      <ol className="flex items-center space-x-2">
         {items.map((item, idx) => (
-          <li key={idx} className="flex items-center min-w-0 flex-shrink">
+          <li key={item.label}>
             {item.href ? (
-              <Tooltip content={item.label}>
-                <Link 
-                  href={item.href} 
-                  className="hover:text-blue-600 dark:hover:text-blue-300 transition-colors truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]"
-                >
-                  {item.label}
-                </Link>
-              </Tooltip>
+              <Link
+                href={item.href}
+                onClick={onNavigate}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {item.label}
+              </Link>
             ) : (
-              <Tooltip content={item.label}>
-                <span className="font-semibold text-gray-700 dark:text-gray-200 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-                  {item.label}
-                </span>
-              </Tooltip>
+              <span className="text-gray-500 dark:text-gray-400">{item.label}</span>
             )}
             {idx < items.length - 1 && (
-              <span className="mx-2 text-gray-400 flex-shrink-0">/</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right text-gray-400" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
             )}
           </li>
         ))}
       </ol>
     </nav>
-  );
+  )
 } 

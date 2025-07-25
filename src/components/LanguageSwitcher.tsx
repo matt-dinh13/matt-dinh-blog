@@ -15,10 +15,9 @@ export default function LanguageSwitcher() {
     // Get current pathname
     const currentPath = window.location.pathname
     
-    // Handle homepage routing
+    // On homepage, just update language context in-place (no navigation)
     if (currentPath === '/' || currentPath === '/vi' || currentPath === '/en') {
-      // For homepage, just switch to the new language homepage
-      router.push('/' + newLang)
+      // No navigation, just update context
       return
     }
 

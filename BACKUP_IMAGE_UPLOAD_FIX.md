@@ -192,3 +192,35 @@ The solution maintains simplicity while providing robust functionality for conte
 ---
 *Documentation created: January 2025*
 *Last updated: January 2025* 
+
+## Unsaved Changes Navigation Guard (Admin Blog Edit & Create Forms)
+
+**Date:** 2024-07-19
+
+### What was fixed
+
+- Added a robust, reusable navigation guard for all admin blog forms (edit and create) to prevent accidental data loss.
+- Now, if you have unsaved changes and try to navigate away (via breadcrumbs, navigation bar, sidebar, any `<a>` or `<Link>`, or router navigation), a confirmation popup will appear.
+- This works for:
+  - Breadcrumbs (now use a navigation guard prop)
+  - Navigation bar/sidebar links
+  - All in-app navigation (Next.js router, `<Link>`, `<a>`, etc.)
+  - Browser tab close/refresh (native popup)
+
+### How it works
+
+- Implemented a reusable React hook: `useUnsavedChangesWarning(hasUnsavedChanges)`
+  - Listens for all navigation events and shows a `window.confirm` popup if there are unsaved changes.
+  - Can be used in any admin form for future-proofing.
+- Updated the `Breadcrumbs` component to accept an `onNavigate` prop, so parent forms can inject a navigation guard.
+- The solution is robust to refactoring and new navigation components.
+- **This is now applied to both the blog edit and create forms.**
+
+### How to use in other forms
+
+- Import and call `useUnsavedChangesWarning(hasUnsavedChanges)` in any form component.
+- Pass `onNavigate={handleBreadcrumbNavigate}` to `Breadcrumbs` if you want explicit control.
+
+---
+
+**This ensures you will never lose unsaved work in the admin panel due to accidental navigation.** 

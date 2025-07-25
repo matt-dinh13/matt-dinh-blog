@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider'
 import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
 import { processImageFile, validateImageFile } from '@/lib/imageUtils'
+import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -36,6 +37,33 @@ export default function AdminBlogNewPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
   const [thumbnailError, setThumbnailError] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const initialValuesRef = useRef({
+    titleVi: '',
+    titleEn: '',
+    contentVi: '',
+    contentEn: '',
+    status: 'draft',
+    categoryId: '',
+    selectedTags: [],
+    thumbnailPreview: ''
+  })
+
+  // Track unsaved changes
+  useEffect(() => {
+    setHasUnsavedChanges(
+      titleVi !== initialValuesRef.current.titleVi ||
+      titleEn !== initialValuesRef.current.titleEn ||
+      contentVi !== initialValuesRef.current.contentVi ||
+      contentEn !== initialValuesRef.current.contentEn ||
+      status !== initialValuesRef.current.status ||
+      categoryId !== initialValuesRef.current.categoryId ||
+      thumbnailPreview !== initialValuesRef.current.thumbnailPreview ||
+      JSON.stringify(selectedTags) !== JSON.stringify(initialValuesRef.current.selectedTags)
+    )
+  }, [titleVi, titleEn, contentVi, contentEn, status, categoryId, thumbnailPreview, selectedTags])
+
+  useUnsavedChangesWarning(hasUnsavedChanges)
 
   // Fetch categories
   useEffect(() => {

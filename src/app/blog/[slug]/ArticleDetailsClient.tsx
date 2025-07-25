@@ -1,7 +1,6 @@
 "use client"
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import BlogPostViewCountClient from './BlogPostViewCountClient';
 import BlogCard from '@/components/BlogCard';
 import ReadingTime from '@/components/ReadingTime';
@@ -40,8 +39,6 @@ export default function ArticleDetailsClient({
   thumbnailUrl,
   languageCode,
   relatedPosts,
-  availableLanguages = ['vi', 'en'], // Add this prop
-  slug, // Add slug prop
 }: {
   postId: string,
   title: string,
@@ -54,11 +51,8 @@ export default function ArticleDetailsClient({
   thumbnailUrl?: string,
   languageCode: string,
   relatedPosts?: RelatedPost[],
-  availableLanguages?: string[], // Add this type
-  slug: string, // Add slug type
 }) {
   const locale = languageCode === 'vi' ? 'vi-VN' : 'en-US';
-  const router = useRouter();
   const formattedDate = new Date(publishedAt || createdAt).toLocaleDateString(locale, {
     year: 'numeric', month: 'long', day: 'numeric'
   });
@@ -74,13 +68,6 @@ export default function ArticleDetailsClient({
             <h1 className="text-3xl font-bold">
               {title}
             </h1>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              languageCode === 'vi' 
-                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' 
-                : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-            }`}>
-              {languageCode === 'vi' ? '🇻🇳 Tiếng Việt' : '🇺🇸 English'}
-            </span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 text-sm">
@@ -104,34 +91,6 @@ export default function ArticleDetailsClient({
             </div>
           )}
         </header>
-        
-        {/* Language Availability Indicator */}
-        {availableLanguages.length > 1 && (
-          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                {languageCode === 'vi' 
-                  ? '🌐 Bài viết này cũng có sẵn bằng tiếng Anh' 
-                  : '🌐 This article is also available in Vietnamese'}
-              </span>
-              <div className="flex gap-2">
-                {availableLanguages.map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => router.push(`/${lang}/blog/${slug}`)}
-                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                      lang === languageCode
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-500'
-                    }`}
-                  >
-                    {lang === 'vi' ? '🇻🇳 VN' : '🇺🇸 EN'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Article Content */}
         <div

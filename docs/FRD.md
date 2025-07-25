@@ -396,3 +396,10 @@ The Matt Dinh Blog platform has successfully implemented all critical functional
 **Document Version**: 2.0  
 **Last Updated**: December 2024  
 **Next Review**: After medium priority fixes 
+
+## Admin Blog Forms - Unsaved Changes Protection
+
+- The admin blog edit and create forms must protect users from losing unsaved changes.
+- If a user has unsaved changes and tries to navigate away (via breadcrumbs, navigation bar, sidebar, any `<a>` or `<Link>`, or router navigation), a confirmation popup must appear.
+- This is implemented via a reusable React hook and a navigation guard prop on the Breadcrumbs component.
+- This protection is now applied to both the blog edit and create forms. 

@@ -241,3 +241,10 @@ The Matt Dinh Blog platform has successfully achieved its core business objectiv
 **Document Version**: 2.0  
 **Last Updated**: December 2024  
 **Next Review**: After medium priority fixes 
+
+## Admin Panel - Unsaved Changes Protection
+
+- The admin blog edit and create forms must protect users from accidental data loss.
+- If a user has unsaved changes and tries to navigate away (via breadcrumbs, navigation bar, sidebar, any `<a>` or `<Link>`, or router navigation), a confirmation popup must appear.
+- This protection is implemented via a reusable React hook and a navigation guard prop on the Breadcrumbs component.
+- This requirement applies to all admin blog forms (edit and create). 

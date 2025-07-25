@@ -259,7 +259,7 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
             <ArticleDetailsClient
               postId={post.id}
-              title={post.title}
+              title={translation.title}
               content={translation.content}
               publishedAt={post.published_at}
               createdAt={post.created_at}
@@ -269,8 +269,6 @@ export default async function BlogPostPage({ params }: Props) {
               thumbnailUrl={post.thumbnail_url}
               languageCode={translation.language_code}
               relatedPosts={relatedPosts}
-              availableLanguages={translations?.map((t: any) => t.language_code) || []}
-              slug={post.slug}
             />
           </main>
           <Footer />
