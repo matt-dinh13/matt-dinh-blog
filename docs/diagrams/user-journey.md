@@ -19,39 +19,52 @@ The Matt Dinh Blog platform serves multiple user types with different goals and 
 ## User Journey Map
 
 ```mermaid
-journey
-    title Matt Dinh Blog Platform - User Journeys
+flowchart TD
+    A[Matt Dinh Blog Platform] --> B[Blog Reader Journey]
+    A --> C[Content Creator Journey]
+    A --> D[Portfolio Viewer Journey]
     
-    section Blog Reader Journey
-      Discover Content: 5: Reader
-      Browse Posts: 4: Reader
-      Read Article: 5: Reader
-      Search Content: 3: Reader
-      Filter by Category: 3: Reader
-      Switch Language: 4: Reader
-      Share Post: 2: Reader
-      Leave Site: 1: Reader
+    %% Blog Reader Journey
+    B --> B1[Discover Content - Score: 5]
+    B1 --> B2[Browse Posts - Score: 4]
+    B2 --> B3[Read Article - Score: 5]
+    B3 --> B4[Search Content - Score: 3]
+    B4 --> B5[Filter by Category - Score: 3]
+    B5 --> B6[Switch Language - Score: 4]
+    B6 --> B7[Share Post - Score: 2]
+    B7 --> B8[Leave Site - Score: 1]
     
-    section Content Creator Journey
-      Login to Admin: 5: Creator
-      Access Dashboard: 4: Creator
-      Create New Post: 5: Creator
-      Edit Content: 4: Creator
-      Upload Images: 3: Creator
-      Preview Post: 4: Creator
-      Publish Post: 5: Creator
-      Manage Categories: 3: Creator
-      Monitor Analytics: 2: Creator
+    %% Content Creator Journey
+    C --> C1[Login to Admin - Score: 5]
+    C1 --> C2[Access Dashboard - Score: 4]
+    C2 --> C3[Create New Post - Score: 5]
+    C3 --> C4[Edit Content - Score: 4]
+    C4 --> C5[Upload Images - Score: 3]
+    C5 --> C6[Preview Post - Score: 4]
+    C6 --> C7[Publish Post - Score: 5]
+    C7 --> C8[Manage Categories - Score: 3]
+    C8 --> C9[Monitor Analytics - Score: 2]
     
-    section Portfolio Viewer Journey
-      Visit Portfolio: 4: Viewer
-      Browse Projects: 4: Viewer
-      View Project Details: 5: Viewer
-      Filter by Technology: 3: Viewer
-      Contact Creator: 3: Viewer
-      Download Assets: 2: Viewer
-      Rate Projects: 2: Viewer
-      Share Project: 1: Viewer
+    %% Portfolio Viewer Journey
+    D --> D1[Visit Portfolio - Score: 4]
+    D1 --> D2[Browse Projects - Score: 4]
+    D2 --> D3[View Project Details - Score: 5]
+    D3 --> D4[Filter by Technology - Score: 3]
+    D4 --> D5[Contact Creator - Score: 3]
+    D5 --> D6[Download Assets - Score: 2]
+    D6 --> D7[Rate Projects - Score: 2]
+    D7 --> D8[Share Project - Score: 1]
+    
+    %% Styling
+    classDef reader fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef creator fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef viewer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef main fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    
+    class A main
+    class B,B1,B2,B3,B4,B5,B6,B7,B8 reader
+    class C,C1,C2,C3,C4,C5,C6,C7,C8,C9 creator
+    class D,D1,D2,D3,D4,D5,D6,D7,D8 viewer
 ```
 
 ---
