@@ -280,7 +280,6 @@ export default function SearchBar({ onSearch, className = '', hideIcon = false, 
           onKeyDown={handleKeyDown}
           onFocus={() => setShowResults(true)}
           placeholder={placeholderText}
-          style={{ color: 'var(--color-gray-900)' }}
           className={`search-input w-full pr-8 ${inputHeight} ${inputPadding} border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
             hideIcon ? 'pl-3' : 'pl-9'
           }`}

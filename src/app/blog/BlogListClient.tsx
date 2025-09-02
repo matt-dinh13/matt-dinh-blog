@@ -272,7 +272,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
 
       return (
         <BlogCard
-          key={post.id}
+          key={`${post.id}-${post.slug}-${language}`}
           slug={post.slug}
           title={translation.title || 'Untitled'}
           description={description}

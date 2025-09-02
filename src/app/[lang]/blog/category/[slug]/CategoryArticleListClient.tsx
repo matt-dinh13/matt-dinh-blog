@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import BlogCard from '@/components/BlogCard'
+import { BlogPostCard } from '@/components/BlogPostCard'
+import { getBestSummary } from '@/lib/summary-generator'
 import Link from 'next/link'
 
 interface Post {
@@ -41,6 +42,7 @@ export default function CategoryArticleListClient({ categoryId, language }: Cate
             blog_post_translations!inner(
               title,
               summary,
+              content,
               language_code
             )
           `)
@@ -54,15 +56,22 @@ export default function CategoryArticleListClient({ categoryId, language }: Cate
         }
 
         // Transform the data to match the expected format
-        const transformedPosts = data?.map((post: any) => ({
-          id: post.id,
-          slug: post.slug,
-          title: post.blog_post_translations[0]?.title || '',
-          summary: post.blog_post_translations[0]?.summary || '',
-          thumbnail_url: post.thumbnail_url,
-          published_at: post.published_at,
-          created_at: post.created_at
-        })) || []
+        const transformedPosts = data?.map((post: any) => {
+          const translation = post.blog_post_translations[0]
+          const summary = translation?.summary && translation.summary.trim() 
+            ? translation.summary 
+            : getBestSummary(translation?.content || '')
+          
+          return {
+            id: post.id,
+            slug: post.slug,
+            title: translation?.title || '',
+            summary: summary,
+            thumbnail_url: post.thumbnail_url,
+            published_at: post.published_at,
+            created_at: post.created_at
+          }
+        }) || []
 
         setPosts(transformedPosts)
       } catch (err: any) {
@@ -115,14 +124,24 @@ export default function CategoryArticleListClient({ categoryId, language }: Cate
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {posts.map((post) => (
-        <BlogCard
+        <BlogPostCard
           key={post.id}
-          slug={post.slug}
-          title={post.title}
-          description={post.summary}
-          thumbnailUrl={post.thumbnail_url}
-          publishedAt={post.published_at}
-          locale={language === 'vi' ? 'vi-VN' : 'en-US'}
+          post={{
+            id: post.id,
+            slug: post.slug,
+            thumbnail_url: post.thumbnail_url || null,
+            published_at: post.published_at,
+            created_at: post.created_at
+          }}
+          translation={{
+            language_code: language,
+            title: post.title,
+            summary: post.summary,
+            content: ''
+          }}
+          thumbnailUrl={post.thumbnail_url || ''}
+          formatDate={(dateString: string) => new Date(dateString).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+          language={language}
         />
       ))}
     </div>

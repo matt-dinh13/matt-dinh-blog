@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import CategoryArticleListClient from './CategoryArticleListClient'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)' };
+const cardTextColor = { color: 'var(--foreground)' };
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>
@@ -52,15 +52,15 @@ export default async function CategoryPage({ params }: Props) {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col" style={cardTextColor}>
       <Navigation />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={cardTextColor}>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1" style={cardTextColor}>
         <Breadcrumbs items={breadcrumbs} />
         <Link href={`/${language}/blog`} className="inline-flex items-center space-x-2 mb-8 transition-colors duration-200 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300">
           <ArrowLeft size={16} />
           <span>{language === 'vi' ? 'Quay lại Blog' : 'Back to Blog'}</span>
         </Link>
-        <h1 className="text-3xl font-bold mb-8 text-white">{categoryName}</h1>
+        <h1 className="text-3xl font-bold mb-8" style={cardTextColor}>{categoryName}</h1>
         <CategoryArticleListClient categoryId={category.id} language={language} />
       </main>
       <Footer />

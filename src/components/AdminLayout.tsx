@@ -20,7 +20,7 @@ import {
   Activity
 } from 'lucide-react'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)' }
+const cardTextColor = { color: 'var(--foreground)' }
 
 interface AdminLayoutProps {
   children: React.ReactNode

@@ -187,13 +187,14 @@ body {
   background-color: var(--border);
 }
 
-/* Force search input text color to black */
+/* Search input text color - responsive to theme */
 .search-input {
-  color: #000 !important;
+  color: var(--foreground) !important;
 }
 
+/* Force dark text for admin tables and specific components */
 .force-dark {
-  color: #111 !important;
+  color: var(--foreground) !important;
 }
 
 /* Fix for images inside tables in blog content */

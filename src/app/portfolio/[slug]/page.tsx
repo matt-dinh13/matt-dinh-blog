@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import Head from 'next/head'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)' };
+const cardTextColor = { color: 'var(--foreground)' };
 
 type Props = {
   params: Promise<{ slug: string, lang: string }>

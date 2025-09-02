@@ -13,14 +13,25 @@ export default async function BlogListPage() {
     
     const supabase = await createServerSupabaseClient()
     
-    // Fetch blog posts with translations
+    // Fetch blog posts with translations (Vietnamese by default)
     const { data: posts, error } = await supabase
       .from('blog_posts')
       .select(`
-        *,
-        blog_post_translations(*)
+        id,
+        slug,
+        thumbnail_url,
+        published_at,
+        created_at,
+        view_count,
+        blog_post_translations!inner(
+          title,
+          summary,
+          content,
+          language_code
+        )
       `)
       .eq('status', 'published')
+      .eq('blog_post_translations.language_code', 'vi')
       .order('published_at', { ascending: false })
       .limit(10)
 

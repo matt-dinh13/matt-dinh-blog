@@ -6,7 +6,7 @@ import { useAuth } from './AuthProvider'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)' };
+const cardTextColor = { color: 'var(--foreground)' };
 
 type BlogPost = {
   id: number
@@ -100,7 +100,7 @@ export default function AdminContent() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
       <div className="flex items-center justify-between mb-10">
-        <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
+        <h1 className="text-3xl font-bold" style={cardTextColor}>Admin Panel</h1>
         <button
           onClick={handleSignOut}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors text-sm font-medium"
@@ -111,7 +111,7 @@ export default function AdminContent() {
 
       <section className="mb-12">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-white">Blog Posts</h2>
+          <h2 className="text-xl font-semibold" style={cardTextColor}>Blog Posts</h2>
           <Link href="/admin/blog/new" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm font-medium">Add New</Link>
         </div>
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -186,7 +186,7 @@ export default function AdminContent() {
 
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-white">Portfolio Projects</h2>
+          <h2 className="text-xl font-semibold" style={cardTextColor}>Portfolio Projects</h2>
           <Link href="/admin/portfolio/new" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm font-medium">Add New</Link>
         </div>
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">

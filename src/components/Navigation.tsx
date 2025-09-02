@@ -8,7 +8,7 @@ import { useLanguage } from './LanguageProvider'
 import SearchBar from './SearchBar'
 import LanguageSwitcher from './LanguageSwitcher'
 
-const NAV_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
+const NAV_TEXT_COLOR = { color: 'var(--foreground)' }
 const NAV_BORDER_BASE = 'border-2 border-transparent box-border';
 const NAV_HOVER_BORDER = 'hover:border-blue-600 dark:hover:border-blue-400 hover:bg-transparent dark:hover:bg-transparent';
 
@@ -90,7 +90,7 @@ export default function Navigation() {
             {!isSearchOpen && (
               <button
                 onClick={handleSearchToggle}
-                className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 flex-shrink-0"
+                className="flex items-center justify-center w-10 h-10 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 flex-shrink-0"
                 aria-label="Toggle search"
               >
                 <Search size={20} />
@@ -119,7 +119,7 @@ export default function Navigation() {
             {!isSearchOpen && (
               <button
                 onClick={handleSearchToggle}
-                className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                className="flex items-center justify-center w-10 h-10 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                 aria-label="Toggle search"
               >
                 <Search size={20} />
@@ -128,7 +128,7 @@ export default function Navigation() {
             
             <button
               onClick={handleMenuToggle}
-              className="flex items-center justify-center w-10 h-10 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+              className="flex items-center justify-center w-10 h-10 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
