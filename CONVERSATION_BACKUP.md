@@ -1,5 +1,21 @@
 # Matt Dinh Blog - Development Backup & Progress
 
+## Recent Updates (Latest Session)
+
+### ✨ Admin Tables Unified + Post Management Polish
+- Added shared `admin-table` styles in `src/app/globals.css` for consistent headers, spacing, hover, and dark mode.
+- Refactored tables in `/admin/posts`, `/admin/categories`, `/admin/tags` to use unified styles.
+- Polished Post Management table: fixed compact widths (ID/status/dates/actions), prevented wrapping, slug as code badge.
+
+### 🗂️ Bulk Export Articles to Markdown + ZIP
+- Added bulk export on `/admin/posts` with checkboxes and Export Selected button.
+- API `POST /api/export-posts` generates per-language Markdown (en/vi), downloads thumbnails, zips files.
+- Filenames `{id}-{language}-{slug}.md`, ZIP name `YYYYMMDD.zip` (UTC+7). Includes frontmatter + local thumbnail path.
+
+### 🧹 Build Fixes
+- Removed unused variables/imports; cleaned `.next` cache and rebuilt.
+- Production build now succeeds (only warnings about `<img>` and a minor hook dependency).
+
 ## Recent Updates (Latest Session - Navigation & UI Fixes)
 
 ### 🎯 **Navigation Language Switcher Flag Display Fix** (Latest)
@@ -161,13 +177,13 @@ key={`${post.id}-${post.slug}-${language}`}
 #### 6. **Language Switcher Bug Fixes on Blog Pages** ✅ **FIXED**
 - **Issue**: Language switcher on blog post pages was not working correctly
 - **Root Cause**: 
-  - Language switcher was trying to extract slug from URL using `window.location.pathname.split('/').pop()`
+  - Language switcher was trying to extract slug from URL using `window.location.pathname.split('/') .pop()`
   - This approach was unreliable and caused navigation issues
   - Breadcrumb and "Back to Blog" links were not using correct language URLs
   - Missing language-specific blog post pages (`[lang]/blog/[slug]/page.tsx`)
 - **Solution**: 
   - **Created new language-specific blog post page**: `src/app/[lang]/blog/[slug]/page.tsx`
-  - **Fixed language switcher navigation**: Now uses `router.push(\`/\${lang}/blog/\${slug}\`)` instead of URL parsing
+  - **Fixed language switcher navigation**: Now uses `router.push(`/ ${lang}/blog/${slug}`)` instead of URL parsing
   - **Added proper language detection**: Extracts language from URL params and finds correct translation
   - **Implemented translation fallback**: Shows user-friendly message when translation is not available
   - **Fixed breadcrumb navigation**: Uses correct language URLs (`/${language}/blog`)
