@@ -445,7 +445,7 @@ export default function AdminBlogNewPage() {
   return (
     <ProtectedRoute>
       <AdminLayout title="Add New Blog Post">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+        <div className="w-full px-3 sm:px-4 lg:px-6 py-4" style={cardTextColor}>
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Blog Post</h1>
             <button
@@ -468,7 +468,7 @@ export default function AdminBlogNewPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1574px] mx-auto">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1900px] mx-auto">
             {/* Language Switcher - Moved to top */}
             <div className="flex gap-2 mb-6">
               <button type="button" className={`px-3 py-2 rounded-md font-medium transition-colors ${activeLang === 'vi' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`} onClick={() => setActiveLang('vi')}>

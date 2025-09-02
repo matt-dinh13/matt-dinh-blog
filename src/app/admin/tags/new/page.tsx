@@ -9,7 +9,7 @@ import { Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { logActivity } from '@/lib/logActivity'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)' }
+// Removed unused cardTextColor
 
 export default function NewTagPage() {
   const [slug, setSlug] = useState('')
@@ -58,7 +58,7 @@ export default function NewTagPage() {
   return (
     <ProtectedRoute>
       <AdminLayout title="New Tag" subtitle="Create a new blog tag">
-        <div className="max-w-2xl">
+        <div className="w-full max-w-3xl">
           {error && (
             <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <p className="text-red-600 dark:text-red-400">{error}</p>
@@ -69,7 +69,7 @@ export default function NewTagPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={cardTextColor}>Slug *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Slug *</label>
                   <input
                     type="text"
                     value={slug}
@@ -78,11 +78,11 @@ export default function NewTagPage() {
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="e.g. javascript"
                   />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">URL-friendly identifier for the tag</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">URL-friendly identifier for the tag</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={cardTextColor}>Name (English) *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Name (English) *</label>
                   <input
                     type="text"
                     value={nameEn}
@@ -94,7 +94,7 @@ export default function NewTagPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={cardTextColor}>Name (Vietnamese) *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Name (Vietnamese) *</label>
                   <input
                     type="text"
                     value={nameVi}

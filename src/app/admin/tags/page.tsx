@@ -7,7 +7,7 @@ import AdminLayout from '@/components/AdminLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { Plus, Edit, Trash2, Download } from 'lucide-react'
 
-const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
+const cardTextColor = { color: 'var(--foreground)', fontFamily: 'Inter, system-ui, sans-serif' };
 
 export default function AdminTagsPage() {
   const [tags, setTags] = useState<any[]>([])
@@ -100,13 +100,9 @@ export default function AdminTagsPage() {
   return (
     <ProtectedRoute>
       <AdminLayout title="Tag Management" subtitle="Manage your blog tags">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold" style={cardTextColor}>Tags</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your blog post tags</p>
-            </div>
+        <div className="space-y-4">
+          {/* Actions */}
+          <div className="flex items-center justify-end">
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleExport}
@@ -172,10 +168,10 @@ export default function AdminTagsPage() {
           ) : (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
+                <table className="admin-table">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left">
+                      <th className="w-10 px-4 py-2 text-left">
                         <input
                           type="checkbox"
                           checked={selectedTags.length === tags.length && tags.length > 0}
@@ -183,21 +179,21 @@ export default function AdminTagsPage() {
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="w-1/3 px-4 py-2">
                         Slug
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="w-1/2 px-4 py-2">
                         Translations
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="w-1/6 px-4 py-2">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody>
                     {tags.map((tag) => (
-                      <tr key={tag.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                      <tr key={tag.id} className="transition-colors duration-200">
+                        <td className="px-4 py-2 whitespace-nowrap align-top">
                           <input
                             type="checkbox"
                             checked={selectedTags.includes(tag.id)}
@@ -205,24 +201,24 @@ export default function AdminTagsPage() {
                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono" style={cardTextColor}>
+                        <td className="px-4 py-2 whitespace-nowrap align-top">
+                          <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-900 dark:text-gray-100">
                             {tag.slug}
                           </code>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-2 align-top">
                           <div className="space-y-1">
                             {tag.tag_translations.map((tr: any) => (
                               <div key={tr.language_code} className="flex items-center text-sm">
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 mr-2">
                                   {tr.language_code.toUpperCase()}
                                 </span>
-                                <span style={cardTextColor}>{tr.name}</span>
+                                <span className="text-gray-900 dark:text-gray-100">{tr.name}</span>
                               </div>
                             ))}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-4 py-2 whitespace-nowrap text-sm font-medium align-top">
                           <div className="flex items-center space-x-3">
                             <Link 
                               href={`/admin/tags/edit/${tag.id}`}

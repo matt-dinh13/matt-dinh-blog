@@ -55,7 +55,7 @@ export default function RichTextEditor({ value, onChange, language, className, b
     },
     editorProps: {
       attributes: {
-        class: 'min-h-[300px] w-full focus:outline-none text-gray-900',
+        class: 'min-h-[300px] w-full focus:outline-none text-black',
       },
     },
     immediatelyRender: false,
@@ -299,7 +299,7 @@ export default function RichTextEditor({ value, onChange, language, className, b
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
-      <EditorContent editor={editor} className={`text-gray-900 bg-white w-full min-h-[300px] ${styles.forceDarkText}`} style={{ fontWeight: 400 }} />
+      <EditorContent editor={editor} className={`text-gray-900 bg-white w-full min-h-[300px] px-3 py-2 ${styles.forceDarkText}`} style={{ fontWeight: 400 }} />
       
       {/* Shared Images Library Panel */}
       {showSharedImagesLibrary && blogPostId && (

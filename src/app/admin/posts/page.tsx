@@ -4,11 +4,14 @@ import AdminLayout from '@/components/AdminLayout'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
+import { Download } from 'lucide-react'
 
 export default function AdminPostsPage() {
   const [posts, setPosts] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -29,38 +32,105 @@ export default function AdminPostsPage() {
     <AdminLayout title="Post Management" subtitle="Manage all blog posts here.">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">All Blog Posts</h2>
-        <Link href="/admin/blog/new" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">+ New Post</Link>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={async () => {
+              if (selectedIds.length === 0) return
+              try {
+                setExporting(true)
+                const res = await fetch('/api/export-posts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ids: selectedIds })
+                })
+                if (!res.ok) throw new Error('Failed to export')
+                const blob = await res.blob()
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                const now = new Date()
+                const utc7 = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+                const y = utc7.getUTCFullYear()
+                const m = String(utc7.getUTCMonth() + 1).padStart(2, '0')
+                const d = String(utc7.getUTCDate()).padStart(2, '0')
+                a.href = url
+                a.download = `${y}${m}${d}.zip`
+                document.body.appendChild(a)
+                a.click()
+                a.remove()
+                window.URL.revokeObjectURL(url)
+              } catch (e) {
+                console.error(e)
+                alert('Export failed')
+              } finally {
+                setExporting(false)
+              }
+            }}
+            disabled={selectedIds.length === 0 || exporting}
+            className={`inline-flex items-center px-4 py-2 rounded-md transition ${selectedIds.length === 0 || exporting ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
+            title="Export selected posts to Markdown (ZIP)"
+          >
+            <Download size={16} className="mr-2" /> {exporting ? 'Exporting...' : 'Export Selected'}
+          </button>
+          <Link href="/admin/blog/new" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">+ New Post</Link>
+        </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table className="admin-table">
           <thead className="bg-gray-100 dark:bg-gray-800">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Published</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
-              <th className="px-4 py-2"></th>
+              <th className="px-4 py-2 w-10">
+                <input
+                  type="checkbox"
+                  aria-label="Select all on page"
+                  checked={posts.length > 0 && selectedIds.length === posts.length}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelectedIds(posts.map((p) => p.id))
+                    else setSelectedIds([])
+                  }}
+                />
+              </th>
+              <th className="px-4 py-2 w-14">ID</th>
+              <th className="px-4 py-2">Slug</th>
+              <th className="px-4 py-2 w-28">Status</th>
+              <th className="px-4 py-2 w-28">Published</th>
+              <th className="px-4 py-2 w-28">Created</th>
+              <th className="px-4 py-2 w-28">Updated</th>
+              <th className="px-4 py-2 w-24 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody>
             {loading ? (
               <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : posts.length > 0 ? (
               posts.map((post) => (
-                <tr key={post.id}>
-                  <td className="px-4 py-2 text-sm force-dark">{post.id}</td>
-                  <td className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400">
-                    <Link href={`/blog/${post.slug}`} target="_blank" className="hover:underline">{post.slug}</Link>
-                  </td>
+                <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                   <td className="px-4 py-2 text-sm">
-                    <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{post.status}</span>
+                    <input
+                      type="checkbox"
+                      aria-label={`Select post ${post.id}`}
+                      checked={selectedIds.includes(post.id)}
+                      onChange={(e) => {
+                        setSelectedIds((prev) =>
+                          e.target.checked ? Array.from(new Set([...prev, post.id])) : prev.filter((id) => id !== post.id)
+                        )
+                      }}
+                    />
                   </td>
-                  <td className="px-4 py-2 text-sm force-dark">{post.published_at ? new Date(post.published_at).toLocaleDateString() : '-'}</td>
-                  <td className="px-4 py-2 text-sm force-dark">{new Date(post.created_at).toLocaleDateString()}</td>
-                  <td className="px-4 py-2 text-sm force-dark">{new Date(post.updated_at).toLocaleDateString()}</td>
-                  <td className="px-4 py-2 text-right">
+                  <td className="px-4 py-2 text-sm force-dark w-14 text-center whitespace-nowrap">{post.id}</td>
+                  <td className="px-4 py-2 text-sm whitespace-nowrap">
+                    <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                      <Link href={`/blog/${post.slug}`} target="_blank" className="hover:underline">{post.slug}</Link>
+                    </code>
+                  </td>
+                  <td className="px-4 py-2 text-sm whitespace-nowrap">
+                    <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${post.status === 'published' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>{post.status}</span>
+                  </td>
+                  <td className="px-4 py-2 text-sm force-dark whitespace-nowrap">{post.published_at ? new Date(post.published_at).toLocaleDateString() : '-'}</td>
+                  <td className="px-4 py-2 text-sm force-dark whitespace-nowrap">{new Date(post.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-2 text-sm force-dark whitespace-nowrap">{new Date(post.updated_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-2 text-right whitespace-nowrap">
                     <Link href={`/admin/blog/edit/${post.id}`} className="text-blue-600 hover:underline mr-2">Edit</Link>
                   </td>
                 </tr>

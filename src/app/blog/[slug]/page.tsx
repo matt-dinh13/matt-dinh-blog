@@ -224,6 +224,38 @@ export default async function BlogPostPage({ params }: Props) {
         <Head>
           <title>{metaTitle}</title>
           <meta name="description" content={metaDescription} />
+          {/* JSON-LD structured data */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BlogPosting',
+                headline: metaTitle,
+                description: metaDescription,
+                datePublished: post.published_at || post.created_at,
+                dateModified: post.updated_at || post.published_at || post.created_at,
+                inLanguage: language,
+                mainEntityOfPage: {
+                  '@type': 'WebPage',
+                  '@id': `/${language}/blog/${post.slug}`,
+                },
+                image: post.thumbnail_url || undefined,
+                author: {
+                  '@type': 'Person',
+                  name: 'Matt Dinh',
+                },
+                publisher: {
+                  '@type': 'Organization',
+                  name: 'Matt Dinh Blog',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: '/logo-square.jpg',
+                  },
+                },
+              }),
+            }}
+          />
           {/* Hreflang tags for language versions */}
           {translations?.map((t: any) => (
             <link 

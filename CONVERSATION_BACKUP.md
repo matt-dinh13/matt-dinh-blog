@@ -1,6 +1,102 @@
 # Matt Dinh Blog - Development Backup & Progress
 
-## Recent Updates (Latest Session)
+## Recent Updates (Latest Session - Navigation & UI Fixes)
+
+### 🎯 **Navigation Language Switcher Flag Display Fix** (Latest)
+- **Issue**: Language switcher in navigation was showing text ("vn" or "en") instead of flag emojis
+- **Root Cause**: HTML `<select>` elements don't reliably display emojis in dropdown options across browsers
+- **Solution**: 
+  - Replaced HTML select dropdown with custom React dropdown component
+  - Created button-based dropdown that properly displays flag emojis (🇻🇳 VN, 🇺🇸 EN)
+  - Maintained dropdown-like appearance and functionality
+  - Added click-outside-to-close behavior
+  - Improved accessibility with proper ARIA labels
+  - Added support for both light and dark themes
+  - Added smooth transitions and hover effects
+- **Files Modified**: `src/components/LanguageSwitcher.tsx`
+- **Features Added**:
+  - Custom dropdown with proper flag emoji display
+  - Active state highlighting (blue background for current language)
+  - Smooth animations and transitions
+  - Proper keyboard and screen reader accessibility
+  - Dark mode support
+
+### 🔧 **Duplicate React Keys Error Fix** (Latest)
+- **Issue**: "Encountered two children with the same key, `37`. Keys should be unique" error in blog list
+- **Root Cause**: Supabase query was returning duplicate posts due to multiple translations per post
+- **Solution**:
+  - Modified Supabase query to use `blog_post_translations!inner(...)` with language filter
+  - Added `.eq('blog_post_translations.language_code', 'vi')` to prevent duplicates
+  - Enhanced React key generation to combine `post.id`, `post.slug`, and `language`
+- **Files Modified**: 
+  - `src/app/blog/page.tsx` (database query)
+  - `src/app/blog/BlogListClient.tsx` (key generation)
+
+### 🎨 **Previous UI/UX Fixes Summary**
+- **Navigation Bar Contrast**: Fixed hardcoded colors to use theme-responsive CSS variables
+- **Article Content Contrast**: Updated text colors to be visible in both light and dark themes
+- **Category Page 404 Error**: Fixed routing to use language-specific URLs
+- **Category Page Layout**: Improved width, breadcrumbs, and footer positioning
+- **Missing Article Components**: Added descriptions and "Read More" buttons to category pages
+- **Breadcrumb Wrapping**: Fixed breadcrumb layout to prevent text breaking across lines
+
+### 🔧 **Technical Implementation Details** (Latest Session)
+
+#### **Custom Language Switcher Component**
+```typescript
+// Key features implemented:
+- useState for dropdown open/close state
+- useRef for click-outside detection
+- useEffect for event listener cleanup
+- Custom dropdown with proper flag emoji rendering
+- ARIA accessibility attributes
+- Theme-responsive styling (light/dark mode)
+- Smooth transitions and hover effects
+```
+
+#### **Database Query Optimization**
+```typescript
+// Before (causing duplicates):
+.select('*, blog_post_translations(*)')
+
+// After (preventing duplicates):
+.select(`
+  id, slug, thumbnail_url, published_at, created_at, view_count,
+  blog_post_translations!inner(
+    title, summary, content, language_code
+  )
+`)
+.eq('blog_post_translations.language_code', 'vi')
+```
+
+#### **React Key Generation Enhancement**
+```typescript
+// Before (simple ID):
+key={post.id}
+
+// After (unique combination):
+key={`${post.id}-${post.slug}-${language}`}
+```
+
+### 📊 **Session Summary** (Latest)
+- **Total Issues Resolved**: 2 major issues
+- **Files Modified**: 3 files
+- **Build Status**: ✅ Successful (with minor warnings)
+- **Git Status**: ✅ Committed and pushed to main branch
+- **Key Improvements**:
+  - Navigation language switcher now properly displays flag emojis
+  - Eliminated React duplicate key warnings
+  - Improved user experience with better visual feedback
+  - Enhanced accessibility and theme support
+  - Optimized database queries for better performance
+
+### 🚀 **Next Steps Recommendations**
+- Monitor for any remaining UI/UX issues
+- Consider adding keyboard navigation to language switcher
+- Test flag emoji display across different browsers and devices
+- Consider adding language preference persistence
+
+## Recent Updates (Previous Sessions)
 
 ### ✅ Completed Tasks
 

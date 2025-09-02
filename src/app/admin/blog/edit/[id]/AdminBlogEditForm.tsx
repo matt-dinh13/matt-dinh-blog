@@ -7,7 +7,7 @@ import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
 import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/imageUtils'
 import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
-import Breadcrumbs from '@/components/Breadcrumbs'
+// import Breadcrumbs from '@/components/Breadcrumbs'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -154,16 +154,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
   // Use the robust unsaved changes warning hook
   useUnsavedChangesWarning(hasUnsavedChanges)
 
-  // Handler for breadcrumb navigation
-  const handleBreadcrumbNavigate = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    if (hasUnsavedChanges) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?')
-      if (!confirmed) {
-        e.preventDefault()
-        e.stopPropagation()
-      }
-    }
-  }
+  // Breadcrumb navigate handler removed; breadcrumbs handled by layout
 
   // When switching language, update content fields
   const handleLangSwitch = (lang: 'vi' | 'en') => {
@@ -552,24 +543,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     )
   }
 
-  const breadcrumbs = [
-    { label: 'Admin', href: '/admin' },
-    { label: 'Blog Posts', href: '/admin/posts' },
-    { label: 'Edit Post', href: `/admin/blog/edit/${id}` },
-  ];
+  // Breadcrumbs data removed; handled by AdminLayout
 
   return (
     <>
-      <Breadcrumbs items={breadcrumbs} onNavigate={handleBreadcrumbNavigate} />
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Blog Post</h1>
-        <button
-          onClick={() => confirmAndNavigate(() => router.back())}
-          className="text-blue-600 hover:underline"
-        >
-          ← Back
-        </button>
-      </div>
+      {/* Breadcrumbs and duplicated title removed (shown by AdminLayout header) */}
 
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -583,7 +561,7 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1574px] mx-auto">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[1900px] mx-auto">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <div className="flex gap-2 mb-4">

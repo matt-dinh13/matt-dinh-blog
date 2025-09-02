@@ -92,7 +92,7 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
         ${isClient && sidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED}`}
       >
         {/* Sidebar Header */}
-        <div className={`flex items-center justify-between h-20 px-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 ${isClient && sidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center justify-between h-16 px-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 ${isClient && sidebarCollapsed ? 'justify-center' : ''}`}>
           <div className={`flex items-center ${isClient && sidebarCollapsed ? 'justify-center w-full' : 'space-x-3'}`}>
             {!(isClient && sidebarCollapsed) && (
               <img
@@ -233,7 +233,7 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
           </div>
         </div>
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 p-2 sm:p-3 lg:p-4">
           {children}
         </main>
       </div>

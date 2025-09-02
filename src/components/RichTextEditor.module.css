@@ -1,5 +1,5 @@
-/* Force all text inside the editor to use theme-appropriate colors */
+/* Force strong dark text inside the editor for best contrast on white bg */
 .forceDarkText, .forceDarkText * {
-  color: var(--foreground) !important;
-  caret-color: var(--foreground) !important;
-} 
+  color: #111 !important;
+  caret-color: #111 !important;
+}
