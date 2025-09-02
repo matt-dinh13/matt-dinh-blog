@@ -88,7 +88,7 @@ export default function AdminContent() {
 
   if (loading) {
     return (
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
@@ -98,7 +98,7 @@ export default function AdminContent() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
       <div className="flex items-center justify-between mb-10">
         <h1 className="text-3xl font-bold" style={cardTextColor}>Admin Panel</h1>
         <button
@@ -171,7 +171,8 @@ export default function AdminContent() {
                       </a>
                       <button 
                         onClick={() => handleDelete('blog', post.id)}
-                        className="text-red-600 hover:underline"
+                        className="
+                        text-red-600 hover:underline"
                       >
                         Delete
                       </button>

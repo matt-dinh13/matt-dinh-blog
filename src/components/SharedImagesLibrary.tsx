@@ -14,7 +14,7 @@ interface SharedImage {
 }
 
 interface SharedImagesLibraryProps {
-  blogPostId: number
+  blogPostId?: number
   language: 'vi' | 'en'
   onInsertImage: (imageUrl: string, caption?: string) => void
   className?: string
@@ -38,7 +38,10 @@ export default function SharedImagesLibrary({
       setLoading(true)
       setError('')
       
-      const response = await fetch(`/api/shared-images?blogPostId=${blogPostId}`)
+      const url = typeof blogPostId === 'number' && blogPostId > 0
+        ? `/api/shared-images?blogPostId=${blogPostId}`
+        : `/api/shared-images`
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch shared images`)
       }

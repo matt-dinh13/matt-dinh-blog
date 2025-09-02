@@ -314,9 +314,11 @@ body {
 }
 
 .admin-table tbody tr:hover {
-  background-color: #f9fafb;
+  background-color: transparent !important;
+  color: inherit !important;
 }
 
 .dark .admin-table tbody tr:hover {
-  background-color: #374151;
+  background-color: transparent !important;
+  color: inherit !important;
 }

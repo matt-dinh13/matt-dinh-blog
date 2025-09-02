@@ -7,10 +7,10 @@ import { Calendar, ExternalLink, Github } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase'
-import Image from 'next/image'
+// Using native img to mirror BlogCard and avoid fill-layout constraints
 
-// Move constants outside the component
-const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' }
+// Unified styling uses theme vars and Tailwind like blog cards
+const CARD_TEXT_COLOR = { color: 'var(--foreground)', fontFamily: 'Inter, system-ui, sans-serif' }
 
 export default function PortfolioListClient() {
   const { language } = useLanguage()
@@ -33,71 +33,56 @@ export default function PortfolioListClient() {
       const translation = project.translations.find((t: any) => t.language_code === language)
       if (!translation) return null
       return (
-        <article 
+        <article
           key={project.id}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
-          style={CARD_TEXT_COLOR}
+          className="flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
         >
-          {/* Project Image */}
-          <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
-            <Image
-              src={project.thumbnail_url || "/covers/cover-home.jpg"}
-              alt={translation.title}
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-          </div>
-          <div className="p-6">
-            {/* Project Header */}
-            <header className="mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  {language === 'vi' ? 'Dự án' : 'Project'}
-                </span>
-                <div className="flex items-center space-x-1 text-sm" style={CARD_TEXT_COLOR}>
-                  <Calendar size={14} />
-                  <span>{formatDate(project.published_at || project.created_at)}</span>
-                </div>
+          <Link href={`/portfolio/${project.slug}`} className="block">
+            <div className="aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">
+              <img
+                src={project.thumbnail_url || '/cover.jpg'}
+                alt={translation.title}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+              />
+            </div>
+          </Link>
+          <div className="flex flex-col flex-1 p-4">
+            <h2 className="text-lg font-semibold mb-2" style={CARD_TEXT_COLOR}>
+              <Link href={`/portfolio/${project.slug}`} className="hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-200">
+                {translation.title}
+              </Link>
+            </h2>
+            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 mb-3">
+              {translation.description}
+            </p>
+            <div className="flex-1" />
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto pt-2">
+              <div className="flex items-center space-x-1">
+                <Calendar size={12} />
+                <span>{formatDate(project.published_at || project.created_at)}</span>
               </div>
-              <h2 className="text-xl font-bold mb-3" style={CARD_TEXT_COLOR}>
-                <Link 
-                  href={`/portfolio/${project.slug}`}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                >
-                  {translation.title}
-                </Link>
-              </h2>
-              <p className="text-sm mb-4" style={CARD_TEXT_COLOR}>
-                {translation.description}
-              </p>
-            </header>
+            </div>
+          </div>
             {/* Technologies */}
             {project.technologies && project.technologies.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-medium mb-2" style={CARD_TEXT_COLOR}>
-                  {language === 'vi' ? 'Công nghệ:' : 'Technologies:'}
-                </h3>
-                <div className="flex flex-wrap gap-1">
+              <div className="px-4 pb-4">
+                <div className="flex flex-wrap gap-2">
                   {project.technologies.slice(0, 3).map((tech: any, index: number) => (
-                    <span 
-                      key={index} 
-                      className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700"
-                      style={CARD_TEXT_COLOR}
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
                     >
                       {tech}
                     </span>
                   ))}
                   {project.technologies.length > 3 && (
-                    <span className="text-xs" style={CARD_TEXT_COLOR}>
-                      +{project.technologies.length - 3}
-                    </span>
+                    <span className="text-xs text-gray-600 dark:text-gray-300">+{project.technologies.length - 3}</span>
                   )}
                 </div>
               </div>
             )}
             {/* Project Links */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 px-4 pb-4">
               {project.project_url && (
                 <a
                   href={project.project_url}
@@ -121,7 +106,6 @@ export default function PortfolioListClient() {
                 </a>
               )}
             </div>
-          </div>
         </article>
       )
     })

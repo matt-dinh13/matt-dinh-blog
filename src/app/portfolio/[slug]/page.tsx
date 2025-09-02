@@ -77,9 +77,9 @@ export default async function PortfolioDetailPage({ params }: Props) {
       </Head>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={cardTextColor}>
         <Navigation />
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
-          <Link href="/portfolio" className="text-blue-600 hover:underline mb-6 inline-block">← Back to Portfolio</Link>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden p-6" style={cardTextColor}>
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12" style={cardTextColor}>
+          <Link href="/portfolio" className="text-blue-600 dark:text-blue-400 hover:underline mb-6 inline-block">← Back to Portfolio</Link>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden p-6 text-gray-900 dark:text-gray-100">
             <div className="flex flex-col items-center mb-6">
               <Image
                 src={project.thumbnail_url || "/covers/cover-home.jpg"}
@@ -89,10 +89,22 @@ export default async function PortfolioDetailPage({ params }: Props) {
                 className="object-contain mb-4"
                 priority
               />
-              <h1 className="text-2xl font-bold mb-2 text-center" style={cardTextColor}>{translation.title}</h1>
-              <p className="text-base mb-2 text-center" style={cardTextColor}>{translation.description}</p>
+              <h1 className="text-2xl font-bold mb-2 text-center">{translation.title}</h1>
+              <p className="text-base mb-2 text-center text-gray-700 dark:text-gray-300">{translation.description}</p>
             </div>
-            <div className="prose prose-blue max-w-none" style={cardTextColor}>
+            {Array.isArray(project.technologies) && project.technologies.length > 0 && (
+              <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+                {project.technologies.map((tech: string) => (
+                  <span
+                    key={tech}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="prose prose-blue max-w-none">
               <div dangerouslySetInnerHTML={{ __html: translation.content }} />
             </div>
             {/* Project Links */}
