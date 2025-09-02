@@ -1,5 +1,33 @@
 # Matt Dinh Blog - Development Backup & Progress
 
+## Recent Updates (Current Session)
+
+### 🚀 Portfolio Admin UX Parity + RLS-safe APIs
+- Implemented full create/edit UI for portfolio projects to match blog editor:
+  - Language toggle (🇻🇳/🇺🇸), centered/wider layout, title with URL previews
+  - Single thumbnail uploader with preview/remove and Supabase Storage upload
+  - RichTextEditor per language, Shared Images Library enabled
+  - Status defaults to Draft; publish guard if titles missing
+- Added service-role APIs to bypass RLS for writes:
+  - `POST /api/admin/portfolio/new` (unique VI slug auto-incremented if taken)
+  - `POST /api/admin/portfolio/update` (updates project and upserts translations)
+- Fixed Next.js params warning by unwrapping with `React.use()` on edit page
+- Centered and widened admin containers (`max-w-7xl` outer, editor `max-w-6xl`)
+
+### 🧱 RLS/401 Errors Resolved
+- Insert/update now go through server routes using service key → no RLS violations
+- Client still uploads images to `blog-images` bucket, then server persists DB rows
+
+### 🧩 Shared Images Library on Portfolio
+- Enabled Shared Images Library panel in portfolio create/edit editors
+- `SharedImagesLibrary` now works without `blogPostId` by falling back to `/api/shared-images`
+
+### 🏗️ Build & Deploy
+- Production build: ✅ (warnings only about `<img>`)
+- Committed and pushed all changes to `main`
+
+---
+
 ## Recent Updates (Latest Session)
 
 ### ✨ Admin Tables Unified + Post Management Polish
