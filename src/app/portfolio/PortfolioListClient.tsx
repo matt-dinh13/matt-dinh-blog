@@ -37,7 +37,7 @@ export default function PortfolioListClient() {
           key={project.id}
           className="flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
         >
-          <Link href={`/portfolio/${project.slug}`} className="block">
+          <Link href={`/${language}/portfolio/${project.slug}`} className="block">
             <div className="aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">
               <img
                 src={project.thumbnail_url || '/cover.jpg'}
@@ -48,7 +48,7 @@ export default function PortfolioListClient() {
           </Link>
           <div className="flex flex-col flex-1 p-4">
             <h2 className="text-lg font-semibold mb-2" style={CARD_TEXT_COLOR}>
-              <Link href={`/portfolio/${project.slug}`} className="hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-200">
+              <Link href={`/${language}/portfolio/${project.slug}`} className="hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-200">
                 {translation.title}
               </Link>
             </h2>
