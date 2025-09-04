@@ -1,25 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase-server'
 
-// GET: Retrieve shared images for a blog post
+// GET: Retrieve shared images for a blog post or all shared images
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const blogPostId = searchParams.get('blogPostId')
     
-    if (!blogPostId) {
-      return NextResponse.json({ error: 'blogPostId is required' }, { status: 400 })
-    }
-
     const supabase = await createServerSupabaseClient()
     
-    // Get shared images for this blog post using direct query instead of function
-    const { data: images, error } = await supabase
+    let query = supabase
       .from('shared_images')
-      .select('id, image_url, original_filename, file_size, uploaded_at')
-      .eq('blog_post_id', parseInt(blogPostId))
+      .select('id, image_url, original_filename, file_size, uploaded_at, caption_vi, caption_en')
       .eq('is_active', true)
       .order('uploaded_at', { ascending: false })
+
+    // If blogPostId is provided, filter by it; otherwise get all shared images
+    if (blogPostId) {
+      query = query.eq('blog_post_id', parseInt(blogPostId))
+    }
+
+    const { data: images, error } = await query
 
     if (error) {
       console.error('Error fetching shared images:', error)
@@ -38,16 +39,17 @@ export async function POST(request: NextRequest) {
   try {
     const { blogPostId, imageUrl, originalFilename, fileSize } = await request.json()
     
-    if (!blogPostId || !imageUrl) {
-      return NextResponse.json({ error: 'blogPostId and imageUrl are required' }, { status: 400 })
+    if (!imageUrl) {
+      return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 })
     }
 
     // Use admin client to bypass RLS policies
     const supabase = createAdminSupabaseClient()
     
     // Prepare insert data
+    // For portfolio projects, use blogPostId = 0 to indicate it's a portfolio image
     const insertData: any = {
-      blog_post_id: blogPostId,
+      blog_post_id: blogPostId || 0, // Default to 0 for portfolio images
       image_url: imageUrl,
       original_filename: originalFilename || 'unknown',
       file_size: fileSize || 0,

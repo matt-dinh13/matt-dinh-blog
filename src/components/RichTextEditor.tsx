@@ -344,7 +344,7 @@ export default function RichTextEditor({ value, onChange, language, className, b
       <EditorContent editor={editor} className={`text-gray-900 bg-white w-full min-h-[300px] px-3 py-2 ${styles.forceDarkText}`} style={{ fontWeight: 400 }} />
       
       {/* Shared Images Library Panel */}
-      {showSharedImagesLibrary && blogPostId && (
+      {showSharedImagesLibrary && (
         <div className="mt-4">
           <SharedImagesLibrary
             blogPostId={blogPostId}

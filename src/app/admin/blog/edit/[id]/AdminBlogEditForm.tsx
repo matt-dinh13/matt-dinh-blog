@@ -404,45 +404,36 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         setSaving(false)
         return
       }
-      const supabase = createClient()
-      
-      // Get current user for RLS policy
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError || !user) {
-        throw new Error('User not authenticated. Please log in again.')
-      }
-      
-      // Update blog post (base)
-      const { error: postError } = await supabase
-        .from('blog_posts')
-        .update({
-          status,
-          published_at: status === 'published' ? new Date().toISOString() : null,
-          category_id: categoryId || null,
-          thumbnail_url: uploadedThumbnailUrl,
-          author_id: user.id // Set author_id for RLS policy
-        })
-        .eq('id', id)
-      if (postError) {
-        logger.error('Post update error', {
-          component: 'AdminBlogEditForm',
-          error: postError,
-          data: { postId: id }
-        })
-        throw new Error(`Database error: ${postError.message}`)
-      }
-      // Upsert translations for VI and EN
+      // Prepare translations for API call
       const translations = [
-        { blog_post_id: id, language_code: 'vi', title: titleVi, summary: '', content: contentVi },
+        { language_code: 'vi', title: titleVi, summary: '', content: contentVi },
       ]
       if (contentEn.trim() || titleEn.trim()) {
-        translations.push({ blog_post_id: id, language_code: 'en', title: titleEn, summary: '', content: contentEn })
+        translations.push({ language_code: 'en', title: titleEn, summary: '', content: contentEn })
       }
-      for (const tr of translations) {
-        await supabase
-          .from('blog_post_translations')
-          .upsert(tr, { onConflict: 'blog_post_id,language_code' })
+
+      // Call API to update blog post
+      const response = await fetch('/api/admin/blog/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: parseInt(id),
+          status,
+          thumbnail_url: uploadedThumbnailUrl,
+          published_at: status === 'published' ? new Date().toISOString() : null,
+          category_id: categoryId || null,
+          translations
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Failed to update blog post (${response.status})`)
       }
+
+      const supabase = createClient()
       // Upsert tags and translations
       for (const tag of selectedTags) {
         let tagId = tag.id
