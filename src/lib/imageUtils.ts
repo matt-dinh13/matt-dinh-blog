@@ -1,3 +1,6 @@
+import { logger } from './logger';
+import { SupabaseClient } from '@supabase/supabase-js';
+
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
@@ -27,7 +30,11 @@ export function extractFilePathFromUrl(url: string): string | null {
     const filePath = pathParts.slice(publicIndex + 1).join('/');
     return filePath;
   } catch (error) {
-    console.error('Error extracting file path from URL:', error);
+    logger.error('Error extracting file path from URL', {
+      component: 'imageUtils',
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { url }
+    });
     return null;
   }
 }
@@ -35,30 +42,46 @@ export function extractFilePathFromUrl(url: string): string | null {
 /**
  * Clean up old thumbnail file from Supabase Storage
  */
-export async function cleanupOldThumbnail(oldThumbnailUrl: string | null, supabase: any): Promise<void> {
+export async function cleanupOldThumbnail(oldThumbnailUrl: string | null, supabase: SupabaseClient): Promise<void> {
   if (!oldThumbnailUrl) return;
   
   try {
     const filePath = extractFilePathFromUrl(oldThumbnailUrl);
     if (!filePath) {
-      console.warn('Could not extract file path from URL:', oldThumbnailUrl);
+      logger.warn('Could not extract file path from URL', {
+        component: 'imageUtils',
+        data: { oldThumbnailUrl }
+      });
       return;
     }
     
-    console.log('Cleaning up old thumbnail:', filePath);
+    logger.debug('Cleaning up old thumbnail', {
+      component: 'imageUtils',
+      data: { filePath }
+    });
     
     const { error } = await supabase.storage
       .from('blog-images')
       .remove([filePath]);
     
     if (error) {
-      console.error('Error deleting old thumbnail:', error);
+      logger.error('Error deleting old thumbnail', {
+        component: 'imageUtils',
+        error: error,
+        data: { filePath }
+      });
       // Don't throw error - cleanup failure shouldn't prevent the main operation
     } else {
-      console.log('Successfully deleted old thumbnail:', filePath);
+      logger.info('Successfully deleted old thumbnail', {
+        component: 'imageUtils',
+        data: { filePath }
+      });
     }
   } catch (error) {
-    console.error('Error in cleanupOldThumbnail:', error);
+    logger.error('Error in cleanupOldThumbnail', {
+      component: 'imageUtils',
+      error: error instanceof Error ? error : new Error(String(error))
+    });
     // Don't throw error - cleanup failure shouldn't prevent the main operation
   }
 }
@@ -80,7 +103,10 @@ export async function convertHeicToJpg(file: File): Promise<ImageConversionResul
     // Dynamically import heic2any
     const heic2any = (await import('heic2any')).default;
     
-    console.log('Attempting HEIC conversion for:', file.name);
+    logger.debug('Attempting HEIC conversion', {
+      component: 'imageUtils',
+      data: { fileName: file.name, fileType: file.type }
+    });
     
     // Method 1: Try heic2any with default settings
     try {
@@ -95,14 +121,20 @@ export async function convertHeicToJpg(file: File): Promise<ImageConversionResul
         { type: 'image/jpeg' }
       );
       
-      console.log('HEIC conversion successful with heic2any');
+      logger.info('HEIC conversion successful with heic2any', {
+        component: 'imageUtils',
+        data: { fileName: convertedFile.name, fileSize: convertedFile.size }
+      });
       return {
         file: convertedFile,
         preview: URL.createObjectURL(convertedFile),
         success: true
       };
     } catch (heicError) {
-      console.log('heic2any failed, trying alternative methods:', heicError);
+      logger.debug('heic2any failed, trying alternative methods', {
+        component: 'imageUtils',
+        error: heicError instanceof Error ? heicError : new Error(String(heicError))
+      });
     }
 
     // Method 2: Try heic2any with different quality settings
@@ -118,14 +150,20 @@ export async function convertHeicToJpg(file: File): Promise<ImageConversionResul
         { type: 'image/jpeg' }
       );
       
-      console.log('HEIC conversion successful with reduced quality');
+      logger.info('HEIC conversion successful with reduced quality', {
+        component: 'imageUtils',
+        data: { fileName: convertedFile.name, fileSize: convertedFile.size }
+      });
       return {
         file: convertedFile,
         preview: URL.createObjectURL(convertedFile),
         success: true
       };
     } catch (heicError2) {
-      console.log('heic2any with reduced quality also failed:', heicError2);
+      logger.debug('heic2any with reduced quality also failed', {
+        component: 'imageUtils',
+        error: heicError2 instanceof Error ? heicError2 : new Error(String(heicError2))
+      });
     }
 
     // Method 3: Try using Canvas API as fallback
@@ -157,14 +195,20 @@ export async function convertHeicToJpg(file: File): Promise<ImageConversionResul
         { type: 'image/jpeg' }
       );
       
-      console.log('HEIC conversion successful with Canvas API');
+      logger.info('HEIC conversion successful with Canvas API', {
+        component: 'imageUtils',
+        data: { fileName: convertedFile.name, fileSize: convertedFile.size }
+      });
       return {
         file: convertedFile,
         preview: URL.createObjectURL(convertedFile),
         success: true
       };
     } catch (canvasError) {
-      console.log('Canvas API conversion failed:', canvasError);
+      logger.debug('Canvas API conversion failed', {
+        component: 'imageUtils',
+        error: canvasError instanceof Error ? canvasError : new Error(String(canvasError))
+      });
     }
 
     // Method 4: Try heic2any with different output format
@@ -203,26 +247,37 @@ export async function convertHeicToJpg(file: File): Promise<ImageConversionResul
         { type: 'image/jpeg' }
       );
       
-      console.log('HEIC conversion successful with PNG intermediate');
+      logger.info('HEIC conversion successful with PNG intermediate', {
+        component: 'imageUtils',
+        data: { fileName: convertedFile.name, fileSize: convertedFile.size }
+      });
       return {
         file: convertedFile,
         preview: URL.createObjectURL(convertedFile),
         success: true
       };
     } catch (pngError) {
-      console.log('PNG intermediate conversion failed:', pngError);
+      logger.debug('PNG intermediate conversion failed', {
+        component: 'imageUtils',
+        error: pngError instanceof Error ? pngError : new Error(String(pngError))
+      });
     }
 
     // If all methods fail, throw a comprehensive error
     throw new Error('All HEIC conversion methods failed. This HEIC file appears to use an unsupported format variant. Please try converting it to JPG using your device\'s Photos app, or use an online converter like CloudConvert.com');
 
-  } catch (error: any) {
-    console.error('HEIC conversion completely failed:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'HEIC conversion failed';
+    logger.error('HEIC conversion completely failed', {
+      component: 'imageUtils',
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { fileName: file.name }
+    });
     return {
       file: file,
       preview: '',
       success: false,
-      error: error.message || 'HEIC conversion failed'
+      error: errorMessage
     };
   }
 }
@@ -243,13 +298,19 @@ export async function processImageFile(file: File): Promise<ImageConversionResul
   try {
     // Check if it's a HEIC file
     if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
-      console.log('Processing HEIC file:', file.name);
+      logger.debug('Processing HEIC file', {
+        component: 'imageUtils',
+        data: { fileName: file.name, fileType: file.type }
+      });
       return await convertHeicToJpg(file);
     }
     
     // For JPG and PNG files, just compress them
     if (file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/png') {
-      console.log('Processing JPG/PNG file:', file.name);
+      logger.debug('Processing JPG/PNG file', {
+        component: 'imageUtils',
+        data: { fileName: file.name, fileType: file.type }
+      });
       
       // Dynamically import imageCompression
       const imageCompression = (await import('browser-image-compression')).default;
@@ -275,13 +336,18 @@ export async function processImageFile(file: File): Promise<ImageConversionResul
     
     throw new Error('Unsupported file type. Please use JPG, PNG, or HEIC files.');
     
-  } catch (error: any) {
-    console.error('Image processing failed:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Image processing failed';
+    logger.error('Image processing failed', {
+      component: 'imageUtils',
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { fileName: file.name }
+    });
     return {
       file: file,
       preview: '',
       success: false,
-      error: error.message || 'Image processing failed'
+      error: errorMessage
     };
   }
 }

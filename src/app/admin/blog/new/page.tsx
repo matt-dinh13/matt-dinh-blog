@@ -10,6 +10,7 @@ import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
 import { processImageFile, validateImageFile } from '@/lib/imageUtils'
 import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -273,17 +274,23 @@ export default function AdminBlogNewPage() {
       }
 
       setThumbnailPreview(result.preview);
-      console.log('Image processed successfully:', {
-        originalName: file.name,
-        processedName: result.file.name,
-        originalSize: file.size,
-        processedSize: result.file.size,
-        type: result.file.type
+      logger.imageUpload('Image processed successfully for blog post', {
+        component: 'AdminBlogNew',
+        data: {
+          originalName: file.name,
+          processedName: result.file.name,
+          originalSize: file.size,
+          processedSize: result.file.size,
+          type: result.file.type
+        }
       });
       
-    } catch (err: any) {
-      console.error('Image processing error:', err);
-      setThumbnailError(`Failed to process image: ${err.message || 'Unknown error'}`);
+    } catch (err: unknown) {
+      logger.error('Image processing error', {
+        component: 'AdminBlogNew',
+        error: err instanceof Error ? err : new Error(String(err))
+      });
+      setThumbnailError(`Failed to process image: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -320,24 +327,36 @@ export default function AdminBlogNewPage() {
       const blob = await response.blob();
       const file = new File([blob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' });
       
-      console.log('Uploading file:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
+      logger.imageUpload('Uploading thumbnail file to storage', {
+        component: 'AdminBlogNew',
+        data: {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        }
       });
       
       const fileName = `thumbnails/${Date.now()}-${file.name}`
-      console.log('Uploading to path:', fileName);
+      logger.debug('Uploading to storage path', {
+        component: 'AdminBlogNew',
+        data: { fileName }
+      });
       
       const { data: uploadData, error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, { upsert: true })
       
-      console.log('Upload response:', { data: uploadData, error: uploadError });
-      
       if (uploadError) {
-        console.error('Upload error details:', uploadError);
+        logger.error('Storage upload failed', {
+          component: 'AdminBlogNew',
+          error: uploadError,
+          data: { fileName }
+        });
         throw new Error(`Storage upload failed: ${uploadError.message} (${uploadError.statusCode})`);
       }
+      
+      logger.info('Thumbnail uploaded successfully', {
+        component: 'AdminBlogNew',
+        data: { fileName, uploadPath: uploadData?.path }
+      });
       
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
       uploadedThumbnailUrl = urlData?.publicUrl
@@ -345,7 +364,10 @@ export default function AdminBlogNewPage() {
       
       // Generate unique slug
       const slug = await generateUniqueSlug(titleVi)
-      console.log('Generated unique slug:', slug)
+      logger.debug('Generated unique slug for new post', {
+        component: 'AdminBlogNew',
+        data: { slug, title: titleVi }
+      })
       
       // Insert base post
       const { data: postData, error } = await supabase
@@ -364,7 +386,11 @@ export default function AdminBlogNewPage() {
         .select('id')
         .single()
       if (error) {
-        console.error('Post creation error:', error)
+        logger.error('Post creation error', {
+          component: 'AdminBlogNew',
+          error: error,
+          data: { slug, title: titleVi }
+        })
         if (error.code === '23505' && error.message.includes('blog_posts_slug_key')) {
           throw new Error('A blog post with this title already exists. Please use a different title.')
         }
@@ -433,10 +459,13 @@ export default function AdminBlogNewPage() {
       setTimeout(() => {
         router.push(`/admin/blog/edit/${postId}`)
       }, 1500)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Error creating blog post')
-      setThumbnailError(err?.message || 'Unknown error')
-      console.error('Error:', err)
+      setThumbnailError(err instanceof Error ? err.message : 'Unknown error')
+      logger.error('Error creating blog post', {
+        component: 'AdminBlogNew',
+        error: err instanceof Error ? err : new Error(String(err))
+      })
     } finally {
       setLoading(false)
     }

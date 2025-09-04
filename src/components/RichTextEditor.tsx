@@ -11,6 +11,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import { Markdown } from 'tiptap-markdown';
 import { createClient } from '@/lib/supabase';
 import { processImageFile, validateImageFile } from '@/lib/imageUtils';
+import { logger } from '@/lib/logger';
 import SharedImagesLibrary from './SharedImagesLibrary';
 import styles from './RichTextEditor.module.css';
 
@@ -70,7 +71,10 @@ export default function RichTextEditor({ value, onChange, language, className, b
 
   // Image upload handler - using same logic as thumbnail uploader
   const handleImageUpload = useCallback(async (file: File) => {
-    console.log('🖼️ Starting image upload:', { name: file.name, type: file.type, size: file.size });
+    logger.imageUpload('Starting image upload', {
+      component: 'RichTextEditor',
+      data: { fileName: file.name, fileType: file.type, fileSize: file.size }
+    });
     setUploading(true);
     try {
       // Validate file
@@ -91,32 +95,43 @@ export default function RichTextEditor({ value, onChange, language, className, b
         throw new Error('Image is too large after processing (max 5MB).');
       }
 
-      console.log('✅ Image processed successfully:', {
-        originalName: file.name,
-        processedName: result.file.name,
-        originalSize: file.size,
-        processedSize: result.file.size,
-        type: result.file.type
+      logger.imageUpload('Image processed successfully', {
+        component: 'RichTextEditor',
+        data: {
+          originalName: file.name,
+          processedName: result.file.name,
+          originalSize: file.size,
+          processedSize: result.file.size,
+          type: result.file.type
+        }
       });
 
       // Upload to Supabase
       const supabase = createClient();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
       
-      console.log('📤 Uploading to Supabase:', fileName);
+      logger.imageUpload('Uploading to Supabase storage', {
+        component: 'RichTextEditor',
+        data: { fileName }
+      });
       const uploadResult = await supabase.storage.from('blog-images').upload(fileName, result.file);
       if (uploadResult.error) throw uploadResult.error;
       
-      console.log('✅ Upload successful:', uploadResult.data);
       const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
       if (!urlData?.publicUrl) throw new Error('Failed to get public URL');
       
-      console.log('🔗 Public URL:', urlData.publicUrl);
+      logger.imageUpload('Upload successful, public URL generated', {
+        component: 'RichTextEditor',
+        data: { fileName, publicUrl: urlData.publicUrl }
+      });
       
       // If shared images are enabled and we have a blog post ID, sync across translations
       if (enableSharedImages && blogPostId) {
         try {
-          console.log('🔄 Syncing image across all language translations...');
+          logger.apiCall('Syncing image across all language translations', {
+            component: 'RichTextEditor',
+            data: { blogPostId, imageUrl: urlData.publicUrl }
+          });
           const response = await fetch('/api/shared-images', {
             method: 'POST',
             headers: {
@@ -131,20 +146,35 @@ export default function RichTextEditor({ value, onChange, language, className, b
           });
 
           if (!response.ok) {
-            console.warn('⚠️ Failed to sync image across translations, but continuing with local insert');
+            logger.warn('Failed to sync image across translations, continuing with local insert', {
+              component: 'RichTextEditor',
+              data: { status: response.status }
+            });
           } else {
-            console.log('✅ Image synced across all language translations');
+            logger.info('Image synced across all language translations', {
+              component: 'RichTextEditor',
+              data: { blogPostId }
+            });
           }
         } catch (syncError) {
-          console.warn('⚠️ Error syncing image across translations:', syncError);
+          logger.warn('Error syncing image across translations', {
+            component: 'RichTextEditor',
+            error: syncError instanceof Error ? syncError : new Error(String(syncError))
+          });
         }
       }
       
       // Insert image into current editor
       editor?.chain().focus().setImage({ src: urlData.publicUrl }).run();
-      console.log('✅ Image inserted into editor');
+      logger.info('Image inserted into editor successfully', {
+        component: 'RichTextEditor',
+        data: { imageUrl: urlData.publicUrl }
+      });
     } catch (error: any) {
-      console.error('❌ Image upload failed:', error);
+      logger.error('Image upload failed', {
+        component: 'RichTextEditor',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       alert(`Image upload failed: ${error.message}`);
     } finally {
       setUploading(false);
@@ -175,7 +205,10 @@ export default function RichTextEditor({ value, onChange, language, className, b
       // If shared images are enabled and we have a blog post ID, sync across translations
       if (enableSharedImages && blogPostId) {
         try {
-          console.log('🔄 Syncing external image across all language translations...');
+          logger.apiCall('Syncing external image across all language translations', {
+            component: 'RichTextEditor',
+            data: { blogPostId, imageUrl: url }
+          });
           const response = await fetch('/api/shared-images', {
             method: 'POST',
             headers: {
@@ -190,12 +223,21 @@ export default function RichTextEditor({ value, onChange, language, className, b
           });
 
           if (!response.ok) {
-            console.warn('⚠️ Failed to sync external image across translations, but continuing with local insert');
+            logger.warn('Failed to sync external image across translations, continuing with local insert', {
+              component: 'RichTextEditor',
+              data: { status: response.status, imageUrl: url }
+            });
           } else {
-            console.log('✅ External image synced across all language translations');
+            logger.info('External image synced across all language translations', {
+              component: 'RichTextEditor',
+              data: { blogPostId, imageUrl: url }
+            });
           }
         } catch (syncError) {
-          console.warn('⚠️ Error syncing external image across translations:', syncError);
+          logger.warn('Error syncing external image across translations', {
+            component: 'RichTextEditor',
+            error: syncError instanceof Error ? syncError : new Error(String(syncError))
+          });
         }
       }
       

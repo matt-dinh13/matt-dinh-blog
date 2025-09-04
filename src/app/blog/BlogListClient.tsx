@@ -9,6 +9,7 @@ import Breadcrumbs from '@/components/Breadcrumbs'
 import BlogCard from '@/components/BlogCard'
 import { Loader2 } from 'lucide-react'
 import { processTranslationsWithSummaries } from '@/lib/summary-generator'
+import { logger } from '@/lib/logger'
 
 // Move constants outside component to prevent re-renders
 const POSTS_PER_PAGE = 6
@@ -64,14 +65,12 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
   // Optimized fetch function with proper joins
   const fetchPosts = useCallback(async () => {
     try {
-      console.log('🔍 Blog: Starting to fetch posts...')
-      console.log('🌍 Blog: Current language:', language)
+      logger.dbQuery('Starting to fetch blog posts', { 
+        component: 'BlogListClient',
+        data: { language, postsPerPage: POSTS_PER_PAGE }
+      })
       
       const supabase = createClient()
-      console.log('✅ Blog: Supabase client created successfully')
-      
-      // Simplified query to debug the issue
-      console.log('🔍 Blog: Testing simple query first...')
       
       // First, let's test if we can get any posts at all
       const { data: testPosts, error: testError } = await supabase
@@ -80,15 +79,24 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
         .eq('status', 'published')
         .limit(5)
 
-      console.log('🔍 Blog: Test query result:', { data: testPosts, error: testError, count: testPosts?.length || 0 })
+      logger.dbQuery('Test query completed', {
+        component: 'BlogListClient',
+        data: { count: testPosts?.length || 0, hasError: !!testError }
+      })
 
       if (testError) {
-        console.error('❌ Blog: Test query failed:', testError)
+        logger.error('Test query failed', {
+          component: 'BlogListClient',
+          error: testError
+        })
         throw new Error(`Test query failed: ${testError.message}`)
       }
 
       if (!testPosts || testPosts.length === 0) {
-        console.log('⚠️ Blog: No published posts found in simple query')
+        logger.warn('No published posts found in database', {
+          component: 'BlogListClient',
+          data: { language }
+        })
         setPosts([])
         setHasMore(false)
         setError('No blog posts found. Please add some posts to your database.')
@@ -106,15 +114,24 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
         .order('published_at', { ascending: false })
         .limit(POSTS_PER_PAGE)
 
-      console.log('📊 Blog: Posts query result:', { data: postsData, error: postsError, count: postsData?.length || 0 })
+      logger.dbQuery('Full posts query completed', {
+        component: 'BlogListClient',
+        data: { count: postsData?.length || 0, hasError: !!postsError }
+      })
 
       if (postsError) {
-        console.error('❌ Blog: Posts query failed:', postsError)
+        logger.error('Posts query failed', {
+          component: 'BlogListClient',
+          error: postsError
+        })
         throw new Error(`Posts query failed: ${postsError.message}`)
       }
 
       if (!postsData || postsData.length === 0) {
-        console.log('⚠️ Blog: No published posts found')
+        logger.warn('No published posts found with translations', {
+          component: 'BlogListClient',
+          data: { language }
+        })
         setPosts([])
         setHasMore(false)
         setError('No blog posts found. Please add some posts to your database.')
@@ -127,7 +144,10 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
         .select('*', { count: 'exact', head: true })
         .eq('status', 'published')
 
-      console.log('📊 Blog: Total posts count:', totalCount, 'postsPerPage:', POSTS_PER_PAGE)
+      logger.dbQuery('Posts count query completed', {
+        component: 'BlogListClient',
+        data: { totalCount, postsPerPage: POSTS_PER_PAGE }
+      })
       setHasMore((totalCount || 0) > POSTS_PER_PAGE)
 
       // Transform posts to match expected format and process summaries
@@ -137,15 +157,16 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
         blog_post_translations: processTranslationsWithSummaries(post.blog_post_translations || [])
       }))
 
-      console.log('✅ Blog: Successfully combined posts with translations:', postsWithTranslations.length, 'posts')
+      logger.info('Blog posts fetched successfully', {
+        component: 'BlogListClient',
+        data: { count: postsWithTranslations.length, language }
+      })
       setPosts(postsWithTranslations)
       
     } catch (err: any) {
-      console.error('💥 Blog: Error fetching posts:', err)
-      console.error('💥 Blog: Error details:', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name
+      logger.error('Error fetching blog posts', {
+        component: 'BlogListClient',
+        error: err instanceof Error ? err : new Error(String(err))
       })
       setError(err.message || 'Failed to load blog posts')
     } finally {
@@ -186,11 +207,16 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
         .order('published_at', { ascending: false })
         .range(offset, offset + POSTS_PER_PAGE - 1)
 
-      console.log('🔍 Blog: Load more - offset:', offset, 'range:', offset, 'to', offset + POSTS_PER_PAGE - 1)
-      console.log('📊 Blog: Load more - posts fetched:', postsData?.length || 0)
+      logger.dbQuery('Load more posts query executed', {
+        component: 'BlogListClient',
+        data: { offset, range: `${offset}-${offset + POSTS_PER_PAGE - 1}`, count: postsData?.length || 0 }
+      })
 
       if (postsError) {
-        console.error('❌ Blog: Load more - posts query failed:', postsError)
+        logger.error('Load more posts query failed', {
+          component: 'BlogListClient',
+          error: postsError
+        })
         throw new Error(`Load more posts query failed: ${postsError.message}`)
       }
 
@@ -221,11 +247,9 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
         setHasMore(false)
       }
     } catch (err: any) {
-      console.error('💥 Blog: Error loading more posts:', err)
-      console.error('💥 Blog: Load more error details:', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name
+      logger.error('Error loading more posts', {
+        component: 'BlogListClient',
+        error: err instanceof Error ? err : new Error(String(err))
       })
     } finally {
       setLoadingMore(false)
@@ -259,7 +283,10 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
       
       // If still no translation, log warning and skip
       if (!translation) {
-        console.warn('⚠️ Blog: No translation found for post:', post.id, 'Available translations:', translations)
+        logger.warn('No translation found for post', {
+          component: 'BlogListClient',
+          data: { postId: post.id, availableTranslations: translations.length, language }
+        })
         return null
       }
 

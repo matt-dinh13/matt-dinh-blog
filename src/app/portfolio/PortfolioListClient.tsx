@@ -7,6 +7,7 @@ import { Calendar, ExternalLink, Github } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 // Using native img to mirror BlogCard and avoid fill-layout constraints
 
 // Unified styling uses theme vars and Tailwind like blog cards
@@ -121,7 +122,11 @@ export default function PortfolioListClient() {
           .eq('status', 'published')
           .order('published_at', { ascending: false })
         if (projectsError) {
-          console.error('Error fetching projects:', projectsError)
+          logger.error('Error fetching portfolio projects', {
+            component: 'PortfolioListClient',
+            error: projectsError,
+            data: { language }
+          })
           throw projectsError
         }
         if (!projectsData || projectsData.length === 0) {
@@ -135,7 +140,11 @@ export default function PortfolioListClient() {
           .in('portfolio_project_id', projectIds)
           .eq('language_code', language)
         if (translationsError) {
-          console.error('Error fetching translations:', translationsError)
+          logger.error('Error fetching portfolio translations', {
+            component: 'PortfolioListClient',
+            error: translationsError,
+            data: { language, projectCount: projectIds.length }
+          })
           throw translationsError
         }
         const projectsWithTranslations = projectsData.map((project: any) => {
@@ -147,7 +156,11 @@ export default function PortfolioListClient() {
         }).filter((project: any) => project.translations.length > 0)
         setProjects(projectsWithTranslations)
       } catch (err) {
-        console.error('Error fetching projects:', err)
+        logger.error('Error fetching portfolio projects', {
+          component: 'PortfolioListClient',
+          error: err instanceof Error ? err : new Error(String(err)),
+          data: { language }
+        })
         setError('Failed to load portfolio projects')
       } finally {
         setLoading(false)

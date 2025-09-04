@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { processTranslationsWithSummaries } from '@/lib/summary-generator'
+import { logger } from '@/lib/logger'
 
 const CARD_TEXT_COLOR = { color: 'oklch(21% .034 264.665)' }
 const PAGE_SIZE = 9
@@ -89,7 +90,11 @@ export default async function LanguageBlogPage({ params, searchParams }: Props) 
     .range(from, to)
 
   if (error) {
-    console.error('Error fetching posts:', error)
+    logger.error('Error fetching posts for language blog page', {
+      component: 'LanguageBlogPage',
+      error: error,
+      data: { language, page, from, to }
+    })
   }
 
   // Process posts to generate summaries from content

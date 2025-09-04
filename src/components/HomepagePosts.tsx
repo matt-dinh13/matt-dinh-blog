@@ -3,6 +3,7 @@
 import { useLanguage } from '@/components/LanguageProvider'
 import { BlogPostCard } from '@/components/BlogPostCard'
 import { getThumbnailUrl, formatDate } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 interface Post {
   id: number
@@ -34,7 +35,10 @@ export function HomepagePosts({ posts }: HomepagePostsProps) {
                        translations[0]
 
     if (!translation) {
-      console.warn('⚠️ Homepage: No translation found for post:', post.id)
+      logger.warn('No translation found for homepage post', {
+        component: 'HomepagePosts',
+        data: { postId: post.id, language }
+      })
       return null
     }
 

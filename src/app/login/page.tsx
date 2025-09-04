@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -28,7 +29,10 @@ export default function LoginPage() {
       await signIn(email, password)
       router.push('/admin')
     } catch (err: any) {
-      console.error('Login error:', err)
+      logger.auth('Login error', {
+        userId: email,
+        action: 'login_failed'
+      })
       // Show a friendly message for invalid credentials, otherwise show a generic error
       if (err?.message?.toLowerCase().includes('invalid login credentials') || err?.message?.toLowerCase().includes('invalid email or password')) {
         setError('Incorrect email or password. Please try again.')

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 import { 
   FileText, 
   FolderOpen, 
@@ -126,7 +127,10 @@ export default function AdminDashboard() {
 
       setRecentPosts(processedPosts)
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+      logger.error('Error fetching dashboard data', {
+        component: 'AdminDashboard',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
     } finally {
       setLoading(false)
     }

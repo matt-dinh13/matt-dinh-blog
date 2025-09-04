@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import Link from 'next/link'
 import { logActivity } from '@/lib/logActivity'
+import { logger } from '@/lib/logger'
 
 interface CategoryEditFormProps {
   id: string
@@ -115,7 +116,11 @@ export default function CategoryEditForm({ id }: CategoryEditFormProps) {
       router.push('/admin/categories');
     } catch (err) {
       setError('Error deleting category');
-      console.error('Error:', err);
+      logger.error('Error deleting category', {
+        component: 'CategoryEditForm',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { categoryId: id }
+      });
     } finally {
       setSaving(false);
     }

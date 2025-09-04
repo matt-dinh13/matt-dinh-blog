@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export default function BlogPostViewCountClient({ postId, initialViewCount }: { postId: string, initialViewCount: number }) {
   const [viewCount, setViewCount] = useState<number>(initialViewCount);
@@ -20,7 +21,11 @@ export default function BlogPostViewCountClient({ postId, initialViewCount }: { 
             if (typeof data.view_count === 'number') setViewCount(data.view_count);
           } catch (e) {
             // Handle empty or invalid JSON
-            console.error('Failed to parse view count response:', e);
+            logger.error('Failed to parse view count response', {
+              component: 'BlogPostViewCountClient',
+              error: e instanceof Error ? e : new Error(String(e)),
+              data: { postId }
+            });
           }
         });
       localStorage.setItem(key, '1');

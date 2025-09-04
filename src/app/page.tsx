@@ -5,6 +5,7 @@ import Footer from '@/components/Footer'
 import { HomepageClient } from '@/components/HomepageClient'
 import { POSTS_PER_PAGE } from '@/lib/utils'
 import { processTranslationsWithSummaries } from '@/lib/summary-generator'
+import { logger } from '@/lib/logger'
 
 export const metadata: Metadata = {
   title: 'Matt Dinh Blog',
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   try {
-    console.log('🔍 Server: Fetching latest posts for homepage...')
+    logger.dbQuery('Fetching latest posts for homepage')
     
     const supabase = await createServerSupabaseClient()
     
@@ -45,11 +46,18 @@ export default async function Home() {
       .limit(POSTS_PER_PAGE)
 
     if (error) {
-      console.error('❌ Server: Homepage posts query failed:', error)
+      logger.error('Homepage posts query failed', { 
+        component: 'homepage', 
+        error,
+        data: { limit: POSTS_PER_PAGE } 
+      })
       throw new Error(`Posts query failed: ${error.message}`)
     }
 
-    console.log('✅ Server: Homepage posts fetched successfully:', posts?.length || 0)
+    logger.info('Homepage posts fetched successfully', { 
+      component: 'homepage',
+      data: { count: posts?.length || 0 } 
+    })
 
     // Process posts to ensure they have summaries
     const processedPosts = posts?.map(post => ({
@@ -68,7 +76,10 @@ export default async function Home() {
     )
 
   } catch (error) {
-    console.error('💥 Server: Homepage error:', error)
+    logger.error('Homepage fatal error', { 
+      component: 'homepage', 
+      error: error instanceof Error ? error : new Error(String(error))
+    })
     
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

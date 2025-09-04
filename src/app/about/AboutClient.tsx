@@ -7,6 +7,7 @@ import Footer from '@/components/Footer'
 import Image from 'next/image'
 import { Mail, Linkedin, Github } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)', fontFamily: 'Inter, system-ui, sans-serif' };
 
@@ -48,7 +49,10 @@ export default function AboutClient({ initialData = null, error: initialError = 
         .single()
 
       if (aboutMeError) {
-        console.error('Error fetching about me:', aboutMeError)
+        logger.error('Error fetching about me data', {
+          component: 'AboutClient',
+          error: aboutMeError
+        })
         // If table doesn't exist, we'll show fallback content
         setLoading(false)
         return
@@ -62,7 +66,11 @@ export default function AboutClient({ initialData = null, error: initialError = 
           .eq('about_me_id', aboutMeData.id)
 
         if (translationsError) {
-          console.error('Error fetching translations:', translationsError)
+          logger.error('Error fetching about me translations', {
+            component: 'AboutClient',
+            error: translationsError,
+            data: { aboutMeId: aboutMeData.id }
+          })
           // If translations table doesn't exist, we'll show fallback content
           setLoading(false)
           return
@@ -74,7 +82,10 @@ export default function AboutClient({ initialData = null, error: initialError = 
         })
       }
     } catch (error) {
-      console.error('Error fetching about me:', error)
+      logger.error('Error fetching about me data', {
+        component: 'AboutClient',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
     } finally {
       setLoading(false)
     }

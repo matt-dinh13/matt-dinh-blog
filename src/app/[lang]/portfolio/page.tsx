@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 
 type Props = {
   params: Promise<{ lang: string }>
@@ -37,7 +38,11 @@ export default async function LanguagePortfolioPage({ params }: Props) {
     .order('published_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching portfolio projects:', error)
+    logger.error('Error fetching portfolio projects for language page', {
+      component: 'LanguagePortfolioPage',
+      error: error,
+      data: { language }
+    })
   }
 
   const projectsData = projects || []

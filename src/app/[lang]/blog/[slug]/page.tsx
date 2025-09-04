@@ -7,6 +7,7 @@ import Breadcrumbs from '@/components/Breadcrumbs'
 import ArticleDetailsClient from '../../../blog/[slug]/ArticleDetailsClient'
 import { ArrowLeft } from 'lucide-react'
 import Head from 'next/head'
+import { logger } from '@/lib/logger'
 
 const cardTextColor = { color: 'var(--foreground)' };
 
@@ -19,7 +20,10 @@ export default async function LanguageBlogPostPage({ params }: Props) {
   const language = lang === 'en' ? 'en' : 'vi'
   
   try {
-    console.log('🔍 Language Blog Post: Fetching post with slug:', slug, 'language:', language)
+    logger.dbQuery('Fetching blog post by slug for language route', {
+      component: 'LanguageBlogPostPage',
+      data: { slug, language }
+    })
     
     const supabase = await createServerSupabaseClient()
     
@@ -30,10 +34,17 @@ export default async function LanguageBlogPostPage({ params }: Props) {
       .eq('slug', slug)
       .single()
 
-    console.log('📊 Language Blog Post: Post query result:', { data: post, error: postError })
+    logger.dbQuery('Blog post query completed', {
+      component: 'LanguageBlogPostPage',
+      data: { slug, hasPost: !!post, hasError: !!postError }
+    })
 
     if (postError || !post) {
-      console.error('❌ Language Blog Post: Post not found or error:', postError)
+      logger.error('Blog post not found or query failed', {
+        component: 'LanguageBlogPostPage',
+        error: postError || new Error('Post not found'),
+        data: { slug, language }
+      })
       notFound()
     }
 
@@ -60,10 +71,17 @@ export default async function LanguageBlogPostPage({ params }: Props) {
       .select('*')
       .eq('blog_post_id', post.id)
 
-    console.log('📊 Language Blog Post: Translations query result:', { data: translations, error: translationsError })
+    logger.dbQuery('Blog post translations query completed', {
+      component: 'LanguageBlogPostPage',
+      data: { postId: post.id, translationsCount: translations?.length || 0, hasError: !!translationsError }
+    })
 
     if (translationsError) {
-      console.error('❌ Language Blog Post: Translations query failed:', translationsError)
+      logger.error('Blog post translations query failed', {
+        component: 'LanguageBlogPostPage',
+        error: translationsError,
+        data: { postId: post.id, slug, language }
+      })
       notFound()
     }
 
@@ -216,7 +234,11 @@ export default async function LanguageBlogPostPage({ params }: Props) {
         }
       }
     } catch (error) {
-      console.error('❌ Language Blog Post: Error fetching related posts:', error)
+      logger.error('Error fetching related posts', {
+        component: 'LanguageBlogPostPage',
+        error: error instanceof Error ? error : new Error(String(error)),
+        data: { postId: post.id, slug, language }
+      })
       // Continue without related posts if there's an error
     }
 
@@ -309,7 +331,11 @@ export default async function LanguageBlogPostPage({ params }: Props) {
       </>
     )
   } catch (error) {
-    console.error('💥 Language Blog Post: Error fetching blog post:', error)
+    logger.error('Error fetching language blog post', {
+      component: 'LanguageBlogPostPage',
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { slug, language }
+    })
     notFound()
   }
 } 

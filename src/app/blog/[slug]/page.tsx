@@ -7,6 +7,7 @@ import Breadcrumbs from '@/components/Breadcrumbs'
 import ArticleDetailsClient from './ArticleDetailsClient'
 import { ArrowLeft } from 'lucide-react'
 import Head from 'next/head'
+import { logger } from '@/lib/logger'
 
 const cardTextColor = { color: 'var(--foreground)' };
 
@@ -18,7 +19,10 @@ export default async function BlogPostPage({ params }: Props) {
   const { slug, lang } = await params
   const language = lang === 'en' ? 'en' : 'vi'
   try {
-    console.log('🔍 Blog Post: Fetching post with slug:', slug)
+    logger.dbQuery('Fetching blog post by slug', {
+      component: 'BlogPostPage',
+      data: { slug, language }
+    })
     
     const supabase = await createServerSupabaseClient()
     
@@ -29,10 +33,17 @@ export default async function BlogPostPage({ params }: Props) {
       .eq('slug', slug)
       .single()
 
-    console.log('📊 Blog Post: Post query result:', { data: post, error: postError })
+    logger.dbQuery('Blog post query completed', {
+      component: 'BlogPostPage',
+      data: { slug, hasPost: !!post, hasError: !!postError }
+    })
 
     if (postError || !post) {
-      console.error('❌ Blog Post: Post not found or error:', postError)
+      logger.error('Blog post not found or query failed', {
+        component: 'BlogPostPage',
+        error: postError || new Error('Post not found'),
+        data: { slug }
+      })
       notFound()
     }
 
@@ -59,10 +70,17 @@ export default async function BlogPostPage({ params }: Props) {
       .select('*')
       .eq('blog_post_id', post.id)
 
-    console.log('📊 Blog Post: Translations query result:', { data: translations, error: translationsError })
+    logger.dbQuery('Blog post translations query completed', {
+      component: 'BlogPostPage',
+      data: { postId: post.id, translationsCount: translations?.length || 0, hasError: !!translationsError }
+    })
 
     if (translationsError) {
-      console.error('❌ Blog Post: Translations query failed:', translationsError)
+      logger.error('Blog post translations query failed', {
+        component: 'BlogPostPage',
+        error: translationsError,
+        data: { postId: post.id }
+      })
       notFound()
     }
 
@@ -215,7 +233,11 @@ export default async function BlogPostPage({ params }: Props) {
         }
       }
     } catch (error) {
-      console.error('❌ Blog Post: Error fetching related posts:', error)
+      logger.error('Error fetching related posts', {
+        component: 'BlogPostPage',
+        error: error instanceof Error ? error : new Error(String(error)),
+        data: { postId: post.id, slug }
+      })
       // Continue without related posts if there's an error
     }
 
@@ -308,7 +330,11 @@ export default async function BlogPostPage({ params }: Props) {
       </>
     )
   } catch (error) {
-    console.error('💥 Blog Post: Error fetching blog post:', error)
+    logger.error('Error fetching blog post', {
+      component: 'BlogPostPage',
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { slug, language }
+    })
     notFound()
   }
 } 

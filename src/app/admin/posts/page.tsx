@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
 import { Download } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 export default function AdminPostsPage() {
   const [posts, setPosts] = useState<any[]>([])
@@ -59,7 +60,10 @@ export default function AdminPostsPage() {
                 a.remove()
                 window.URL.revokeObjectURL(url)
               } catch (e) {
-                console.error(e)
+                logger.error('Export failed', {
+                  component: 'AdminPostsPage',
+                  error: e instanceof Error ? e : new Error(String(e))
+                })
                 alert('Export failed')
               } finally {
                 setExporting(false)

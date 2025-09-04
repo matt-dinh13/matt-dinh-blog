@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useAuth } from './AuthProvider'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 
 const cardTextColor = { color: 'var(--foreground)' };
 
@@ -74,14 +75,26 @@ export default function AdminContent() {
         .eq('id', id)
 
       if (error) {
-        console.error('Error deleting item:', error)
+        logger.error('Error deleting item', {
+          component: 'AdminContent',
+          error: error,
+          data: { itemId: id, table }
+        })
         alert(`Error deleting item: ${error.message}`)
       } else {
+        logger.info('Item deleted successfully', {
+          component: 'AdminContent',
+          data: { itemId: id, table }
+        })
         alert('Item deleted successfully')
         fetchData() // Refresh the data
       }
     } catch (err) {
-      console.error('Error in delete operation:', err)
+      logger.error('Error in delete operation', {
+        component: 'AdminContent',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { itemId: id, table }
+      })
       alert('Error deleting item')
     }
   }

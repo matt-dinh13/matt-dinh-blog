@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Search, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { useLanguage } from './LanguageProvider'
+import { logger } from '@/lib/logger'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -76,7 +77,11 @@ export default function SearchBar({ onSearch, className = '', hideIcon = false, 
         .limit(10)
 
       if (translationError) {
-        console.error('Search error:', translationError)
+        logger.error('Search error in translations', {
+          component: 'SearchBar',
+          error: translationError,
+          data: { query: searchQuery, language }
+        })
         setError('Search failed')
         return
       }
@@ -115,7 +120,11 @@ export default function SearchBar({ onSearch, className = '', hideIcon = false, 
         .limit(5)
 
       if (tagError) {
-        console.error('Tag search error:', tagError)
+        logger.error('Tag search error', {
+          component: 'SearchBar',
+          error: tagError,
+          data: { query: searchQuery, language }
+        })
       }
 
       // Process translation results
@@ -174,7 +183,11 @@ export default function SearchBar({ onSearch, className = '', hideIcon = false, 
 
       setResults(processedResults.slice(0, 10))
     } catch (err) {
-      console.error('Search error:', err)
+      logger.error('Search error in main search function', {
+        component: 'SearchBar',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { query: searchQuery, language }
+      })
       setError('Search failed')
     } finally {
       setLoading(false)

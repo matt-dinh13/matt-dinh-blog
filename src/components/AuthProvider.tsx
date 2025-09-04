@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 
 type AuthContextType = {
   user: User | null
@@ -25,7 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const client = createClient()
         setSupabase(client)
       } catch (error) {
-        console.warn('Failed to create Supabase client:', error)
+        logger.warn('Failed to create Supabase client', {
+          component: 'AuthProvider',
+          error: error instanceof Error ? error : new Error(String(error))
+        })
         setLoading(false)
       }
     } else {
@@ -43,7 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         setLoading(false)
       } catch (error) {
-        console.warn('Failed to get session:', error)
+        logger.warn('Failed to get session', {
+          component: 'AuthProvider',
+          error: error instanceof Error ? error : new Error(String(error))
+        })
         setLoading(false)
       }
     }

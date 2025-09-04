@@ -7,6 +7,7 @@ import RichTextEditor from '@/components/RichTextEditor'
 import { logActivity } from '@/lib/logActivity'
 import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/imageUtils'
 import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
+import { logger } from '@/lib/logger'
 // import Breadcrumbs from '@/components/Breadcrumbs'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
@@ -113,7 +114,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       setCategoryId(postData.category_id ? String(postData.category_id) : '')
     } catch (err) {
       setError('Error loading blog post')
-      console.error('Error:', err)
+      logger.error('Error loading blog post', {
+        component: 'AdminBlogEditForm',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { postId: id }
+      })
     } finally {
       setLoading(false)
     }
@@ -302,18 +307,24 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       }
 
       setThumbnailPreview(result.preview);
-      console.log('Image processed successfully:', {
-        originalName: file.name,
-        processedName: result.file.name,
-        originalSize: file.size,
-        processedSize: result.file.size,
-        type: result.file.type
+      logger.imageUpload('Image processed successfully for blog edit', {
+        component: 'AdminBlogEditForm',
+        data: {
+          originalName: file.name,
+          processedName: result.file.name,
+          originalSize: file.size,
+          processedSize: result.file.size,
+          type: result.file.type
+        }
       });
       
-    } catch (err: any) {
-      console.error('Image processing error:', err);
-      setThumbnailError(`Failed to process image: ${err.message || 'Unknown error'}`);
-    }
+    } catch (err: unknown) {
+      logger.error('Image processing error', {
+        component: 'AdminBlogEditForm',
+        error: err instanceof Error ? err : new Error(String(err))
+      });
+              setThumbnailError(`Failed to process image: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
   };
 
   const handleRemoveThumbnail = () => {
@@ -349,22 +360,29 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         const blob = await response.blob();
         const file = new File([blob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' });
         
-        console.log('Uploading file:', {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified
+              logger.imageUpload('Uploading thumbnail file to storage', {
+        component: 'AdminBlogEditForm',
+        data: {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        }
+      });
+      
+      const fileName = `thumbnails/${Date.now()}-${file.name}`
+      logger.debug('Uploading to storage path', {
+        component: 'AdminBlogEditForm',
+        data: { fileName }
+      });
+      
+      const { error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, { upsert: true })
+      
+      if (uploadError) {
+        logger.error('Storage upload failed', {
+          component: 'AdminBlogEditForm',
+          error: uploadError,
+          data: { fileName }
         });
-        
-        const fileName = `thumbnails/${Date.now()}-${file.name}`
-        console.log('Uploading to path:', fileName);
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage.from('blog-images').upload(fileName, file, { upsert: true })
-        
-        console.log('Upload response:', { data: uploadData, error: uploadError });
-        
-        if (uploadError) {
-          console.error('Upload error details:', uploadError);
           throw new Error(`Storage upload failed: ${uploadError.message} (${uploadError.statusCode})`);
         }
         
@@ -374,7 +392,10 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         
         // Clean up old thumbnail if it exists and is different from the new one
         if (post?.thumbnail_url && post.thumbnail_url !== uploadedThumbnailUrl) {
-          console.log('Cleaning up old thumbnail:', post.thumbnail_url);
+          logger.imageUpload('Cleaning up old thumbnail', {
+            component: 'AdminBlogEditForm',
+            data: { oldThumbnailUrl: post.thumbnail_url, newThumbnailUrl: uploadedThumbnailUrl }
+          });
           await cleanupOldThumbnail(post.thumbnail_url, supabase);
         }
       }
@@ -403,7 +424,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
         })
         .eq('id', id)
       if (postError) {
-        console.error('Post update error:', postError)
+        logger.error('Post update error', {
+          component: 'AdminBlogEditForm',
+          error: postError,
+          data: { postId: id }
+        })
         throw new Error(`Database error: ${postError.message}`)
       }
       // Upsert translations for VI and EN
@@ -467,7 +492,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     } catch (err: any) {
       setError('Error updating blog post')
       setThumbnailError(err?.message || 'Unknown error')
-      console.error('Error:', err)
+      logger.error('Error updating blog post', {
+        component: 'AdminBlogEditForm',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { postId: id }
+      })
     } finally {
       setSaving(false)
     }
@@ -482,7 +511,10 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       
       // Clean up thumbnail file if it exists
       if (post?.thumbnail_url) {
-        console.log('Cleaning up thumbnail for deleted post:', post.thumbnail_url);
+        logger.imageUpload('Cleaning up thumbnail for deleted post', {
+          component: 'AdminBlogEditForm',
+          data: { thumbnailUrl: post.thumbnail_url, postId: id }
+        });
         await cleanupOldThumbnail(post.thumbnail_url, supabase);
       }
       
@@ -503,7 +535,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
       router.push('/admin/posts');
     } catch (err) {
       setError('Error deleting blog post');
-      console.error('Error:', err);
+      logger.error('Error updating blog post', {
+        component: 'AdminBlogEditForm',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { postId: id }
+      });
     } finally {
       setSaving(false);
     }

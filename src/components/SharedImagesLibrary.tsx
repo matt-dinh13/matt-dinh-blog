@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styles from './SharedImagesLibrary.module.css'
+import { logger } from '@/lib/logger'
 
 // Types
 interface SharedImage {
@@ -47,12 +48,19 @@ export default function SharedImagesLibrary({
       }
       
       const data = await response.json()
-      console.log('🔍 SharedImagesLibrary: Fetched images:', data)
+              logger.debug('Fetched shared images successfully', {
+          component: 'SharedImagesLibrary',
+          data: { count: data?.length || 0, blogPostId }
+        })
       setImages(data.images || [])
-    } catch (err) {
-      console.error('Error fetching shared images:', err)
-      setError('Failed to load shared images')
-    } finally {
+          } catch (err) {
+        logger.error('Error fetching shared images', {
+          component: 'SharedImagesLibrary',
+          error: err instanceof Error ? err : new Error(String(err)),
+          data: { blogPostId }
+        })
+        setError('Failed to load shared images')
+      } finally {
       setLoading(false)
     }
   }, [blogPostId])
@@ -69,11 +77,17 @@ export default function SharedImagesLibrary({
   }, [language, onInsertImage])
 
   const handleImageLoad = useCallback((imageId: number) => {
-    console.log('✅ Image loaded successfully for ID:', imageId)
+    logger.debug('Image loaded successfully', {
+      component: 'SharedImagesLibrary',
+      data: { imageId }
+    })
   }, [])
 
   const handleImageError = useCallback((imageId: number) => {
-    console.log('❌ Image failed to load for ID:', imageId)
+    logger.warn('Image failed to load', {
+      component: 'SharedImagesLibrary',
+      data: { imageId }
+    })
   }, [])
 
   // Render helpers

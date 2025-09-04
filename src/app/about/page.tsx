@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import AboutClient from './AboutClient'
+import { logger } from '@/lib/logger'
 
 export const metadata: Metadata = {
   title: 'About | Matt Dinh',
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 
 export default async function AboutPage() {
   try {
-    console.log('🔍 Server: Fetching about me data...')
+    logger.dbQuery('Fetching about me data', {
+      component: 'AboutPage'
+    })
     
     const supabase = await createServerSupabaseClient()
     
@@ -21,19 +24,25 @@ export default async function AboutPage() {
       .single()
 
     if (aboutMeError) {
-      console.log('🔍 Server: About me table not found, will show fallback content')
+      logger.info('About me table not found, showing fallback content', {
+        component: 'AboutPage',
+        error: aboutMeError
+      })
       return <AboutClient initialData={null} error={aboutMeError.message} />
     }
 
+    // Fetch translations if about me data exists
     if (aboutMeData) {
-      // Fetch translations
       const { data: translations, error: translationsError } = await supabase
         .from('about_me_translations')
         .select('*')
         .eq('about_me_id', aboutMeData.id)
 
       if (translationsError) {
-        console.log('🔍 Server: Translations table not found, will show fallback content')
+        logger.info('Translations table not found, showing fallback content', {
+          component: 'AboutPage',
+          error: translationsError
+        })
         return <AboutClient initialData={null} error={translationsError.message} />
       }
 
@@ -42,15 +51,23 @@ export default async function AboutPage() {
         translations: translations || []
       }
 
-      console.log('✅ Server: About me data fetched successfully')
+      logger.info('About me data fetched successfully', {
+        component: 'AboutPage',
+        data: { translationsCount: translations?.length || 0 }
+      })
       return <AboutClient initialData={aboutMe} error={null} />
     }
 
-    console.log('🔍 Server: No about me data found, will show fallback content')
+    logger.info('No about me data found, showing fallback content', {
+      component: 'AboutPage'
+    })
     return <AboutClient initialData={null} error="No about me data found" />
     
-  } catch (error: any) {
-    console.error('💥 Server: Error fetching about me:', error)
-    return <AboutClient initialData={null} error={error.message} />
+  } catch (error: unknown) {
+    logger.error('Error fetching about me data', {
+      component: 'AboutPage',
+      error: error instanceof Error ? error : new Error(String(error))
+    })
+    return <AboutClient initialData={null} error={error instanceof Error ? error.message : 'Unknown error'} />
   }
 } 
