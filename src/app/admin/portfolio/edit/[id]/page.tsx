@@ -206,6 +206,8 @@ export default function AdminPortfolioEditPage({ params }: Props) {
                         className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md min-h-[500px]"
                         enableSharedImages={true}
                         showSharedImagesLibrary={true}
+                        entityType="portfolio"
+                        entityId={Number(id)}
                       />
                     </div>
                   </div>

@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useState, useMemo, useCallback, memo, useEffect } from 'react'
-import { Menu, X, Search } from 'lucide-react'
+import { Menu, X, Search, Images as ImagesIcon } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 import SearchBar from './SearchBar'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -105,6 +105,18 @@ export default function Navigation() {
             {menuItems.map((item) => (
               <MenuItem key={item.name} item={item} />
             ))}
+            {/* Shared Images link (admin pages only) */}
+            {!isPublicPage && (
+              <Link
+                href="/admin/shared-images"
+                className={`flex items-center h-10 px-3 font-medium transition-colors duration-200 rounded-md whitespace-nowrap ${NAV_BORDER_BASE} ${NAV_HOVER_BORDER}`}
+                style={NAV_TEXT_COLOR}
+                title="Shared Images"
+              >
+                <ImagesIcon size={18} className="mr-2" />
+                <span className="hidden lg:inline">Shared Images</span>
+              </Link>
+            )}
             {/* Language Switcher (public pages only) */}
             {isPublicPage && (
               <div className="ml-2">
@@ -149,6 +161,20 @@ export default function Navigation() {
               {menuItems.map((item) => (
                 <MobileMenuItem key={item.name} item={item} onClick={handleMenuClose} />
               ))}
+              {/* Shared Images link (admin pages only) */}
+              {!isPublicPage && (
+                <Link
+                  href="/admin/shared-images"
+                  className={`block px-3 py-2 font-medium transition-colors duration-200 rounded-md ${NAV_BORDER_BASE} ${NAV_HOVER_BORDER}`}
+                  style={NAV_TEXT_COLOR}
+                  onClick={handleMenuClose}
+                >
+                  <span className="inline-flex items-center">
+                    <ImagesIcon size={18} className="mr-2" />
+                    Shared Images
+                  </span>
+                </Link>
+              )}
               {/* Language Switcher (public pages only) */}
               {isPublicPage && (
                 <div className="mt-2">

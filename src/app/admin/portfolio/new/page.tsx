@@ -208,6 +208,7 @@ export default function AdminPortfolioNewPage() {
                       className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md min-h-[500px]"
                       enableSharedImages={true}
                       showSharedImagesLibrary={true}
+                      entityType="portfolio"
                     />
                   </div>
                 </div>

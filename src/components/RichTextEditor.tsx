@@ -20,15 +20,25 @@ interface RichTextEditorProps {
   onChange: (markdown: string) => void;
   language: 'vi' | 'en';
   className?: string;
-  blogPostId?: number; // Optional: for shared image functionality
-  enableSharedImages?: boolean; // Optional: enable cross-language image sharing
-  showSharedImagesLibrary?: boolean; // Optional: show the shared images library panel
+  blogPostId?: number; // legacy: blog
+  // generalized entity props
+  entityType?: 'blog' | 'portfolio';
+  entityId?: number;
+  enableSharedImages?: boolean;
+  showSharedImagesLibrary?: boolean;
 }
 
 const menuButton = 'px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-gray-700 cursor-pointer';
 
-export default function RichTextEditor({ value, onChange, language, className, blogPostId, enableSharedImages = false, showSharedImagesLibrary = false }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, language, className, blogPostId, entityType, entityId, enableSharedImages = false, showSharedImagesLibrary = false }: RichTextEditorProps) {
   const [uploading, setUploading] = useState(false);
+  const [tempImages, setTempImages] = useState<{url: string, filename: string, fileSize: number}[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Compute effective entity (prefer generalized props; fallback to blog)
+  const effectiveEntityType = entityType || (typeof blogPostId === 'number' ? 'blog' : undefined);
+  const effectiveEntityId = typeof entityId === 'number' ? entityId : (typeof blogPostId === 'number' ? blogPostId : undefined);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -125,12 +135,25 @@ export default function RichTextEditor({ value, onChange, language, className, b
         data: { fileName, publicUrl: urlData.publicUrl }
       });
       
-      // If shared images are enabled and we have a blog post ID, sync across translations
-      if (enableSharedImages && blogPostId) {
+      // If this is a new entity (no id yet), store temporarily
+      if (enableSharedImages && typeof effectiveEntityId !== 'number') {
+        setTempImages(prev => [...prev, {
+          url: urlData.publicUrl,
+          filename: file.name,
+          fileSize: result.file.size
+        }]);
+        logger.info("Image stored temporarily for new item", {
+          component: "RichTextEditor",
+          data: { imageUrl: urlData.publicUrl, filename: file.name }
+        });
+      }
+      
+      // If shared images are enabled and we have an entity id, sync across translations/items
+      if (enableSharedImages && typeof effectiveEntityId === 'number' && effectiveEntityType) {
         try {
-          logger.apiCall('Syncing image across all language translations', {
+          logger.apiCall('Syncing image to shared library', {
             component: 'RichTextEditor',
-            data: { blogPostId, imageUrl: urlData.publicUrl }
+            data: { entityType: effectiveEntityType, entityId: effectiveEntityId, imageUrl: urlData.publicUrl }
           });
           const response = await fetch('/api/shared-images', {
             method: 'POST',
@@ -138,7 +161,11 @@ export default function RichTextEditor({ value, onChange, language, className, b
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              blogPostId,
+              // generalized fields
+              entityType: effectiveEntityType,
+              entityId: effectiveEntityId,
+              // legacy for blog
+              blogPostId: effectiveEntityType === 'blog' ? effectiveEntityId : undefined,
               imageUrl: urlData.publicUrl,
               originalFilename: file.name,
               fileSize: result.file.size
@@ -146,18 +173,19 @@ export default function RichTextEditor({ value, onChange, language, className, b
           });
 
           if (!response.ok) {
-            logger.warn('Failed to sync image across translations, continuing with local insert', {
+            logger.warn('Failed to sync image to shared library, continuing with local insert', {
               component: 'RichTextEditor',
               data: { status: response.status }
             });
           } else {
-            logger.info('Image synced across all language translations', {
+            logger.info('Image synced to shared library', {
               component: 'RichTextEditor',
-              data: { blogPostId }
+              data: { entityType: effectiveEntityType, entityId: effectiveEntityId }
             });
+            setRefreshTrigger(prev => prev + 1)
           }
         } catch (syncError) {
-          logger.warn('Error syncing image across translations', {
+          logger.warn('Error syncing image to shared library', {
             component: 'RichTextEditor',
             error: syncError instanceof Error ? syncError : new Error(String(syncError))
           });
@@ -179,7 +207,7 @@ export default function RichTextEditor({ value, onChange, language, className, b
     } finally {
       setUploading(false);
     }
-  }, [editor, enableSharedImages, blogPostId]);
+  }, [editor, enableSharedImages, effectiveEntityId, effectiveEntityType]);
 
   // Drag-and-drop image
   const handleDrop = useCallback((event: React.DragEvent) => {
@@ -202,12 +230,28 @@ export default function RichTextEditor({ value, onChange, language, className, b
   const handleImageUrl = async () => {
     const url = prompt('Enter image URL');
     if (url) {
-      // If shared images are enabled and we have a blog post ID, sync across translations
-      if (enableSharedImages && blogPostId) {
+      // If this is a new entity (no id yet), store temporarily
+      if (enableSharedImages && typeof effectiveEntityId !== 'number') {
+        setTempImages(prev => [
+          ...prev,
+          {
+            url: url,
+            filename: 'external-image',
+            fileSize: 0,
+          },
+        ]);
+        logger.info('Image stored temporarily for new item (external URL)', {
+          component: 'RichTextEditor',
+          data: { imageUrl: url }
+        });
+      }
+      
+      // If shared images are enabled and we have an entity id, sync
+      if (enableSharedImages && typeof effectiveEntityId === 'number' && effectiveEntityType) {
         try {
-          logger.apiCall('Syncing external image across all language translations', {
+          logger.apiCall('Syncing external image to shared library', {
             component: 'RichTextEditor',
-            data: { blogPostId, imageUrl: url }
+            data: { entityType: effectiveEntityType, entityId: effectiveEntityId, imageUrl: url }
           });
           const response = await fetch('/api/shared-images', {
             method: 'POST',
@@ -215,7 +259,9 @@ export default function RichTextEditor({ value, onChange, language, className, b
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              blogPostId,
+              entityType: effectiveEntityType,
+              entityId: effectiveEntityId,
+              blogPostId: effectiveEntityType === 'blog' ? effectiveEntityId : undefined,
               imageUrl: url,
               originalFilename: 'external-image',
               fileSize: null
@@ -223,18 +269,19 @@ export default function RichTextEditor({ value, onChange, language, className, b
           });
 
           if (!response.ok) {
-            logger.warn('Failed to sync external image across translations, continuing with local insert', {
+            logger.warn('Failed to sync external image to shared library, continuing with local insert', {
               component: 'RichTextEditor',
               data: { status: response.status, imageUrl: url }
             });
           } else {
-            logger.info('External image synced across all language translations', {
+            logger.info('External image synced to shared library', {
               component: 'RichTextEditor',
-              data: { blogPostId, imageUrl: url }
+              data: { entityType: effectiveEntityType, entityId: effectiveEntityId, imageUrl: url }
             });
+            setRefreshTrigger(prev => prev + 1)
           }
         } catch (syncError) {
-          logger.warn('Error syncing external image across translations', {
+          logger.warn('Error syncing external image to shared library', {
             component: 'RichTextEditor',
             error: syncError instanceof Error ? syncError : new Error(String(syncError))
           });
@@ -291,7 +338,7 @@ export default function RichTextEditor({ value, onChange, language, className, b
             <button className={menuButton} onClick={() => editor.chain().focus().setYoutubeVideo({ src: prompt('YouTube URL') || '' }).run()}>YT</button>
             <button className={menuButton} onClick={handleImageButton} disabled={uploading}>🖼️</button>
             <button className={menuButton} onClick={handleImageUrl}>🌐</button>
-            {showSharedImagesLibrary && blogPostId && (
+            {showSharedImagesLibrary && (
               <button className={menuButton} title="Shared Images Library">📚</button>
             )}
           </div>
@@ -347,7 +394,11 @@ export default function RichTextEditor({ value, onChange, language, className, b
       {showSharedImagesLibrary && (
         <div className="mt-4">
           <SharedImagesLibrary
-            blogPostId={blogPostId}
+            entityType={effectiveEntityType}
+            entityId={typeof effectiveEntityId === 'number' ? effectiveEntityId : undefined}
+            blogPostId={typeof blogPostId === 'number' ? blogPostId : undefined}
+            tempImages={tempImages}
+            refreshTrigger={refreshTrigger}
             language={language}
             onInsertImage={handleInsertSharedImage}
             className="mt-2"

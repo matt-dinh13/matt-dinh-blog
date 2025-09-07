@@ -476,7 +476,7 @@ export default function AdminBlogNewPage() {
       <AdminLayout title="Add New Blog Post">
         <div className="w-full px-3 sm:px-4 lg:px-6 py-4" style={cardTextColor}>
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Blog Post</h1>
+            
             <button
               onClick={() => router.back()}
               className="text-blue-600 hover:underline"
@@ -573,8 +573,8 @@ export default function AdminBlogNewPage() {
                     onChange={md => activeLang === 'vi' ? setContentVi(md) : setContentEn(md)}
                     language={activeLang}
                     className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md"
-                    enableSharedImages={false}
-                    showSharedImagesLibrary={false}
+                    enableSharedImages={true}
+                    showSharedImagesLibrary={true}
                   />
                 </div>
               </div>

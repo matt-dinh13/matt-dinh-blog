@@ -14,7 +14,19 @@ interface SharedImage {
   caption_en?: string
 }
 
+interface TempImage {
+  url: string
+  filename: string
+  fileSize: number
+}
+
 interface SharedImagesLibraryProps {
+  refreshTrigger?: number
+  tempImages?: TempImage[]
+  // generalized entity
+  entityType?: 'blog' | 'portfolio'
+  entityId?: number
+  // backward compatibility (blog only)
   blogPostId?: number
   language: 'vi' | 'en'
   onInsertImage: (imageUrl: string, caption?: string) => void
@@ -22,7 +34,9 @@ interface SharedImagesLibraryProps {
 }
 
 // Component
-export default function SharedImagesLibrary({ 
+export default function SharedImagesLibrary({ tempImages = [], refreshTrigger = 0, 
+  entityType,
+  entityId,
   blogPostId, 
   language, 
   onInsertImage, 
@@ -33,42 +47,61 @@ export default function SharedImagesLibrary({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const effectiveEntityType = entityType || (typeof blogPostId === 'number' ? 'blog' : undefined)
+  const effectiveEntityId = typeof entityId === 'number' ? entityId : (typeof blogPostId === 'number' ? blogPostId : undefined)
+
   // Fetch shared images
   const fetchSharedImages = useCallback(async () => {
     try {
       setLoading(true)
       setError('')
       
-      const url = typeof blogPostId === 'number' && blogPostId > 0
-        ? `/api/shared-images?blogPostId=${blogPostId}`
-        : `/api/shared-images`
+      // New entity (no id yet) -> empty
+      if (!effectiveEntityType || typeof effectiveEntityId !== 'number') {
+        setImages([])
+        setLoading(false)
+        return
+      }
+
+      const params = new URLSearchParams()
+      params.set('entityType', effectiveEntityType)
+      params.set('entityId', String(effectiveEntityId))
+      const url = `/api/shared-images?${params.toString()}`
+
       const response = await fetch(url)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch shared images`)
       }
       
       const data = await response.json()
-              logger.debug('Fetched shared images successfully', {
-          component: 'SharedImagesLibrary',
-          data: { count: data?.length || 0, blogPostId }
-        })
+      logger.debug('Fetched shared images successfully', {
+        component: 'SharedImagesLibrary',
+        data: { count: data?.images?.length || 0, entityType: effectiveEntityType, entityId: effectiveEntityId }
+      })
       setImages(data.images || [])
-          } catch (err) {
-        logger.error('Error fetching shared images', {
-          component: 'SharedImagesLibrary',
-          error: err instanceof Error ? err : new Error(String(err)),
-          data: { blogPostId }
-        })
-        setError('Failed to load shared images')
-      } finally {
+    } catch (err) {
+      logger.error('Error fetching shared images', {
+        component: 'SharedImagesLibrary',
+        error: err instanceof Error ? err : new Error(String(err)),
+        data: { entityType: effectiveEntityType, entityId: effectiveEntityId }
+      })
+      setError('Failed to load shared images')
+    } finally {
       setLoading(false)
     }
-  }, [blogPostId])
+  }, [effectiveEntityType, effectiveEntityId])
 
   // Effects
   useEffect(() => {
     fetchSharedImages()
   }, [fetchSharedImages])
+
+  // Refresh when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger && effectiveEntityType && typeof effectiveEntityId === 'number') {
+      fetchSharedImages()
+    }
+  }, [refreshTrigger, fetchSharedImages, effectiveEntityType, effectiveEntityId])
 
   // Event handlers
   const handleInsertImage = useCallback((image: SharedImage) => {
@@ -109,10 +142,33 @@ export default function SharedImagesLibrary({
   const renderEmptyState = () => (
     <div className={`${styles.emptyContainer} ${className}`}>
       <div className={styles.emptyText}>
-        No shared images available. Upload images in any language version to see them here.
+        No images yet. Upload some images to see them here.
       </div>
     </div>
   )
+
+  const renderTempImageCard = (image: TempImage) => {
+    return (
+      <div 
+        key={image.url} 
+        className={styles.imageCard}
+        onClick={() => onInsertImage(image.url)}
+      >
+        <div className={styles.imageContainer}>
+          <img 
+            src={image.url} 
+            alt={image.filename}
+            className={styles.image}
+            onLoad={() => {}}
+            onError={() => {}}
+          />
+        </div>
+        <div className={styles.imageInfo}>
+          {image.filename}
+        </div>
+      </div>
+    )
+  }
 
   const renderImageCard = (image: SharedImage) => {
     const caption = language === 'vi' ? image.caption_vi : image.caption_en
@@ -169,14 +225,14 @@ export default function SharedImagesLibrary({
   // Main render
   if (loading) return renderLoadingState()
   if (error) return renderErrorState()
-  if (images.length === 0) return renderEmptyState()
+  if (images.length === 0 && tempImages.length === 0) return renderEmptyState()
 
   return (
     <div className={`${styles.sharedImagesLibrary} ${className}`}>
       {/* Header */}
       <div className={styles.header}>
         <h3 className={styles.title}>
-          📚 Shared Images Library ({images.length})
+          📚 Shared Images Library ({images.length + tempImages.length})
         </h3>
         <span className={styles.instruction}>
           Click to insert at cursor position
@@ -185,8 +241,10 @@ export default function SharedImagesLibrary({
       
       {/* Image grid */}
       <div className={styles.imageGrid}>
+        {tempImages.map(renderTempImageCard)}
         {images.map(renderImageCard)}
       </div>
     </div>
   )
 } 
+

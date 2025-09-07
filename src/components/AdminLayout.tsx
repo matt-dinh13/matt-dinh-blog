@@ -17,7 +17,8 @@ import {
   LogOut,
   ChevronRight,
   Search,
-  Activity
+  Activity,
+  Images
 } from 'lucide-react'
 
 const cardTextColor = { color: 'var(--foreground)' }
@@ -34,9 +35,10 @@ const navigation = [
   { name: 'Category Management', href: '/admin/categories', icon: FolderOpen },
   { name: 'Tag Management', href: '/admin/tags', icon: Tags },
   { name: 'Portfolio Management', href: '/admin/portfolio', icon: Briefcase },
+  { name: 'Shared Images', href: '/admin/shared-images', icon: Images },
   { name: 'About Me', href: '/admin/about-me', icon: User },
   { name: 'User Management', href: '/admin/users', icon: User },
-  { name: 'Activity Log', href: '/admin/activity', icon: Activity },
+  { name: 'Activity Log', href: '/admin/activity-log', icon: Activity },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
