@@ -95,12 +95,6 @@ export default function LoginPage() {
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
-
-            <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-              <p>Demo credentials:</p>
-              <p>Email: admin@mattdinh.com</p>
-              <p>Password: admin123</p>
-            </div>
           </div>
         </div>
       </main>
