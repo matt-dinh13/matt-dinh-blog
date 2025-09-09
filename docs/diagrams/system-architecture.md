@@ -1,424 +1,619 @@
-# System Architecture Diagram
+# System Architecture Diagrams
 ## Matt Dinh Blog Platform
 
-**Version**: 2.0  
-**Date**: December 2024  
-**Status**: Core Features Complete ✅
-
-**Update (2024-07-19):**
-- Admin blog edit and create forms now include robust unsaved changes protection. All navigation (breadcrumbs, nav bar, <a>, <Link>, router) is protected by a confirmation popup if there are unsaved changes, implemented via a reusable hook and Breadcrumbs prop.
+**Version**: 3.0  
+**Date**: January 9, 2025  
+**Status**: Production Ready ✅
 
 ---
 
-## Architecture Overview
+## 1. High-Level System Architecture
 
 ```mermaid
 graph TB
-    %% Client Layer
     subgraph "Client Layer"
-        DB[Desktop Browser]
-        TB[Tablet Browser]
-        MB[Mobile Browser]
+        A[Web Browser] --> B[Next.js App]
+        A --> C[Mobile Browser]
     end
     
-    %% Presentation Layer
-    subgraph "Presentation Layer"
-        subgraph "Next.js 15 App"
-            SC[Server Components]
-            CC[Client Components]
-            SG[Static Generation]
-            AR[App Router]
-            PR[Pages Router]
-            API[API Routes]
-        end
+    subgraph "Application Layer"
+        B --> D[React Components]
+        B --> E[API Routes]
+        B --> F[Server Components]
     end
     
-    %% Integration Layer
-    subgraph "Integration Layer"
-        subgraph "Supabase Client"
-            DC[Database Client]
-            AC[Auth Client]
-            STC[Storage Client]
-        end
+    subgraph "External Services"
+        G[Vercel CDN] --> B
+        H[Supabase Auth] --> B
+        I[Supabase Database] --> E
+        J[Supabase Storage] --> E
     end
     
-    %% Service Layer
-    subgraph "Service Layer"
-        subgraph "Supabase Platform"
-            PD[(PostgreSQL Database<br/>✅ RLS<br/>✅ Views<br/>✅ Triggers)]
-            AS[Auth Service<br/>✅ JWT<br/>✅ Sessions<br/>✅ Roles]
-            SS[Storage Service<br/>✅ Images<br/>✅ Files<br/>✅ CDN]
-        end
+    subgraph "Data Layer"
+        I --> K[(PostgreSQL)]
+        J --> L[(File Storage)]
+        M[(Activity Logs)] --> I
     end
     
-    %% Deployment Layer
-    subgraph "Deployment Layer"
-        subgraph "Vercel Platform"
-            EN[Edge Network<br/>✅ CDN<br/>✅ Caching<br/>✅ SSL]
-            SF[Server Functions<br/>✅ SSR<br/>✅ API<br/>✅ Auth]
-            SA[Static Assets<br/>✅ Images<br/>✅ CSS/JS<br/>✅ Fonts]
-        end
-    end
-    
-    %% Connections
-    DB --> SC
-    TB --> SC
-    MB --> SC
-    
-    SC --> DC
-    CC --> AC
-    SG --> STC
-    
-    DC --> PD
-    AC --> AS
-    STC --> SS
-    
-    PD --> EN
-    AS --> SF
-    SS --> SA
-    
-    %% Styling
-    classDef client fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef presentation fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef integration fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef service fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef deployment fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    
-    class DB,TB,MB client
-    class SC,CC,SG,AR,PR,API presentation
-    class DC,AC,STC integration
-    class PD,AS,SS service
-    class EN,SF,SA deployment
+    D --> E
+    E --> H
+    E --> I
+    E --> J
+    F --> I
 ```
 
 ---
 
-## Component Architecture
-
-### Frontend Components (✅ Complete)
-
-```mermaid
-graph TD
-    subgraph "src/"
-        subgraph "app/"
-            LANG["[lang]/"]
-            ADMIN["admin/"]
-            ABOUT["about/"]
-            PORTFOLIO["portfolio/"]
-            API["api/"]
-            
-            subgraph "LANG"
-                BLOG["blog/"]
-                HOME["page.tsx"]
-                
-                subgraph "BLOG"
-                    SLUG["[slug]/"]
-                    BLOGPAGE["page.tsx"]
-                end
-            end
-            
-            subgraph "ADMIN"
-                ADMINBLOG["blog/"]
-                CATEGORIES["categories/"]
-                ADMINPAGE["page.tsx"]
-            end
-        end
-        
-        subgraph "components/"
-            NAV["Navigation.tsx"]
-            BPC["BlogPostCard.tsx"]
-            RTE["RichTextEditor.tsx"]
-            LS["LanguageSwitcher.tsx"]
-            AL["AdminLayout.tsx"]
-        end
-        
-        subgraph "lib/"
-            SS["supabase-server.ts"]
-            SC["supabase.ts"]
-            UTILS["utils.ts"]
-        end
-        
-        subgraph "types/"
-            TYPES["TypeScript definitions"]
-        end
-    end
-    
-    %% Styling
-    classDef folder fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef file fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef component fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    
-    class LANG,ADMIN,ABOUT,PORTFOLIO,API,BLOG,ADMINBLOG,CATEGORIES folder
-    class HOME,SLUG,BLOGPAGE,ADMINPAGE,NAV,BPC,RTE,LS,AL,SS,SC,UTILS,TYPES file
-    class BPC,RTE,LS,AL component
-```
-
-### Database Schema (✅ Complete)
+## 2. Database Architecture
 
 ```mermaid
 erDiagram
-    blog_posts {
-        serial id PK
-        varchar slug UK
-        text status
-        timestamp published_at
-        timestamp created_at
-        varchar thumbnail_url
-        int category_id FK
-        uuid author_id FK
-        int view_count
-    }
+    users ||--o{ blog_posts : creates
+    users ||--o{ portfolio_projects : creates
+    users ||--o{ shared_images : uploads
+    users ||--o{ activity_log : performs
     
-    blog_post_translations {
-        serial id PK
-        int blog_post_id FK
-        varchar language_code
-        text title
-        text summary
-        text content
-        text meta_title
-        text meta_description
-        timestamp created_at
-        timestamp updated_at
-    }
+    languages ||--o{ blog_post_translations : supports
+    languages ||--o{ portfolio_project_translations : supports
+    languages ||--o{ tag_translations : supports
     
-    categories {
-        serial id PK
-        varchar slug UK
-        timestamp created_at
-    }
+    blog_posts ||--o{ blog_post_translations : has
+    blog_posts ||--o{ blog_post_tags : tagged
+    blog_posts ||--o{ shared_images : contains
     
-    category_translations {
-        serial id PK
-        int category_id FK
-        varchar language_code
-        text name
-        timestamp created_at
-    }
+    portfolio_projects ||--o{ portfolio_project_translations : has
+    portfolio_projects ||--o{ shared_images : contains
+    
+    tags ||--o{ blog_post_tags : used_in
+    tags ||--o{ tag_translations : translated
     
     users {
         uuid id PK
-        varchar email
-        text role
-        timestamp created_at
-    }
-    
-    about_me {
-        serial id PK
-        varchar slug UK
-        timestamp created_at
-    }
-    
-    about_me_translations {
-        serial id PK
-        int about_me_id FK
-        varchar language_code
-        text title
-        text content
+        string email
+        string full_name
+        string avatar_url
         timestamp created_at
         timestamp updated_at
     }
     
-    blog_posts ||--o{ blog_post_translations : "has translations"
-    blog_posts }o--|| categories : "belongs to"
-    categories ||--o{ category_translations : "has translations"
-    blog_posts }o--|| users : "created by"
-    about_me ||--o{ about_me_translations : "has translations"
+    languages {
+        int id PK
+        string code UK
+        string name
+        string native_name
+        boolean is_default
+        timestamp created_at
+    }
+    
+    blog_posts {
+        int id PK
+        string slug UK
+        string thumbnail_url
+        string status
+        uuid author_id FK
+        timestamp published_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    blog_post_translations {
+        int id PK
+        int blog_post_id FK
+        string language_code FK
+        string title
+        text summary
+        text content
+        string meta_title
+        string meta_description
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    portfolio_projects {
+        int id PK
+        string slug UK
+        string thumbnail_url
+        string project_url
+        string github_url
+        string[] technologies
+        string status
+        uuid author_id FK
+        timestamp published_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    portfolio_project_translations {
+        int id PK
+        int portfolio_project_id FK
+        string language_code FK
+        string title
+        text description
+        text content
+        string meta_title
+        string meta_description
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    tags {
+        int id PK
+        string slug UK
+        timestamp created_at
+    }
+    
+    tag_translations {
+        int id PK
+        int tag_id FK
+        string language_code FK
+        string name
+        timestamp created_at
+    }
+    
+    blog_post_tags {
+        int blog_post_id FK
+        int tag_id FK
+    }
+    
+    shared_images {
+        int id PK
+        string entity_type
+        int entity_id
+        string image_url
+        string original_filename
+        int file_size
+        timestamp uploaded_at
+        uuid uploaded_by FK
+        boolean is_active
+    }
+    
+    activity_log {
+        bigint id PK
+        uuid actor_id FK
+        string action
+        string entity_type
+        int entity_id
+        jsonb details
+        timestamp created_at
+    }
 ```
 
 ---
 
-## Data Flow Architecture
+## 3. Shared Images Management Architecture
 
-### Content Display Flow (✅ Complete)
+```mermaid
+graph TB
+    subgraph "Client Side"
+        A[Rich Text Editor] --> B[Image Upload Component]
+        A --> C[Shared Images Library]
+        D[Admin Image Management] --> E[Image List Component]
+    end
+    
+    subgraph "API Layer"
+        F[/api/shared-images] --> G[GET: Retrieve Images]
+        F --> H[POST: Upload Image]
+        F --> I[DELETE: Remove Image]
+    end
+    
+    subgraph "Database Layer"
+        J[(shared_images table)] --> K[Entity-Scoped Storage]
+        L[(blog_posts table)] --> K
+        M[(portfolio_projects table)] --> K
+    end
+    
+    subgraph "Storage Layer"
+        N[Supabase Storage] --> O[blog-images bucket]
+        P[Image Processing] --> O
+    end
+    
+    B --> F
+    C --> F
+    E --> F
+    G --> J
+    H --> J
+    H --> N
+    I --> J
+    K --> L
+    K --> M
+    P --> O
+```
+
+---
+
+## 4. Authentication and Authorization Flow
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant N as Next.js App Router
-    participant S as Server Component
-    participant SC as Supabase Server Client
-    participant DB as PostgreSQL Database
-    participant C as Client Hydration
+    participant C as Client
+    participant A as Supabase Auth
+    participant D as Database
+    participant P as Protected Route
     
-    U->>N: Request Page
-    N->>S: Route to Server Component
-    S->>SC: Query Database
-    SC->>DB: Execute Query
-    DB-->>SC: Return Results
-    SC-->>S: Data
-    S->>S: Server-Side Rendering
-    S-->>N: HTML Response
-    N-->>U: Rendered Page
-    U->>C: Client Hydration
-    C->>C: Interactive Features
+    U->>C: Enter credentials
+    C->>A: Authenticate user
+    A->>D: Validate credentials
+    D-->>A: User data
+    A-->>C: JWT token
+    C->>C: Store token in session
+    U->>C: Access admin route
+    C->>P: Check authentication
+    P->>A: Validate token
+    A-->>P: Token valid
+    P-->>C: Allow access
+    C-->>U: Show admin interface
 ```
 
-### Admin Content Management Flow (✅ Complete)
+---
+
+## 5. Content Management Flow
 
 ```mermaid
-sequenceDiagram
-    participant A as Admin
-    participant SA as Supabase Auth
-    participant PR as Protected Routes
-    participant AI as Admin Interface
-    participant RTE as Rich Text Editor
-    participant SS as Supabase Storage
-    participant DB as Database
+flowchart TD
+    A[Admin Login] --> B[Select Content Type]
+    B --> C{Blog or Portfolio?}
+    C -->|Blog| D[Blog Management]
+    C -->|Portfolio| E[Portfolio Management]
     
-    A->>SA: Login
-    SA-->>A: JWT Token
-    A->>PR: Access Admin Area
-    PR->>AI: Load Interface
-    A->>RTE: Edit Content
-    A->>SS: Upload Images
-    SS-->>A: Image URLs
-    A->>DB: Save Content
-    DB-->>A: Confirmation
-    A->>A: Content Published
+    D --> F[Create/Edit Blog Post]
+    E --> G[Create/Edit Portfolio Project]
+    
+    F --> H[Rich Text Editor]
+    G --> H
+    
+    H --> I[Upload Images]
+    I --> J[Shared Images Library]
+    J --> K[Select Images]
+    K --> L[Insert into Content]
+    
+    L --> M[Save Content]
+    M --> N[Update Database]
+    N --> O[Activity Log]
+    O --> P[Content Published]
 ```
 
-### Language Switching Flow (✅ Complete)
+---
+
+## 6. Image Processing Pipeline
 
 ```mermaid
-sequenceDiagram
-    participant U as User
-    participant URL as URL Update
-    participant SC as Server Component
-    participant LQ as Language-Specific Query
-    participant TD as Translation Data
-    participant CR as Content Rendering
-    participant UI as UI Update
+flowchart LR
+    A[Image Upload] --> B[File Validation]
+    B --> C{Valid File?}
+    C -->|No| D[Show Error]
+    C -->|Yes| E[Image Compression]
+    E --> F[Format Conversion]
+    F --> G[Upload to Storage]
+    G --> H[Store Metadata]
+    H --> I[Update UI]
+    I --> J[Image Available]
     
-    U->>URL: Select Language
-    URL->>SC: Update Route
-    SC->>LQ: Query with Language
-    LQ->>TD: Get Translations
-    TD-->>LQ: Translation Data
-    LQ-->>SC: Language Data
-    SC->>CR: Render Content
-    CR->>UI: Update Interface
-    UI-->>U: New Language Display
+    D --> K[Retry Upload]
+    K --> A
 ```
 
 ---
 
-## Technology Stack
+## 7. Internationalization Architecture
 
-### Frontend Technologies (✅ Complete)
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Hook Form** - Form management
-- **React Query** - Data fetching and caching
-
-### Backend Technologies (✅ Complete)
-- **Supabase** - Backend-as-a-Service
-- **PostgreSQL** - Relational database
-- **Row Level Security (RLS)** - Data security
-- **JWT Authentication** - User authentication
-- **Supabase Storage** - File storage
-
-### Deployment & Infrastructure (✅ Complete)
-- **Vercel** - Hosting and deployment
-- **Edge Network** - Global CDN
-- **Serverless Functions** - API endpoints
-- **Automatic SSL** - Security certificates
-- **Git Integration** - Continuous deployment
-
-### Development Tools (✅ Complete)
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **TypeScript** - Type checking
-- **Git** - Version control
-- **VS Code** - Development environment
-
----
-
-## Security Architecture
-
-### Authentication & Authorization (✅ Complete)
-- **JWT Tokens** - Secure session management
-- **Row Level Security** - Database-level access control
-- **Role-based Access** - User permission management
-- **Protected Routes** - Client-side route protection
-- **Server-side Validation** - API endpoint security
-
-### Data Protection (✅ Complete)
-- **HTTPS/SSL** - Encrypted data transmission
-- **Input Validation** - XSS and injection prevention
-- **CSRF Protection** - Cross-site request forgery prevention
-- **Content Security Policy** - XSS mitigation
-- **Rate Limiting** - API abuse prevention
-
-### Infrastructure Security (✅ Complete)
-- **Vercel Security** - Platform-level protection
-- **Supabase Security** - Database and storage security
-- **Environment Variables** - Secure configuration management
-- **Regular Updates** - Security patch management
-- **Backup Strategy** - Data recovery protection
+```mermaid
+graph TB
+    subgraph "Client Side"
+        A[Language Switcher] --> B[Language Provider]
+        B --> C[Content Components]
+    end
+    
+    subgraph "Routing Layer"
+        D[/[lang]/blog] --> E[Language Detection]
+        D --> F[/[lang]/portfolio]
+        D --> G[/[lang]/about]
+    end
+    
+    subgraph "Database Layer"
+        H[Translation Tables] --> I[blog_post_translations]
+        H --> J[portfolio_project_translations]
+        H --> K[tag_translations]
+    end
+    
+    subgraph "Content Layer"
+        L[Vietnamese Content] --> H
+        M[English Content] --> H
+    end
+    
+    A --> B
+    B --> C
+    E --> H
+    F --> H
+    G --> H
+```
 
 ---
 
-## Performance Architecture
+## 8. Production Deployment Architecture
 
-### Frontend Performance (✅ Complete)
-- **Server-Side Rendering** - Fast initial page loads
-- **Static Generation** - Pre-built pages for better performance
-- **Image Optimization** - Next.js Image component
-- **Code Splitting** - Lazy loading of components
-- **Caching Strategy** - Browser and CDN caching
-
-### Backend Performance (✅ Complete)
-- **Database Indexing** - Optimized query performance
-- **Connection Pooling** - Efficient database connections
-- **Query Optimization** - Minimal database round trips
-- **Caching Layer** - Redis-like caching (Supabase)
-- **CDN Distribution** - Global content delivery
-
-### Monitoring & Analytics (✅ Complete)
-- **Vercel Analytics** - Performance monitoring
-- **Error Tracking** - Application error monitoring
-- **User Analytics** - User behavior tracking
-- **Performance Metrics** - Core Web Vitals tracking
-- **Uptime Monitoring** - System availability tracking
-
----
-
-## Scalability Architecture
-
-### Horizontal Scaling (✅ Complete)
-- **Serverless Functions** - Automatic scaling
-- **Edge Network** - Global distribution
-- **Database Scaling** - Supabase managed scaling
-- **Storage Scaling** - Automatic storage expansion
-- **CDN Scaling** - Global content distribution
-
-### Vertical Scaling (✅ Complete)
-- **Database Optimization** - Query and index optimization
-- **Code Optimization** - Bundle size and performance optimization
-- **Image Optimization** - Compression and format optimization
-- **Caching Strategy** - Multi-level caching
-- **Resource Management** - Efficient resource utilization
+```mermaid
+graph TB
+    subgraph "CDN Layer"
+        A[Vercel Edge Network] --> B[Static Assets]
+        A --> C[Image CDN]
+    end
+    
+    subgraph "Application Layer"
+        D[Vercel Functions] --> E[Next.js App]
+        E --> F[API Routes]
+        E --> G[Server Components]
+    end
+    
+    subgraph "Database Layer"
+        H[Supabase Production] --> I[PostgreSQL]
+        H --> J[Auth Service]
+        H --> K[Storage Service]
+    end
+    
+    subgraph "Monitoring"
+        L[Vercel Analytics] --> E
+        M[Supabase Monitoring] --> H
+    end
+    
+    A --> E
+    F --> H
+    G --> H
+    E --> L
+    H --> M
+```
 
 ---
 
-## Disaster Recovery
+## 9. Security Architecture
 
-### Backup Strategy (✅ Complete)
-- **Database Backups** - Automated daily backups
-- **File Backups** - Storage bucket backups
-- **Code Backups** - Git repository backups
-- **Configuration Backups** - Environment variable backups
-- **Recovery Procedures** - Documented recovery processes
-
-### High Availability (✅ Complete)
-- **Multi-region Deployment** - Vercel edge network
-- **Database Redundancy** - Supabase managed redundancy
-- **CDN Distribution** - Global content availability
-- **Failover Procedures** - Automatic failover mechanisms
-- **Monitoring Alerts** - Proactive issue detection
+```mermaid
+graph TB
+    subgraph "Client Security"
+        A[HTTPS Only] --> B[Secure Cookies]
+        B --> C[JWT Tokens]
+    end
+    
+    subgraph "Application Security"
+        D[Input Validation] --> E[SQL Injection Prevention]
+        E --> F[XSS Protection]
+        F --> G[CSRF Protection]
+    end
+    
+    subgraph "Database Security"
+        H[Row Level Security] --> I[User Isolation]
+        I --> J[Data Encryption]
+    end
+    
+    subgraph "Storage Security"
+        K[File Validation] --> L[Virus Scanning]
+        L --> M[Access Controls]
+    end
+    
+    A --> D
+    D --> H
+    H --> K
+```
 
 ---
 
-*This system architecture diagram provides a comprehensive overview of the Matt Dinh Blog platform's technical implementation. The architecture is designed for scalability, security, and performance while maintaining simplicity and maintainability.* 
+## 10. Performance Optimization Architecture
+
+```mermaid
+graph TB
+    subgraph "Client Optimization"
+        A[Code Splitting] --> B[Lazy Loading]
+        B --> C[Image Optimization]
+    end
+    
+    subgraph "Server Optimization"
+        D[SSR/SSG] --> E[Edge Caching]
+        E --> F[Database Indexing]
+    end
+    
+    subgraph "CDN Optimization"
+        G[Static Assets] --> H[Image CDN]
+        H --> I[Edge Locations]
+    end
+    
+    subgraph "Database Optimization"
+        J[Query Optimization] --> K[Connection Pooling]
+        K --> L[Read Replicas]
+    end
+    
+    A --> D
+    D --> G
+    G --> J
+```
+
+---
+
+## 11. Monitoring and Logging Architecture
+
+```mermaid
+graph TB
+    subgraph "Application Monitoring"
+        A[Error Tracking] --> B[Performance Monitoring]
+        B --> C[User Analytics]
+    end
+    
+    subgraph "Database Monitoring"
+        D[Query Performance] --> E[Connection Monitoring]
+        E --> F[Storage Monitoring]
+    end
+    
+    subgraph "Infrastructure Monitoring"
+        G[Server Health] --> H[CDN Performance]
+        H --> I[Uptime Monitoring]
+    end
+    
+    subgraph "Logging System"
+        J[Activity Logs] --> K[Error Logs]
+        K --> L[Audit Logs]
+    end
+    
+    A --> D
+    D --> G
+    G --> J
+```
+
+---
+
+## 12. Data Flow Architecture
+
+```mermaid
+flowchart TD
+    A[User Input] --> B[Client Validation]
+    B --> C[API Request]
+    C --> D[Server Validation]
+    D --> E[Database Query]
+    E --> F[Data Processing]
+    F --> G[Response Generation]
+    G --> H[Client Update]
+    H --> I[UI Rendering]
+    
+    J[Error Handling] --> K[User Feedback]
+    L[Activity Logging] --> M[Audit Trail]
+    
+    B --> J
+    D --> J
+    E --> J
+    F --> L
+    G --> L
+```
+
+---
+
+## 13. Component Architecture
+
+```mermaid
+graph TB
+    subgraph "Layout Components"
+        A[AdminLayout] --> B[Navigation]
+        A --> C[Sidebar]
+        D[PublicLayout] --> E[Header]
+        D --> F[Footer]
+    end
+    
+    subgraph "Content Components"
+        G[BlogCard] --> H[BlogList]
+        I[PortfolioCard] --> J[PortfolioList]
+        K[RichTextEditor] --> L[SharedImagesLibrary]
+    end
+    
+    subgraph "Utility Components"
+        M[LanguageSwitcher] --> N[LanguageProvider]
+        O[AuthProvider] --> P[ProtectedRoute]
+        Q[SearchBar] --> R[SearchResults]
+    end
+    
+    subgraph "Admin Components"
+        S[AdminDashboard] --> T[ContentManagement]
+        U[ImageManagement] --> V[ActivityLog]
+    end
+    
+    A --> G
+    A --> I
+    A --> K
+    D --> G
+    D --> I
+    M --> N
+    O --> P
+    S --> U
+```
+
+---
+
+## 14. API Architecture
+
+```mermaid
+graph TB
+    subgraph "Public APIs"
+        A[/api/increment-view] --> B[View Counter]
+        C[/api/shared-images] --> D[Image Management]
+    end
+    
+    subgraph "Admin APIs"
+        E[/api/admin/blog] --> F[Blog Management]
+        G[/api/admin/portfolio] --> H[Portfolio Management]
+        I[/api/admin/categories] --> J[Category Management]
+    end
+    
+    subgraph "Utility APIs"
+        K[/api/setup-about-me] --> L[About Me Setup]
+        M[/api/setup-portfolio] --> N[Portfolio Setup]
+        O[/api/update-image-url] --> P[Image URL Update]
+    end
+    
+    subgraph "Database Layer"
+        Q[(PostgreSQL)] --> R[Data Storage]
+        S[(Supabase Storage)] --> T[File Storage]
+    end
+    
+    A --> Q
+    C --> S
+    E --> Q
+    G --> Q
+    I --> Q
+    K --> Q
+    M --> Q
+    O --> S
+```
+
+---
+
+## 15. Deployment Pipeline
+
+```mermaid
+flowchart LR
+    A[Code Commit] --> B[GitHub]
+    B --> C[Vercel Build]
+    C --> D[Tests]
+    D --> E{Build Success?}
+    E -->|No| F[Build Failed]
+    E -->|Yes| G[Deploy to Vercel]
+    G --> H[Environment Variables]
+    H --> I[Database Migration]
+    I --> J[Production Ready]
+    
+    F --> K[Fix Issues]
+    K --> A
+```
+
+---
+
+## Conclusion
+
+The system architecture diagrams provide a comprehensive view of the Matt Dinh Blog Platform's production-ready architecture, including:
+
+- **High-Level System Architecture**: Overall system components and relationships
+- **Database Architecture**: Complete database schema with entity relationships
+- **Shared Images Management**: Entity-scoped image storage and retrieval system
+- **Authentication Flow**: Secure user authentication and authorization
+- **Content Management Flow**: Complete content creation and management process
+- **Production Deployment**: Live production infrastructure
+- **Security Architecture**: Comprehensive security measures
+- **Performance Optimization**: System performance and scalability features
+- **Monitoring and Logging**: System monitoring and audit capabilities
+
+All architectural components have been successfully implemented and deployed to production, providing a robust, scalable, and secure platform for content management and portfolio showcasing.
+
+---
+
+**Document Approval:**
+- **System Architect:** Matt Dinh
+- **Technical Lead:** Matt Dinh
+- **Infrastructure Lead:** Matt Dinh
+- **Date:** January 9, 2025
+
+---
+
+*Last updated: January 9, 2025*
+
+---
+
+**Production Deployment Update (2025-01-09):**
+- All architectural components successfully implemented and deployed
+- Shared Images Management architecture fully operational
+- Production infrastructure and monitoring systems in place
+- System ready for ongoing architectural enhancements and maintenance

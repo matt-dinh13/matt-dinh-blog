@@ -1,405 +1,752 @@
 # Functional Requirements Document (FRD)
 ## Matt Dinh Blog Platform
 
-**Version**: 2.0  
-**Date**: December 2024  
-**Status**: Core Features Complete ✅  
-**Next Review**: After medium priority fixes
+**Version**: 3.0  
+**Date**: January 9, 2025  
+**Status**: Production Ready ✅  
+**Next Review**: Quarterly maintenance
 
 ---
 
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document defines the functional requirements for the Matt Dinh Blog platform, specifying what the system must do to meet user needs and business objectives.
+This Functional Requirements Document (FRD) defines the functional requirements for the Matt Dinh Blog Platform. The system is a modern, bilingual blog and portfolio platform with advanced shared images management capabilities, now fully deployed to production.
 
 ### 1.2 Scope
-The system provides a complete content management platform with public-facing blog and portfolio features, administrative interface, and bilingual support for English and Vietnamese languages.
+The system provides comprehensive functionality for:
+- **Content Management**: Blog posts and portfolio projects
+- **Shared Images Management**: Entity-scoped image storage and retrieval
+- **Bilingual Support**: Vietnamese and English content
+- **Admin Interface**: Complete management capabilities
+- **Public Interface**: User-facing blog and portfolio showcase
+- **Production Operations**: Live system with monitoring and maintenance
 
-### 1.3 Current Status
-- ✅ **Core Features**: 100% functional
-- ✅ **Critical Bugs**: All resolved
-- 🔄 **Medium Priority**: 2 items pending
-- 🟢 **Low Priority**: 2 items pending
-
----
-
-## 2. User Stories and Requirements
-
-### 2.1 Blog Readers (✅ Complete)
-
-#### 2.1.1 View Blog Posts
-- ✅ **US-001**: As a reader, I want to view blog posts in my preferred language so that I can read content comfortably
-  - **Acceptance Criteria**: 
-    - Posts display in Vietnamese and English
-    - Language switching works without page reload
-    - Content is properly formatted with images
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-002**: As a reader, I want to navigate between different blog posts easily so that I can explore more content
-  - **Acceptance Criteria**:
-    - Blog list shows all published posts
-    - Related posts are suggested
-    - Navigation breadcrumbs are clear
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-003**: As a reader, I want to see related content recommendations so that I can discover more relevant posts
-  - **Acceptance Criteria**:
-    - Related posts appear on individual post pages
-    - Recommendations are based on categories
-    - Links work correctly
-  - **Status**: ✅ **IMPLEMENTED**
-
-#### 2.1.2 Search and Filter
-- ✅ **US-004**: As a reader, I want to search for specific topics so that I can find relevant content quickly
-  - **Acceptance Criteria**:
-    - Search bar is available on all pages
-    - Search results show relevant posts
-    - Search works in both languages
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-005**: As a reader, I want to filter posts by categories so that I can focus on topics of interest
-  - **Acceptance Criteria**:
-    - Category filters are available
-    - Category pages show filtered results
-    - Category names are translated
-  - **Status**: ✅ **IMPLEMENTED**
-
-#### 2.1.3 User Experience
-- ✅ **US-006**: As a reader, I want to read content on mobile devices so that I can access the blog anywhere
-  - **Acceptance Criteria**:
-    - Site is responsive on all screen sizes
-    - Touch interactions work properly
-    - Images scale appropriately
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-007**: As a reader, I want to see reading time estimates so that I can plan my reading time
-  - **Acceptance Criteria**:
-    - Reading time is displayed for each post
-    - Estimates are accurate
-    - Time is shown in appropriate units
-  - **Status**: ✅ **IMPLEMENTED**
-
-### 2.2 Content Creators (✅ Complete)
-
-#### 2.2.1 Content Management
-- ✅ **US-008**: As an admin, I want to create new blog posts with rich content so that I can share my thoughts and experiences
-  - **Acceptance Criteria**:
-    - Rich text editor supports markdown
-    - Image uploads work properly
-    - Draft and publish states are available
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-009**: As an admin, I want to manage post translations so that I can reach both Vietnamese and English audiences
-  - **Acceptance Criteria**:
-    - Translation interface is intuitive
-    - Both languages can be edited
-    - Content syncs between languages
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-010**: As an admin, I want to organize posts by categories so that content is well-structured
-  - **Acceptance Criteria**:
-    - Categories can be created and managed
-    - Posts can be assigned to categories
-    - Category names are translatable
-  - **Status**: ✅ **IMPLEMENTED**
-
-#### 2.2.2 Media Management
-- ✅ **US-011**: As an admin, I want to upload and manage images so that posts are visually appealing
-  - **Acceptance Criteria**:
-    - Image upload works smoothly
-    - Thumbnails are generated automatically
-    - Images are optimized for web
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-012**: As an admin, I want to edit existing posts so that I can update and improve content
-  - **Acceptance Criteria**:
-    - Edit interface is user-friendly
-    - Changes are saved properly
-    - Preview functionality works
-  - **Status**: ✅ **IMPLEMENTED**
-
-#### 2.2.3 Publishing Workflow
-- ✅ **US-013**: As an admin, I want to control post publication status so that I can manage content visibility
-  - **Acceptance Criteria**:
-    - Draft and published states work
-    - Status changes are immediate
-    - Only published posts are public
-  - **Status**: ✅ **IMPLEMENTED**
-
-- ✅ **US-014**: As an admin, I want to delete posts when needed so that I can remove outdated content
-  - **Acceptance Criteria**:
-    - Delete confirmation is required
-    - Deletion is permanent
-    - Related data is cleaned up
-  - **Status**: ✅ **IMPLEMENTED**
-
-### 2.3 Portfolio Viewers (🔄 In Progress)
-
-#### 2.3.1 Project Showcase
-- 🔄 **US-015**: As a visitor, I want to view Matt's portfolio projects so that I can understand his skills and experience
-  - **Acceptance Criteria**:
-    - Portfolio page loads correctly
-    - Projects are displayed in an organized way
-    - Project details are accessible
-  - **Status**: 🔄 **IN PROGRESS**
-
-- 🔄 **US-016**: As a visitor, I want to see project details and technologies so that I can evaluate Matt's expertise
-  - **Acceptance Criteria**:
-    - Individual project pages exist
-    - Technology stacks are listed
-    - Project descriptions are comprehensive
-  - **Status**: 🔄 **IN PROGRESS**
-
-- 🔄 **US-017**: As a visitor, I want to contact Matt about opportunities so that I can discuss potential collaborations
-  - **Acceptance Criteria**:
-    - Contact information is available
-    - Contact form works properly
-    - Response time is reasonable
-  - **Status**: 🔄 **IN PROGRESS**
+### 1.3 Document Structure
+- **Functional Requirements**: Detailed functional specifications
+- **User Interface Requirements**: UI/UX specifications
+- **Data Requirements**: Data structure and management
+- **Integration Requirements**: System integration specifications
+- **Performance Requirements**: Performance and scalability specifications
 
 ---
 
-## 3. Functional Requirements by Feature
+## 2. Functional Requirements
 
-### 3.1 Blog Management (✅ Complete)
+### 2.1 Authentication and Authorization
 
-#### 3.1.1 Post Creation
-- ✅ **FR-001**: System must allow creation of new blog posts with title, content, and metadata
-- ✅ **FR-002**: System must support rich text editing with markdown syntax
-- ✅ **FR-003**: System must allow image uploads for post thumbnails and content
-- ✅ **FR-004**: System must support draft and published post states
-- ✅ **FR-005**: System must generate SEO-friendly URL slugs automatically
+#### 2.1.1 User Authentication
+**FR-001: Login Functionality**
+- **Description**: Users shall be able to log in using email and password
+- **Input**: Email address and password
+- **Processing**: Validate credentials against Supabase Auth
+- **Output**: Authenticated user session
+- **UI Elements**: Login form with email/password fields, submit button
+- **Validation**: Email format validation, password strength requirements
+- **Error Handling**: Display error messages for invalid credentials
+- **Implementation**: `src/app/login/page.tsx`
 
-#### 3.1.2 Post Editing
-- ✅ **FR-006**: System must allow editing of existing blog posts
-- ✅ **FR-007**: System must preserve post history and metadata
-- ✅ **FR-008**: System must support preview functionality before publishing
-- ✅ **FR-009**: System must allow bulk operations on multiple posts
+**FR-002: Session Management**
+- **Description**: System shall maintain user sessions securely
+- **Input**: User authentication state
+- **Processing**: Manage JWT tokens and refresh automatically
+- **Output**: Persistent user session
+- **UI Elements**: Session indicator, logout option
+- **Validation**: Token expiration handling
+- **Error Handling**: Automatic logout on token expiration
+- **Implementation**: `src/components/AuthProvider.tsx`
 
-#### 3.1.3 Post Publishing
-- ✅ **FR-010**: System must control post visibility based on status
-- ✅ **FR-011**: System must support scheduled publishing
-- ✅ **FR-012**: System must notify admins of publishing status changes
-- ✅ **FR-013**: System must maintain post versioning
+**FR-003: Logout Functionality**
+- **Description**: Users shall be able to log out securely
+- **Input**: Logout request
+- **Processing**: Clear session data and redirect to login
+- **Output**: User logged out and redirected
+- **UI Elements**: Logout button in admin interface
+- **Validation**: Confirm logout action
+- **Error Handling**: Handle logout errors gracefully
+- **Implementation**: `src/components/AdminLayout.tsx`
 
-### 3.2 Content Display (✅ Complete)
+#### 2.1.2 Route Protection
+**FR-004: Admin Route Protection**
+- **Description**: Admin routes shall be protected from unauthorized access
+- **Input**: Route access request
+- **Processing**: Check user authentication status
+- **Output**: Allow access or redirect to login
+- **UI Elements**: Protected route wrapper, redirect handling
+- **Validation**: Authentication token validation
+- **Error Handling**: Redirect to login with error message
+- **Implementation**: `src/components/ProtectedRoute.tsx`
 
-#### 3.2.1 Blog List
-- ✅ **FR-014**: System must display blog posts in chronological order
-- ✅ **FR-015**: System must support pagination for large content collections
-- ✅ **FR-016**: System must show post thumbnails and summaries
-- ✅ **FR-017**: System must display reading time estimates
-- ✅ **FR-018**: System must support "load more" functionality
+**FR-005: Production Security**
+- **Description**: Production environment shall enforce authentication
+- **Input**: Environment configuration
+- **Processing**: Disable development bypasses
+- **Output**: Production-grade security
+- **UI Elements**: No development warnings in production
+- **Validation**: Environment-based security enforcement
+- **Error Handling**: Block unauthorized access attempts
+- **Implementation**: `src/components/ProtectedRoute.tsx`
 
-#### 3.2.2 Individual Posts
-- ✅ **FR-019**: System must display full post content with proper formatting
-- ✅ **FR-020**: System must show related posts recommendations
-- ✅ **FR-021**: System must support social sharing functionality
-- ✅ **FR-022**: System must display post metadata (date, author, category)
-- ✅ **FR-023**: System must handle image display and optimization
+### 2.2 Content Management System
 
-#### 3.2.3 Homepage
-- ✅ **FR-024**: System must display latest blog posts on homepage
-- ✅ **FR-025**: System must show featured content sections
-- ✅ **FR-026**: System must provide clear navigation to all sections
-- ✅ **FR-027**: System must include hero section with introduction
+#### 2.2.1 Blog Post Management
+**FR-006: Create Blog Post**
+- **Description**: Users shall be able to create new blog posts
+- **Input**: Title, content, metadata, images
+- **Processing**: Validate input, process images, store in database
+- **Output**: New blog post with unique ID
+- **UI Elements**: 
+  - Rich text editor with toolbar
+  - Title input field
+  - Content textarea with markdown support
+  - Image upload area
+  - Save/Draft buttons
+  - Language tabs (Vietnamese/English)
+- **Validation**: Required field validation, content length limits
+- **Error Handling**: Display validation errors, handle save failures
+- **Implementation**: `src/app/admin/blog/new/page.tsx`
 
-### 3.3 Internationalization (✅ Complete)
+**FR-007: Edit Blog Post**
+- **Description**: Users shall be able to edit existing blog posts
+- **Input**: Blog post ID, updated content
+- **Processing**: Load existing content, validate changes, update database
+- **Output**: Updated blog post
+- **UI Elements**:
+  - Pre-populated form fields
+  - Rich text editor with existing content
+  - Image gallery with existing images
+  - Update/Cancel buttons
+  - Language tabs with existing translations
+- **Validation**: Content validation, change detection
+- **Error Handling**: Handle update failures, preserve unsaved changes
+- **Implementation**: `src/app/admin/blog/edit/[id]/page.tsx`
 
-#### 3.3.1 Language Support
-- ✅ **FR-028**: System must support Vietnamese and English languages
-- ✅ **FR-029**: System must allow language switching without page reload
-- ✅ **FR-030**: System must persist language preference across sessions
-- ✅ **FR-031**: System must provide language-specific URLs and routing
+**FR-008: Delete Blog Post**
+- **Description**: Users shall be able to delete blog posts safely
+- **Input**: Blog post ID, confirmation
+- **Processing**: Validate deletion, remove from database, cleanup images
+- **Output**: Deleted blog post confirmation
+- **UI Elements**:
+  - Delete button with confirmation dialog
+  - Warning message about permanent deletion
+  - Confirmation buttons (Yes/No)
+- **Validation**: Confirmation required, ownership validation
+- **Error Handling**: Handle deletion failures, show error messages
+- **Implementation**: `src/app/admin/blog/edit/[id]/AdminBlogEditForm.tsx`
 
-#### 3.3.2 Content Localization
-- ✅ **FR-032**: System must support separate content for each language
-- ✅ **FR-033**: System must display localized date and time formats
-- ✅ **FR-034**: System must provide language-specific meta tags
-- ✅ **FR-035**: System must handle language-specific search results
+**FR-009: Blog Post Status Management**
+- **Description**: Users shall be able to manage draft and published status
+- **Input**: Content ID, status change
+- **Processing**: Update status in database
+- **Output**: Updated content status
+- **UI Elements**:
+  - Status dropdown (Draft/Published)
+  - Publish button
+  - Status indicator
+- **Validation**: Content validation before publishing
+- **Error Handling**: Handle status change failures
+- **Implementation**: `src/app/admin/blog/edit/[id]/AdminBlogEditForm.tsx`
 
-### 3.4 Admin Panel (✅ Complete)
+#### 2.2.2 Portfolio Project Management
+**FR-010: Create Portfolio Project**
+- **Description**: Users shall be able to create new portfolio projects
+- **Input**: Project details, content, images, links
+- **Processing**: Validate input, process images, store in database
+- **Output**: New portfolio project with unique ID
+- **UI Elements**:
+  - Project title input
+  - Description textarea
+  - Technology tags input
+  - GitHub URL input
+  - Project URL input
+  - Image upload area
+  - Language tabs (Vietnamese/English)
+- **Validation**: Required field validation, URL format validation
+- **Error Handling**: Display validation errors, handle save failures
+- **Implementation**: `src/app/admin/portfolio/new/page.tsx`
 
-#### 3.4.1 Dashboard
-- ✅ **FR-036**: System must provide overview of content statistics
-- ✅ **FR-037**: System must show recent activity and changes
-- ✅ **FR-038**: System must provide quick access to common functions
-- ✅ **FR-039**: System must display system status and health indicators
+**FR-011: Edit Portfolio Project**
+- **Description**: Users shall be able to edit existing portfolio projects
+- **Input**: Project ID, updated content
+- **Processing**: Load existing content, validate changes, update database
+- **Output**: Updated portfolio project
+- **UI Elements**:
+  - Pre-populated form fields
+  - Rich text editor with existing content
+  - Image gallery with existing images
+  - Update/Cancel buttons
+  - Language tabs with existing translations
+- **Validation**: Content validation, change detection
+- **Error Handling**: Handle update failures, preserve unsaved changes
+- **Implementation**: `src/app/admin/portfolio/edit/[id]/page.tsx`
 
-#### 3.4.2 Content Management
-- ✅ **FR-040**: System must provide intuitive content editing interface
-- ✅ **FR-041**: System must support category and tag management
-- ✅ **FR-042**: System must allow media library management
-- ✅ **FR-043**: System must provide content search and filtering
+**FR-012: Delete Portfolio Project**
+- **Description**: Users shall be able to delete portfolio projects safely
+- **Input**: Project ID, confirmation
+- **Processing**: Validate deletion, remove from database, cleanup images
+- **Output**: Deleted project confirmation
+- **UI Elements**:
+  - Delete button with confirmation dialog
+  - Warning message about permanent deletion
+  - Confirmation buttons (Yes/No)
+- **Validation**: Confirmation required, ownership validation
+- **Error Handling**: Handle deletion failures, show error messages
+- **Implementation**: `src/app/admin/portfolio/edit/[id]/page.tsx`
 
-#### 3.4.3 User Management
-- ✅ **FR-044**: System must support user role assignment
-- ✅ **FR-045**: System must provide activity logging
-- ✅ **FR-046**: System must support user access control
-- ✅ **FR-047**: System must allow user profile management
+### 2.3 Shared Images Management System
 
-### 3.5 Portfolio Features (🔄 In Progress)
+#### 2.3.1 Entity-Scoped Image Storage
+**FR-013: Image Upload for Blog Posts**
+- **Description**: Users shall be able to upload images for blog posts
+- **Input**: Image file, blog post context
+- **Processing**: Upload to Supabase Storage, store metadata in database
+- **Output**: Image URL and metadata
+- **UI Elements**:
+  - Drag-and-drop upload area
+  - File selection button
+  - Upload progress indicator
+  - Image preview thumbnail
+- **Validation**: File type validation, size limits
+- **Error Handling**: Display upload errors, retry options
+- **Implementation**: `src/components/RichTextEditor.tsx`
 
-#### 3.5.1 Project Display
-- 🔄 **FR-048**: System must display portfolio projects in organized layout
-- 🔄 **FR-049**: System must show project details and descriptions
-- 🔄 **FR-050**: System must display technology stacks and skills
-- 🔄 **FR-051**: System must support project image galleries
+**FR-014: Image Upload for Portfolio Projects**
+- **Description**: Users shall be able to upload images for portfolio projects
+- **Input**: Image file, portfolio project context
+- **Processing**: Upload to Supabase Storage, store metadata in database
+- **Output**: Image URL and metadata
+- **UI Elements**:
+  - Drag-and-drop upload area
+  - File selection button
+  - Upload progress indicator
+  - Image preview thumbnail
+- **Validation**: File type validation, size limits
+- **Error Handling**: Display upload errors, retry options
+- **Implementation**: `src/components/RichTextEditor.tsx`
 
-#### 3.5.2 Project Management
-- 🔄 **FR-052**: System must allow creation and editing of portfolio projects
-- 🔄 **FR-053**: System must support project categorization
-- 🔄 **FR-054**: System must allow project status management
-- 🔄 **FR-055**: System must support project media management
+**FR-015: Image Library Display**
+- **Description**: Users shall see images in a visual library
+- **Input**: Entity type, entity ID
+- **Processing**: Query images for specific entity
+- **Output**: Image library with thumbnails
+- **UI Elements**:
+  - Grid layout of image thumbnails
+  - Image hover effects
+  - Click to insert functionality
+  - Empty state message
+- **Validation**: Entity validation, image loading
+- **Error Handling**: Handle image loading errors
+- **Implementation**: `src/components/SharedImagesLibrary.tsx`
+
+**FR-016: Cross-Entity Image Separation**
+- **Description**: Images shall be completely separated between content types
+- **Input**: Entity type, entity ID
+- **Processing**: Filter images by entity type and ID
+- **Output**: Entity-specific image list
+- **UI Elements**:
+  - Separate image libraries for blog and portfolio
+  - Clear entity context indicators
+  - No cross-contamination of images
+- **Validation**: Entity type validation
+- **Error Handling**: Handle entity validation errors
+- **Implementation**: `src/app/api/shared-images/route.ts`
+
+**FR-017: Temporary Image Storage**
+- **Description**: New content shall store images temporarily
+- **Input**: Image file, temporary storage flag
+- **Processing**: Store in temporary location, track in state
+- **Output**: Temporary image reference
+- **UI Elements**:
+  - Temporary image indicators
+  - Clear temporary images option
+  - Save to permanent storage option
+- **Validation**: Temporary storage validation
+- **Error Handling**: Handle temporary storage errors
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+#### 2.3.2 Image Management Admin Interface
+**FR-018: Admin Image Management Page**
+- **Description**: Admins shall have a centralized image management interface
+- **Input**: Admin user access
+- **Processing**: Display all images with entity information
+- **Output**: Image management interface
+- **UI Elements**:
+  - Image list with thumbnails
+  - Entity information display
+  - Filter options (entity type, entity ID, filename)
+  - Remove image buttons
+  - Pagination controls
+- **Validation**: Admin access validation
+- **Error Handling**: Handle image loading errors
+- **Implementation**: `src/app/admin/shared-images/page.tsx`
+
+**FR-019: Image Entity Information Display**
+- **Description**: Each image shall show which content it belongs to
+- **Input**: Image metadata
+- **Processing**: Query entity information
+- **Output**: Entity details display
+- **UI Elements**:
+  - Entity type badge (Blog/Portfolio)
+  - Entity title display
+  - Public view link
+  - Admin edit link
+  - Upload date and file size
+- **Validation**: Entity data validation
+- **Error Handling**: Handle missing entity data
+- **Implementation**: `src/app/admin/shared-images/page.tsx`
+
+**FR-020: Image Removal**
+- **Description**: Admins shall be able to remove unused images
+- **Input**: Image URL, confirmation
+- **Processing**: Soft delete image, update database
+- **Output**: Image removal confirmation
+- **UI Elements**:
+  - Remove button with confirmation dialog
+  - Warning message about image removal
+  - Confirmation buttons (Yes/No)
+- **Validation**: Confirmation required
+- **Error Handling**: Handle removal failures
+- **Implementation**: `src/app/admin/shared-images/page.tsx`
+
+### 2.4 Rich Text Editor
+
+#### 2.4.1 Editor Functionality
+**FR-021: Rich Text Editing**
+- **Description**: Users shall have rich text editing capabilities
+- **Input**: Text content, formatting commands
+- **Processing**: Render rich text editor with toolbar
+- **Output**: Formatted content
+- **UI Elements**:
+  - WYSIWYG editor interface
+  - Formatting toolbar (bold, italic, headings, etc.)
+  - Link insertion tool
+  - Image insertion tool
+  - Markdown support
+- **Validation**: Content validation
+- **Error Handling**: Handle editor errors gracefully
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+**FR-022: Image Upload Integration**
+- **Description**: Editor shall integrate image upload functionality
+- **Input**: Image file selection
+- **Processing**: Upload image, insert into editor
+- **Output**: Image embedded in content
+- **UI Elements**:
+  - Image upload button in toolbar
+  - Image selection dialog
+  - Image preview in editor
+  - Image properties panel
+- **Validation**: File type and size validation
+- **Error Handling**: Handle upload failures
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+**FR-023: Markdown Support**
+- **Description**: Editor shall support markdown formatting
+- **Input**: Markdown text
+- **Processing**: Parse and render markdown
+- **Output**: Formatted HTML content
+- **UI Elements**:
+  - Markdown preview toggle
+  - Syntax highlighting
+  - Markdown toolbar
+- **Validation**: Markdown syntax validation
+- **Error Handling**: Handle markdown parsing errors
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+#### 2.4.2 Image Processing
+**FR-024: Image Compression**
+- **Description**: Images shall be compressed for optimization
+- **Input**: Image file
+- **Processing**: Resize, compress, convert format
+- **Output**: Optimized image file
+- **UI Elements**:
+  - Compression progress indicator
+  - File size display
+  - Quality settings
+- **Validation**: Image format validation
+- **Error Handling**: Handle compression failures
+- **Implementation**: `src/lib/imageUtils.ts`
+
+**FR-025: Image Format Conversion**
+- **Description**: Images shall be converted to optimal formats
+- **Input**: Image file
+- **Processing**: Convert to JPEG/WebP format
+- **Output**: Converted image file
+- **UI Elements**:
+  - Conversion progress indicator
+  - Format information display
+- **Validation**: Supported format validation
+- **Error Handling**: Handle conversion failures
+- **Implementation**: `src/lib/imageUtils.ts`
+
+### 2.5 Internationalization
+
+#### 2.5.1 Language Support
+**FR-026: Language Switching**
+- **Description**: Users shall be able to switch between Vietnamese and English
+- **Input**: Language selection
+- **Processing**: Update UI and content language
+- **Output**: Localized interface
+- **UI Elements**:
+  - Language switcher dropdown
+  - Flag icons (🇻🇳/🇺🇸)
+  - Language labels
+- **Validation**: Language code validation
+- **Error Handling**: Handle language switching errors
+- **Implementation**: `src/components/LanguageSwitcher.tsx`
+
+**FR-027: Bilingual Content Management**
+- **Description**: Content shall be managed in both languages
+- **Input**: Content in Vietnamese and English
+- **Processing**: Store and retrieve language-specific content
+- **Output**: Bilingual content display
+- **UI Elements**:
+  - Language tabs in admin interface
+  - Separate content fields for each language
+  - Language indicators
+- **Validation**: Language content validation
+- **Error Handling**: Handle missing translations
+- **Implementation**: `src/app/[lang]/` routes
+
+**FR-028: Language-Specific URLs**
+- **Description**: URLs shall be language-specific
+- **Input**: Content request with language prefix
+- **Processing**: Route to appropriate language content
+- **Output**: Language-specific content page
+- **UI Elements**:
+  - Language-specific URL structure
+  - Language indicators in navigation
+- **Validation**: Language URL validation
+- **Error Handling**: Handle invalid language URLs
+- **Implementation**: `src/app/[lang]/` routing
+
+#### 2.5.2 Content Localization
+**FR-029: Localized Date Formatting**
+- **Description**: Dates shall be formatted according to language preference
+- **Input**: Date value, language setting
+- **Processing**: Apply language-specific date formatting
+- **Output**: Localized date display
+- **UI Elements**:
+  - Date display components
+  - Language-specific date formats
+- **Validation**: Date format validation
+- **Error Handling**: Handle date formatting errors
+- **Implementation**: `src/components/BlogCard.tsx`
+
+**FR-030: Reading Time Estimates**
+- **Description**: Reading time shall be calculated and displayed
+- **Input**: Content text, language setting
+- **Processing**: Calculate reading time based on language
+- **Output**: Reading time display
+- **UI Elements**:
+  - Reading time indicators
+  - Language-specific calculations
+- **Validation**: Content length validation
+- **Error Handling**: Handle calculation errors
+- **Implementation**: `src/components/BlogCard.tsx`
+
+### 2.6 Public Interface
+
+#### 2.6.1 Blog Interface
+**FR-031: Blog Listing**
+- **Description**: Users shall see a paginated list of blog posts
+- **Input**: Page request
+- **Processing**: Query published blog posts, paginate results
+- **Output**: Blog post list page
+- **UI Elements**:
+  - Blog post cards with thumbnails
+  - Pagination controls
+  - Search functionality
+  - Category filters
+- **Validation**: Content validation
+- **Error Handling**: Handle loading errors
+- **Implementation**: `src/app/blog/page.tsx`
+
+**FR-032: Individual Blog Post**
+- **Description**: Users shall see individual blog post content
+- **Input**: Blog post slug
+- **Processing**: Query blog post by slug, render content
+- **Output**: Blog post detail page
+- **UI Elements**:
+  - Blog post header with title and metadata
+  - Content body with formatted text
+  - Image gallery
+  - Navigation to next/previous posts
+  - Social sharing buttons
+- **Validation**: Slug validation
+- **Error Handling**: Handle post not found errors
+- **Implementation**: `src/app/blog/[slug]/page.tsx`
+
+#### 2.6.2 Portfolio Interface
+**FR-033: Portfolio Listing**
+- **Description**: Users shall see portfolio projects
+- **Input**: Page request
+- **Processing**: Query published portfolio projects
+- **Output**: Portfolio listing page
+- **UI Elements**:
+  - Project cards with thumbnails
+  - Technology tags
+  - Project links
+  - Filter options
+- **Validation**: Content validation
+- **Error Handling**: Handle loading errors
+- **Implementation**: `src/app/portfolio/page.tsx`
+
+**FR-034: Individual Portfolio Project**
+- **Description**: Users shall see individual portfolio project
+- **Input**: Portfolio project slug
+- **Processing**: Query project by slug, render content
+- **Output**: Portfolio project detail page
+- **UI Elements**:
+  - Project header with title and metadata
+  - Project description
+  - Technology stack display
+  - Project links (GitHub, live demo)
+  - Image gallery
+- **Validation**: Slug validation
+- **Error Handling**: Handle project not found errors
+- **Implementation**: `src/app/portfolio/[slug]/page.tsx`
+
+#### 2.6.3 Navigation and Search
+**FR-035: Navigation System**
+- **Description**: Users shall have intuitive navigation
+- **Input**: Navigation requests
+- **Processing**: Route to appropriate pages
+- **Output**: Navigation interface
+- **UI Elements**:
+  - Main navigation menu
+  - Mobile hamburger menu
+  - Breadcrumb navigation
+  - Language switcher
+- **Validation**: Route validation
+- **Error Handling**: Handle navigation errors
+- **Implementation**: `src/components/Navigation.tsx`
+
+**FR-036: Search Functionality**
+- **Description**: Users shall be able to search content
+- **Input**: Search query
+- **Processing**: Search across blog posts and portfolio projects
+- **Output**: Search results page
+- **UI Elements**:
+  - Search input field
+  - Search results list
+  - Search filters
+  - No results message
+- **Validation**: Query validation
+- **Error Handling**: Handle search errors
+- **Implementation**: `src/app/search/page.tsx`
+
+### 2.7 Administrative Interface
+
+#### 2.7.1 Dashboard
+**FR-037: Admin Dashboard**
+- **Description**: Admins shall have a system overview
+- **Input**: Admin user access
+- **Processing**: Display system statistics and quick actions
+- **Output**: Admin dashboard page
+- **UI Elements**:
+  - System statistics cards
+  - Quick action buttons
+  - Recent activity feed
+  - System status indicators
+- **Validation**: Admin access validation
+- **Error Handling**: Handle data loading errors
+- **Implementation**: `src/app/admin/page.tsx`
+
+**FR-038: Content Management Interface**
+- **Description**: Admins shall have easy access to content management
+- **Input**: Admin user access
+- **Processing**: Display content management options
+- **Output**: Content management interface
+- **UI Elements**:
+  - Content type tabs (Blog, Portfolio)
+  - Content list with actions
+  - Create new content buttons
+  - Bulk action options
+- **Validation**: Admin access validation
+- **Error Handling**: Handle content loading errors
+- **Implementation**: `src/app/admin/blog/page.tsx`
+
+#### 2.7.2 Activity Monitoring
+**FR-039: Activity Logging**
+- **Description**: System shall log all administrative activities
+- **Input**: Admin action
+- **Processing**: Record action in activity log
+- **Output**: Activity log entry
+- **UI Elements**:
+  - Activity log table
+  - Filter options
+  - Search functionality
+  - Export options
+- **Validation**: Action validation
+- **Error Handling**: Handle logging errors
+- **Implementation**: `src/app/admin/activity-log/page.tsx`
+
+**FR-040: Activity Log UI Enhancement**
+- **Description**: Activity log shall have enhanced UI features
+- **Input**: Activity log data
+- **Processing**: Display enhanced activity information
+- **Output**: Enhanced activity log interface
+- **UI Elements**:
+  - Collapsible details column
+  - Relative time display
+  - Action badges
+  - Entity badges
+  - Pretty-printed JSON details
+- **Validation**: Data validation
+- **Error Handling**: Handle display errors
+- **Implementation**: `src/app/admin/activity-log/page.tsx`
+
+### 2.8 Unsaved Changes Protection
+
+#### 2.8.1 Change Detection
+**FR-041: Unsaved Changes Warning**
+- **Description**: System shall warn users about unsaved changes
+- **Input**: Navigation attempt with unsaved changes
+- **Processing**: Detect unsaved changes, show warning
+- **Output**: User confirmation dialog
+- **UI Elements**:
+  - Browser confirmation dialog
+  - Custom warning modal
+  - Stay/Leave buttons
+- **Validation**: Change detection validation
+- **Error Handling**: Handle detection errors
+- **Implementation**: `src/components/hooks/useUnsavedChangesWarning.ts`
+
+**FR-042: Navigation Interception**
+- **Description**: System shall intercept navigation attempts
+- **Input**: Navigation action (click, back button, etc.)
+- **Processing**: Check for unsaved changes, show warning if needed
+- **Output**: Allow or block navigation
+- **UI Elements**:
+  - Invisible navigation interceptor
+  - Confirmation dialogs
+  - Navigation state management
+- **Validation**: Navigation validation
+- **Error Handling**: Handle interception errors
+- **Implementation**: `src/components/hooks/useUnsavedChangesWarning.ts`
 
 ---
 
-## 4. User Interface Requirements
+## 3. User Interface Requirements
 
-### 4.1 Navigation (✅ Complete)
-- ✅ **UI-001**: System must provide clear and intuitive navigation menu
-- ✅ **UI-002**: System must include breadcrumb navigation for deep pages
-- ✅ **UI-003**: System must support mobile-responsive navigation
-- ✅ **UI-004**: System must provide language switcher in navigation
+### 3.1 Design Principles
+- **Consistency**: Consistent UI patterns across all interfaces
+- **Accessibility**: WCAG 2.1 AA compliance
+- **Responsiveness**: Mobile-first responsive design
+- **Usability**: Intuitive and easy-to-use interfaces
+- **Performance**: Fast loading and smooth interactions
 
-### 4.2 Content Display (✅ Complete)
-- ✅ **UI-005**: System must display content in readable typography
-- ✅ **UI-006**: System must support responsive image display
-- ✅ **UI-007**: System must provide proper spacing and layout
-- ✅ **UI-008**: System must support dark/light theme preferences
+### 3.2 Visual Design
+- **Color Scheme**: Professional blue and gray palette
+- **Typography**: Clean, readable fonts
+- **Layout**: Grid-based responsive layout
+- **Icons**: Consistent iconography
+- **Spacing**: Consistent spacing and padding
 
-### 4.3 Forms and Input (✅ Complete)
-- ✅ **UI-009**: System must provide user-friendly form interfaces
-- ✅ **UI-010**: System must include proper form validation
-- ✅ **UI-011**: System must show clear error messages
-- ✅ **UI-012**: System must provide loading states and feedback
-
----
-
-## 5. Data Requirements
-
-### 5.1 Content Data (✅ Complete)
-- ✅ **DATA-001**: System must store blog post content with translations
-- ✅ **DATA-002**: System must maintain post metadata and relationships
-- ✅ **DATA-003**: System must store category and tag information
-- ✅ **DATA-004**: System must maintain user account data securely
-
-### 5.2 Media Data (✅ Complete)
-- ✅ **DATA-005**: System must store image files with metadata
-- ✅ **DATA-006**: System must maintain file organization and access
-- ✅ **DATA-007**: System must support image optimization and resizing
-- ✅ **DATA-008**: System must handle file upload and storage
-
-### 5.3 Configuration Data (✅ Complete)
-- ✅ **DATA-009**: System must store site configuration settings
-- ✅ **DATA-010**: System must maintain user preferences and settings
-- ✅ **DATA-011**: System must store system logs and audit trails
-- ✅ **DATA-012**: System must maintain backup and recovery data
+### 3.3 Component Specifications
+- **Buttons**: Consistent button styles and states
+- **Forms**: Clear form layouts with validation
+- **Tables**: Responsive table designs
+- **Modals**: Consistent modal patterns
+- **Navigation**: Clear navigation hierarchy
 
 ---
 
-## 6. Integration Requirements
+## 4. Data Requirements
 
-### 6.1 External Services (✅ Complete)
-- ✅ **INT-001**: System must integrate with Supabase for database and auth
-- ✅ **INT-002**: System must integrate with Vercel for deployment
-- ✅ **INT-003**: System must support social media sharing APIs
-- ✅ **INT-004**: System must integrate with image optimization services
+### 4.1 Data Structure
+- **Content Data**: Blog posts and portfolio projects
+- **Image Data**: Entity-scoped image metadata
+- **User Data**: Admin user information
+- **Activity Data**: System activity logs
+- **Language Data**: Translation content
 
-### 6.2 API Requirements (✅ Complete)
-- ✅ **API-001**: System must provide RESTful API endpoints
-- ✅ **API-002**: System must support server-side rendering
-- ✅ **API-003**: System must handle API authentication and authorization
-- ✅ **API-004**: System must provide proper API error handling
-
----
-
-## 7. Current Implementation Status
-
-### 7.1 Completed Features (✅)
-- ✅ **Blog Management**: Full CRUD operations working
-- ✅ **Content Display**: All pages render correctly
-- ✅ **Internationalization**: Bilingual support functional
-- ✅ **Admin Panel**: Accessible with development bypass
-- ✅ **Media Management**: Image upload and display working
-- ✅ **Navigation**: All links and routes functional
-- ✅ **Search**: Basic search functionality implemented
-- ✅ **Responsive Design**: Mobile and desktop compatible
-
-### 7.2 In Progress Features (🔄)
-- 🔄 **Portfolio Management**: Needs server-side rendering fix
-- 🔄 **Service Role Key**: Missing environment variable
-- 🔄 **Advanced Search**: Enhanced search capabilities
-- 🔄 **Analytics**: User engagement tracking
-
-### 7.3 Future Features (🔄)
-- 🔄 **Comment System**: User interaction features
-- 🔄 **Email Newsletter**: Subscriber management
-- 🔄 **Advanced SEO**: Enhanced search engine optimization
-- 🔄 **Performance Monitoring**: Advanced analytics
+### 4.2 Data Validation
+- **Input Validation**: Comprehensive input validation
+- **Data Integrity**: Database constraints and validation
+- **Error Handling**: Graceful error handling
+- **Data Backup**: Regular automated backups
 
 ---
 
-## 8. Testing Requirements
+## 5. Integration Requirements
 
-### 8.1 Functional Testing (✅ Complete)
-- ✅ **User Interface Testing**: All pages render correctly
-- ✅ **Content Management Testing**: CRUD operations work
-- ✅ **Language Switching Testing**: Bilingual functionality
-- ✅ **Admin Panel Testing**: Administrative functions
-- ✅ **Navigation Testing**: All links and routes work
+### 5.1 External Services
+- **Supabase**: Database, authentication, storage
+- **Vercel**: Hosting and deployment
+- **CDN**: Content delivery network
 
-### 8.2 User Acceptance Testing (✅ Complete)
-- ✅ **Blog Reader Scenarios**: All reader user stories tested
-- ✅ **Content Creator Scenarios**: All admin user stories tested
-- ✅ **Cross-browser Testing**: Works on major browsers
-- ✅ **Mobile Testing**: Responsive design verified
+### 5.2 API Integration
+- **REST APIs**: Standard REST API patterns
+- **Authentication**: JWT token-based authentication
+- **Error Handling**: Consistent error response format
 
 ---
 
-## 9. Success Criteria
+## 6. Performance Requirements
 
-### 9.1 Functional Success (✅ Achieved)
-- ✅ All blog posts load correctly with translations
-- ✅ Language switching works seamlessly
-- ✅ Admin panel is accessible and functional
-- ✅ Content management workflow is complete
-- ✅ User experience is smooth and intuitive
+### 6.1 Response Time
+- **Page Load**: < 3 seconds for all pages
+- **Image Processing**: < 5 seconds for image upload
+- **Database Queries**: < 1 second for content retrieval
+- **Search**: < 2 seconds for search results
 
-### 9.2 Technical Success (✅ Achieved)
-- ✅ Server-side rendering is implemented
-- ✅ Database integration is working
-- ✅ Security measures are in place
-- ✅ Performance is optimized
-- ✅ Error handling is robust
-
-### 9.3 Business Success (✅ Achieved)
-- ✅ Content publishing workflow is established
-- ✅ Bilingual audience support is functional
-- ✅ Professional presentation is achieved
-- ✅ SEO-friendly structure is implemented
-- ✅ Scalable architecture is in place
+### 6.2 Scalability
+- **Content Volume**: Support 1000+ blog posts
+- **Image Storage**: Support 10,000+ images
+- **Concurrent Users**: Handle 1000+ concurrent users
+- **Database Growth**: Efficient handling of growing content
 
 ---
 
-## 10. Conclusion
+## 7. Security Requirements
 
-The Matt Dinh Blog platform has successfully implemented all critical functional requirements. The system provides a complete content management solution with excellent user experience and robust technical foundation.
+### 7.1 Authentication
+- **Secure Login**: Industry-standard authentication
+- **Session Management**: Secure session handling
+- **Password Security**: Strong password requirements
 
-**Current Status**: 🎉 **EXCELLENT** - All core functionality is working perfectly.
+### 7.2 Authorization
+- **Route Protection**: Admin-only access to management areas
+- **Data Access**: Role-based data access control
+- **API Security**: Protected API endpoints
 
-**Next Steps**: Address medium priority features to complete full functionality.
+### 7.3 Data Protection
+- **Input Validation**: Comprehensive input validation
+- **File Upload Security**: Secure file upload handling
+- **Data Encryption**: Encrypted data transmission and storage
 
 ---
 
-**Document Version**: 2.0  
-**Last Updated**: December 2024  
-**Next Review**: After medium priority fixes 
+## 8. Conclusion
 
-## Admin Blog Forms - Unsaved Changes Protection
+The Functional Requirements Document defines comprehensive functionality for the Matt Dinh Blog Platform, including:
 
-- The admin blog edit and create forms must protect users from losing unsaved changes.
-- If a user has unsaved changes and tries to navigate away (via breadcrumbs, navigation bar, sidebar, any `<a>` or `<Link>`, or router navigation), a confirmation popup must appear.
-- This is implemented via a reusable React hook and a navigation guard prop on the Breadcrumbs component.
-- This protection is now applied to both the blog edit and create forms. 
+- **Complete Content Management**: Full CRUD operations for blog posts and portfolio projects
+- **Advanced Shared Images Management**: Entity-scoped image storage with admin interface
+- **Bilingual Support**: Comprehensive Vietnamese/English functionality
+- **Production-Ready Interface**: Complete admin and public interfaces
+- **Security and Performance**: Production-grade security and performance requirements
+
+All functional requirements have been successfully implemented and deployed to production, providing a robust platform for content management and portfolio showcasing.
+
+---
+
+**Document Approval:**
+- **Functional Analyst:** Matt Dinh
+- **UI/UX Designer:** Matt Dinh
+- **Technical Lead:** Matt Dinh
+- **Date:** January 9, 2025
+
+---
+
+*Last updated: January 9, 2025*
+
+---
+
+**Production Deployment Update (2025-01-09):**
+- All functional requirements successfully implemented and deployed
+- Shared Images Management system with comprehensive UI/UX specifications fully operational
+- Production interfaces and user experience optimized for content management
+- System ready for ongoing functional enhancements and maintenance

@@ -1,446 +1,696 @@
 # Software Requirements Specification (SRS)
 ## Matt Dinh Blog Platform
 
-**Version**: 2.0  
-**Date**: December 2024  
-**Status**: Core Features Complete ✅  
-**Next Review**: After medium priority fixes
+**Version**: 3.0  
+**Date**: January 9, 2025  
+**Status**: Production Ready ✅  
+**Next Review**: Quarterly maintenance
 
 ---
 
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document specifies the software requirements for the Matt Dinh Blog platform, a modern bilingual blog and portfolio website built with Next.js 15 and Supabase.
+This Software Requirements Specification (SRS) document describes the functional and non-functional requirements for the Matt Dinh Blog Platform. The system is a modern, bilingual blog and portfolio platform built with Next.js 15 and Supabase, now fully deployed to production with advanced shared images management capabilities.
 
 ### 1.2 Scope
-The system provides content management, bilingual support, portfolio showcase, and administrative capabilities for Matt Dinh's personal brand and professional presence.
+The system provides:
+- **Content Management**: Blog posts and portfolio projects with rich text editing
+- **Shared Images Management**: Entity-scoped image storage and retrieval
+- **Bilingual Support**: Vietnamese and English content management
+- **Admin Interface**: Comprehensive content and image management
+- **Public Interface**: User-friendly blog and portfolio showcase
+- **Production Infrastructure**: Vercel deployment with Supabase backend
 
-### 1.3 Current Status
-- ✅ **Core Features**: 100% functional
-- ✅ **Critical Bugs**: All resolved
-- 🔄 **Medium Priority**: 2 items pending
-- 🟢 **Low Priority**: 2 items pending
+### 1.3 Definitions and Acronyms
+- **SRS**: Software Requirements Specification
+- **API**: Application Programming Interface
+- **CRUD**: Create, Read, Update, Delete
+- **RTE**: Rich Text Editor
+- **I18n**: Internationalization
+- **L10n**: Localization
+- **SSR**: Server-Side Rendering
+- **CSR**: Client-Side Rendering
+- **RLS**: Row Level Security
+- **CDN**: Content Delivery Network
 
 ---
 
-## 2. System Overview
+## 2. Overall Description
 
-### 2.1 System Architecture
+### 2.1 Product Perspective
+The Matt Dinh Blog Platform is a standalone web application that serves as both a personal blog and portfolio showcase. The system integrates with:
+- **Supabase**: Database, authentication, and storage services
+- **Vercel**: Hosting and deployment platform
+- **Next.js**: React framework for web applications
+
+### 2.2 Product Functions
+- **Content Management System**: Create, edit, and manage blog posts and portfolio projects
+- **Shared Images Library**: Entity-scoped image storage and management
+- **Bilingual Content Management**: Vietnamese and English content support
+- **Admin Dashboard**: Comprehensive management interface
+- **Public Website**: User-facing blog and portfolio showcase
+- **Search Functionality**: Content search across all pages
+- **Activity Logging**: System activity tracking and monitoring
+
+### 2.3 User Classes and Characteristics
+- **Admin Users**: Content creators and system administrators
+- **Public Users**: Website visitors and content consumers
+- **System Administrators**: Platform maintenance and configuration
+
+### 2.4 Operating Environment
+- **Production**: Vercel hosting with Supabase backend
+- **Development**: Local development with Supabase development instance
+- **Browsers**: Modern browsers supporting ES6+ and React 18
+- **Mobile**: Responsive design for mobile devices
+
+---
+
+## 3. Specific Requirements
+
+### 3.1 Functional Requirements
+
+#### 3.1.1 Authentication and Authorization
+
+**FR-001: User Authentication**
+- **Description**: System shall provide secure user authentication
+- **Input**: Email and password
+- **Processing**: Validate credentials against Supabase Auth
+- **Output**: Authenticated user session
+- **Priority**: High
+- **Implementation**: `src/components/AuthProvider.tsx`
+
+**FR-002: Route Protection**
+- **Description**: System shall protect admin routes from unauthorized access
+- **Input**: Route access request
+- **Processing**: Check user authentication status
+- **Output**: Allow access or redirect to login
+- **Priority**: High
+- **Implementation**: `src/components/ProtectedRoute.tsx`
+
+**FR-003: Session Management**
+- **Description**: System shall maintain user sessions securely
+- **Input**: User authentication state
+- **Processing**: Manage session tokens and refresh
+- **Output**: Persistent user session
+- **Priority**: High
+- **Implementation**: `src/components/AuthProvider.tsx`
+
+#### 3.1.2 Content Management System
+
+**FR-004: Blog Post Creation**
+- **Description**: System shall allow creation of new blog posts
+- **Input**: Title, content, metadata, images
+- **Processing**: Validate input, process images, store in database
+- **Output**: New blog post with unique ID
+- **Priority**: High
+- **Implementation**: `src/app/admin/blog/new/page.tsx`
+
+**FR-005: Blog Post Editing**
+- **Description**: System shall allow editing of existing blog posts
+- **Input**: Blog post ID, updated content
+- **Processing**: Validate changes, update database, process images
+- **Output**: Updated blog post
+- **Priority**: High
+- **Implementation**: `src/app/admin/blog/edit/[id]/page.tsx`
+
+**FR-006: Blog Post Deletion**
+- **Description**: System shall allow safe deletion of blog posts
+- **Input**: Blog post ID, confirmation
+- **Processing**: Validate deletion, remove from database, cleanup images
+- **Output**: Deleted blog post confirmation
+- **Priority**: Medium
+- **Implementation**: `src/app/admin/blog/edit/[id]/AdminBlogEditForm.tsx`
+
+**FR-007: Portfolio Project Creation**
+- **Description**: System shall allow creation of new portfolio projects
+- **Input**: Project details, content, images, links
+- **Processing**: Validate input, process images, store in database
+- **Output**: New portfolio project with unique ID
+- **Priority**: High
+- **Implementation**: `src/app/admin/portfolio/new/page.tsx`
+
+**FR-008: Portfolio Project Editing**
+- **Description**: System shall allow editing of existing portfolio projects
+- **Input**: Project ID, updated content
+- **Processing**: Validate changes, update database, process images
+- **Output**: Updated portfolio project
+- **Priority**: High
+- **Implementation**: `src/app/admin/portfolio/edit/[id]/page.tsx`
+
+**FR-009: Content Status Management**
+- **Description**: System shall manage draft and published content status
+- **Input**: Content ID, status change
+- **Processing**: Update status in database
+- **Output**: Updated content status
+- **Priority**: High
+- **Implementation**: `src/app/admin/blog/edit/[id]/AdminBlogEditForm.tsx`
+
+#### 3.1.3 Shared Images Management System
+
+**FR-010: Entity-Scoped Image Storage**
+- **Description**: System shall store images scoped to specific content entities
+- **Input**: Image file, entity type, entity ID
+- **Processing**: Upload to Supabase Storage, store metadata in database
+- **Output**: Image URL and metadata
+- **Priority**: High
+- **Implementation**: `src/app/api/shared-images/route.ts`
+
+**FR-011: Blog Post Image Association**
+- **Description**: System shall associate images with specific blog posts
+- **Input**: Image URL, blog post ID
+- **Processing**: Create association in shared_images table
+- **Output**: Image-blog post association
+- **Priority**: High
+- **Implementation**: `src/components/SharedImagesLibrary.tsx`
+
+**FR-012: Portfolio Image Association**
+- **Description**: System shall associate images with specific portfolio projects
+- **Input**: Image URL, portfolio project ID
+- **Processing**: Create association in shared_images table
+- **Output**: Image-portfolio association
+- **Priority**: High
+- **Implementation**: `src/components/SharedImagesLibrary.tsx`
+
+**FR-013: Temporary Image Storage**
+- **Description**: System shall store images temporarily during content creation
+- **Input**: Image file, temporary storage flag
+- **Processing**: Store in temporary location, track in state
+- **Output**: Temporary image reference
+- **Priority**: Medium
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+**FR-014: Image Library Display**
+- **Description**: System shall display images in rich text editor library
+- **Input**: Entity type, entity ID
+- **Processing**: Query images for specific entity
+- **Output**: Image library with thumbnails
+- **Priority**: High
+- **Implementation**: `src/components/SharedImagesLibrary.tsx`
+
+**FR-015: Cross-Entity Image Separation**
+- **Description**: System shall maintain complete separation between different content types
+- **Input**: Entity type, entity ID
+- **Processing**: Filter images by entity type and ID
+- **Output**: Entity-specific image list
+- **Priority**: High
+- **Implementation**: `src/app/api/shared-images/route.ts`
+
+**FR-016: Image Cleanup**
+- **Description**: System shall clean up unused images automatically
+- **Input**: Content deletion request
+- **Processing**: Identify orphaned images, remove from storage
+- **Output**: Cleanup confirmation
+- **Priority**: Medium
+- **Implementation**: `src/app/api/shared-images/route.ts`
+
+**FR-017: Admin Image Management**
+- **Description**: System shall provide admin interface for image management
+- **Input**: Admin user access
+- **Processing**: Display all images with entity information
+- **Output**: Image management interface
+- **Priority**: Medium
+- **Implementation**: `src/app/admin/shared-images/page.tsx`
+
+#### 3.1.4 Rich Text Editor
+
+**FR-018: Rich Text Editing**
+- **Description**: System shall provide rich text editing capabilities
+- **Input**: Text content, formatting commands
+- **Processing**: Render rich text editor with toolbar
+- **Output**: Formatted content
+- **Priority**: High
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+**FR-019: Image Upload Integration**
+- **Description**: System shall integrate image upload with rich text editor
+- **Input**: Image file selection
+- **Processing**: Upload image, insert into editor
+- **Output**: Image embedded in content
+- **Priority**: High
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+**FR-020: Markdown Support**
+- **Description**: System shall support markdown formatting
+- **Input**: Markdown text
+- **Processing**: Parse and render markdown
+- **Output**: Formatted HTML content
+- **Priority**: High
+- **Implementation**: `src/components/RichTextEditor.tsx`
+
+**FR-021: Image Processing**
+- **Description**: System shall process images for optimization
+- **Input**: Image file
+- **Processing**: Resize, compress, convert format
+- **Output**: Optimized image file
+- **Priority**: High
+- **Implementation**: `src/lib/imageUtils.ts`
+
+#### 3.1.5 Internationalization
+
+**FR-022: Language Switching**
+- **Description**: System shall allow switching between Vietnamese and English
+- **Input**: Language selection
+- **Processing**: Update UI and content language
+- **Output**: Localized interface
+- **Priority**: High
+- **Implementation**: `src/components/LanguageSwitcher.tsx`
+
+**FR-023: Bilingual Content Management**
+- **Description**: System shall manage content in both languages
+- **Input**: Content in Vietnamese and English
+- **Processing**: Store and retrieve language-specific content
+- **Output**: Bilingual content display
+- **Priority**: High
+- **Implementation**: `src/app/[lang]/` routes
+
+**FR-024: Language-Specific URLs**
+- **Description**: System shall provide language-specific URLs
+- **Input**: Content request with language prefix
+- **Processing**: Route to appropriate language content
+- **Output**: Language-specific content page
+- **Priority**: High
+- **Implementation**: `src/app/[lang]/` routing
+
+**FR-025: Localized Date Formatting**
+- **Description**: System shall format dates according to language preference
+- **Input**: Date value, language setting
+- **Processing**: Apply language-specific date formatting
+- **Output**: Localized date display
+- **Priority**: Medium
+- **Implementation**: `src/components/BlogCard.tsx`
+
+#### 3.1.6 Public Interface
+
+**FR-026: Blog Listing**
+- **Description**: System shall display paginated list of blog posts
+- **Input**: Page request
+- **Processing**: Query published blog posts, paginate results
+- **Output**: Blog post list page
+- **Priority**: High
+- **Implementation**: `src/app/blog/page.tsx`
+
+**FR-027: Individual Blog Post**
+- **Description**: System shall display individual blog post content
+- **Input**: Blog post slug
+- **Processing**: Query blog post by slug, render content
+- **Output**: Blog post detail page
+- **Priority**: High
+- **Implementation**: `src/app/blog/[slug]/page.tsx`
+
+**FR-028: Portfolio Listing**
+- **Description**: System shall display portfolio projects
+- **Input**: Page request
+- **Processing**: Query published portfolio projects
+- **Output**: Portfolio listing page
+- **Priority**: High
+- **Implementation**: `src/app/portfolio/page.tsx`
+
+**FR-029: Individual Portfolio Project**
+- **Description**: System shall display individual portfolio project
+- **Input**: Portfolio project slug
+- **Processing**: Query project by slug, render content
+- **Output**: Portfolio project detail page
+- **Priority**: High
+- **Implementation**: `src/app/portfolio/[slug]/page.tsx`
+
+**FR-030: Search Functionality**
+- **Description**: System shall provide content search
+- **Input**: Search query
+- **Processing**: Search across blog posts and portfolio projects
+- **Output**: Search results page
+- **Priority**: Medium
+- **Implementation**: `src/app/search/page.tsx`
+
+#### 3.1.7 Administrative Interface
+
+**FR-031: Admin Dashboard**
+- **Description**: System shall provide admin dashboard overview
+- **Input**: Admin user access
+- **Processing**: Display system statistics and quick actions
+- **Output**: Admin dashboard page
+- **Priority**: High
+- **Implementation**: `src/app/admin/page.tsx`
+
+**FR-032: Content Management Interface**
+- **Description**: System shall provide content management interface
+- **Input**: Admin user access
+- **Processing**: Display content management options
+- **Output**: Content management interface
+- **Priority**: High
+- **Implementation**: `src/app/admin/blog/page.tsx`
+
+**FR-033: Activity Logging**
+- **Description**: System shall log all administrative activities
+- **Input**: Admin action
+- **Processing**: Record action in activity log
+- **Output**: Activity log entry
+- **Priority**: Medium
+- **Implementation**: `src/app/admin/activity-log/page.tsx`
+
+**FR-034: Image Management Interface**
+- **Description**: System shall provide image management interface
+- **Input**: Admin user access
+- **Processing**: Display all images with entity information
+- **Output**: Image management interface
+- **Priority**: Medium
+- **Implementation**: `src/app/admin/shared-images/page.tsx`
+
+#### 3.1.8 Unsaved Changes Protection
+
+**FR-035: Unsaved Changes Warning**
+- **Description**: System shall warn users about unsaved changes
+- **Input**: Navigation attempt with unsaved changes
+- **Processing**: Detect unsaved changes, show warning
+- **Output**: User confirmation dialog
+- **Priority**: High
+- **Implementation**: `src/components/hooks/useUnsavedChangesWarning.ts`
+
+**FR-036: Navigation Interception**
+- **Description**: System shall intercept navigation attempts
+- **Input**: Navigation action (click, back button, etc.)
+- **Processing**: Check for unsaved changes, show warning if needed
+- **Output**: Allow or block navigation
+- **Priority**: High
+- **Implementation**: `src/components/hooks/useUnsavedChangesWarning.ts`
+
+### 3.2 Non-Functional Requirements
+
+#### 3.2.1 Performance Requirements
+
+**NFR-001: Page Load Time**
+- **Description**: All pages shall load within 3 seconds
+- **Measurement**: Time from request to fully rendered page
+- **Priority**: High
+- **Implementation**: Server-side rendering, image optimization
+
+**NFR-002: Image Processing Time**
+- **Description**: Image upload and processing shall complete within 5 seconds
+- **Measurement**: Time from upload start to processing completion
+- **Priority**: High
+- **Implementation**: Client-side image compression
+
+**NFR-003: Database Query Performance**
+- **Description**: Database queries shall complete within 1 second
+- **Measurement**: Time from query execution to result return
+- **Priority**: High
+- **Implementation**: Database indexing, query optimization
+
+**NFR-004: Search Performance**
+- **Description**: Search results shall be returned within 2 seconds
+- **Measurement**: Time from search query to results display
+- **Priority**: Medium
+- **Implementation**: Search indexing, query optimization
+
+#### 3.2.2 Scalability Requirements
+
+**NFR-005: Content Volume**
+- **Description**: System shall support 1000+ blog posts
+- **Measurement**: Maximum number of blog posts
+- **Priority**: Medium
+- **Implementation**: Pagination, database optimization
+
+**NFR-006: Image Storage**
+- **Description**: System shall support 10,000+ images
+- **Measurement**: Maximum number of stored images
+- **Priority**: Medium
+- **Implementation**: Supabase Storage, image optimization
+
+**NFR-007: Concurrent Users**
+- **Description**: System shall handle 1000+ concurrent users
+- **Measurement**: Maximum simultaneous users
+- **Priority**: Medium
+- **Implementation**: Vercel scaling, CDN
+
+#### 3.2.3 Reliability Requirements
+
+**NFR-008: System Uptime**
+- **Description**: System shall maintain 99.9% uptime
+- **Measurement**: Percentage of time system is available
+- **Priority**: High
+- **Implementation**: Vercel hosting, monitoring
+
+**NFR-009: Data Backup**
+- **Description**: System shall maintain automated backups
+- **Measurement**: Daily automated backups
+- **Priority**: High
+- **Implementation**: Supabase backup system
+
+**NFR-010: Error Recovery**
+- **Description**: System shall recover gracefully from errors
+- **Measurement**: Error handling and recovery time
+- **Priority**: High
+- **Implementation**: Error boundaries, fallback UI
+
+#### 3.2.4 Security Requirements
+
+**NFR-011: Authentication Security**
+- **Description**: System shall use secure authentication
+- **Measurement**: Industry-standard security practices
+- **Priority**: High
+- **Implementation**: Supabase Auth, JWT tokens
+
+**NFR-012: Data Protection**
+- **Description**: System shall protect user data
+- **Measurement**: Encryption and access controls
+- **Priority**: High
+- **Implementation**: Row-level security, HTTPS
+
+**NFR-013: File Upload Security**
+- **Description**: System shall validate file uploads
+- **Measurement**: File type and size validation
+- **Priority**: High
+- **Implementation**: File validation, virus scanning
+
+#### 3.2.5 Usability Requirements
+
+**NFR-014: Admin Efficiency**
+- **Description**: Admin tasks shall be completed efficiently
+- **Measurement**: < 5 minutes to create blog post
+- **Priority**: High
+- **Implementation**: Intuitive UI, keyboard shortcuts
+
+**NFR-015: Mobile Usability**
+- **Description**: System shall be fully functional on mobile
+- **Measurement**: Responsive design, touch-friendly interface
+- **Priority**: High
+- **Implementation**: Responsive design, mobile optimization
+
+**NFR-016: Accessibility**
+- **Description**: System shall meet WCAG 2.1 AA standards
+- **Measurement**: Accessibility compliance testing
+- **Priority**: Medium
+- **Implementation**: Semantic HTML, ARIA labels
+
+---
+
+## 4. System Architecture
+
+### 4.1 High-Level Architecture
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js 15    │    │    Supabase     │    │     Vercel      │
-│   Frontend      │◄──►│   Backend       │◄──►│   Deployment    │
-│   (TypeScript)  │    │   (PostgreSQL)  │    │   (CDN)         │
+│   Vercel CDN    │    │   Next.js App   │    │   Supabase      │
+│                 │    │                 │    │                 │
+│ • Static Assets │◄──►│ • React Pages   │◄──►│ • PostgreSQL    │
+│ • Image CDN     │    │ • API Routes    │    │ • Auth Service  │
+│ • Edge Caching  │    │ • SSR/SSG       │    │ • Storage       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-### 2.2 Technology Stack
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **Deployment**: Vercel
-- **Database**: PostgreSQL with Row Level Security
-- **Authentication**: Supabase Auth
+### 4.2 Database Schema
+
+#### 4.2.1 Core Tables
+- **users**: User profiles and authentication
+- **languages**: Supported languages
+- **blog_posts**: Blog post metadata
+- **blog_post_translations**: Blog post content by language
+- **portfolio_projects**: Portfolio project metadata
+- **portfolio_project_translations**: Portfolio content by language
+- **tags**: Content tags
+- **tag_translations**: Tag names by language
+- **blog_post_tags**: Blog post to tag associations
+
+#### 4.2.2 Shared Images Schema
+- **shared_images**: Entity-scoped image storage
+  - **id**: Primary key
+  - **entity_type**: 'blog' or 'portfolio'
+  - **entity_id**: ID of the associated content
+  - **image_url**: URL of the stored image
+  - **original_filename**: Original file name
+  - **file_size**: File size in bytes
+  - **uploaded_at**: Upload timestamp
+  - **uploaded_by**: User who uploaded the image
+  - **is_active**: Soft delete flag
+
+#### 4.2.3 Activity Logging Schema
+- **activity_log**: System activity tracking
+  - **id**: Primary key
+  - **actor_id**: User who performed the action
+  - **action**: Action performed
+  - **entity_type**: Type of entity affected
+  - **entity_id**: ID of entity affected
+  - **details**: JSON details of the action
+  - **created_at**: Timestamp of the action
+
+### 4.3 API Architecture
+
+#### 4.3.1 Shared Images API
+- **GET /api/shared-images**: Retrieve images for entity
+- **POST /api/shared-images**: Upload new image
+- **DELETE /api/shared-images**: Remove image (soft delete)
+
+#### 4.3.2 Content Management API
+- **GET /api/admin/blog**: List blog posts
+- **POST /api/admin/blog**: Create blog post
+- **PUT /api/admin/blog/[id]**: Update blog post
+- **DELETE /api/admin/blog/[id]**: Delete blog post
+
+### 4.4 Security Architecture
+
+#### 4.4.1 Authentication Flow
+1. User submits credentials
+2. Supabase Auth validates credentials
+3. JWT token issued and stored
+4. Token used for subsequent requests
+5. Route protection validates token
+
+#### 4.4.2 Authorization Model
+- **Public Routes**: No authentication required
+- **Admin Routes**: Authentication required
+- **API Routes**: Service role key or user authentication
+- **Storage Access**: Public read, authenticated write
 
 ---
 
-## 3. Functional Requirements
+## 5. Interface Requirements
 
-### 3.1 User Management (✅ Complete)
+### 5.1 User Interfaces
 
-#### 3.1.1 Authentication
-- ✅ **Login System**: Supabase Auth integration
-- ✅ **Role Management**: Admin and public user roles
-- ✅ **Session Management**: Secure session handling
-- ✅ **Development Bypass**: Authentication bypass for development
+#### 5.1.1 Public Interface
+- **Homepage**: Hero section, latest posts, call-to-action
+- **Blog Listing**: Paginated list of blog posts
+- **Blog Post**: Individual post with navigation
+- **Portfolio**: Project showcase
+- **Search**: Content search interface
+- **Navigation**: Language switching, menu
 
-#### 3.1.2 User Roles
-- ✅ **Public Users**: Read-only access to blog content
-- ✅ **Admin Users**: Full content management capabilities
-- ✅ **Guest Users**: Access to public content without authentication
+#### 5.1.2 Admin Interface
+- **Dashboard**: System overview and quick actions
+- **Content Management**: Blog and portfolio management
+- **Image Management**: Shared images library
+- **Activity Log**: System activity monitoring
+- **Settings**: System configuration
 
-### 3.2 Content Management (✅ Complete)
+### 5.2 Hardware Interfaces
+- **Web Browsers**: Modern browsers supporting ES6+
+- **Mobile Devices**: Responsive design for mobile
+- **Tablets**: Optimized for tablet viewing
 
-#### 3.2.1 Blog Posts
-- ✅ **CRUD Operations**: Create, Read, Update, Delete posts
-- ✅ **Rich Text Editor**: Markdown support with image uploads
-- ✅ **Translation Support**: Bilingual content (Vietnamese/English)
-- ✅ **Status Management**: Draft and published states
-- ✅ **Category Assignment**: Organize posts by categories
-- ✅ **Image Management**: Thumbnail and content image handling
-
-#### 3.2.2 Categories
-- ✅ **Category CRUD**: Create and manage content categories
-- ✅ **Slug Generation**: SEO-friendly URL slugs
-- ✅ **Translation Support**: Category names in both languages
-
-#### 3.2.3 Media Management
-- ✅ **Image Upload**: Supabase Storage integration
-- ✅ **Image Optimization**: Responsive image delivery
-- ✅ **Thumbnail Generation**: Automatic thumbnail creation
-- ✅ **Storage Policies**: Secure file access controls
-
-### 3.3 Content Display (✅ Complete)
-
-#### 3.3.1 Blog List
-- ✅ **Pagination**: Load more functionality
-- ✅ **Filtering**: By category and language
-- ✅ **Sorting**: By publication date
-- ✅ **Search**: Basic search functionality
-- ✅ **Server-Side Rendering**: Fast initial page loads
-
-#### 3.3.2 Individual Posts
-- ✅ **Full Content Display**: Complete post with images
-- ✅ **Related Posts**: Content recommendations
-- ✅ **Language Switching**: Dynamic content language toggle
-- ✅ **Reading Time**: Estimated reading duration
-- ✅ **Social Sharing**: Share buttons for social media
-
-#### 3.3.3 Homepage
-- ✅ **Latest Posts**: Display recent blog posts
-- ✅ **Hero Section**: Introduction and call-to-action
-- ✅ **Featured Content**: Highlighted posts
-- ✅ **Navigation**: Main menu and language switcher
-
-### 3.4 Admin Panel (✅ Complete)
-
-#### 3.4.1 Dashboard
-- ✅ **Overview Statistics**: Post counts and analytics
-- ✅ **Quick Actions**: Create new posts and categories
-- ✅ **Recent Activity**: Latest admin actions
-- ✅ **System Status**: Database and service health
-
-#### 3.4.2 Content Management
-- ✅ **Post Editor**: Rich text editor with preview
-- ✅ **Category Manager**: Organize content categories
-- ✅ **Media Library**: Image and file management
-- ✅ **Bulk Operations**: Multiple post management
-
-#### 3.4.3 User Management
-- ✅ **User List**: View all registered users
-- ✅ **Role Assignment**: Assign admin privileges
-- ✅ **Activity Logs**: Track user actions
-- ✅ **Access Control**: Manage user permissions
-
-### 3.5 Portfolio Features (🔄 In Progress)
-
-#### 3.5.1 Project Showcase
-- 🔄 **Project List**: Display portfolio projects
-- 🔄 **Project Details**: Individual project pages
-- 🔄 **Technology Tags**: Skills and technologies used
-- 🔄 **Image Gallery**: Project screenshots and media
+### 5.3 Software Interfaces
+- **Supabase**: Database, authentication, storage
+- **Vercel**: Hosting and deployment
+- **Next.js**: React framework
+- **Tailwind CSS**: Styling framework
 
 ---
 
-## 4. Non-Functional Requirements
+## 6. Quality Attributes
 
-### 4.1 Performance (✅ Achieved)
+### 6.1 Performance
+- **Response Time**: < 3 seconds for all pages
+- **Throughput**: Support 1000+ concurrent users
+- **Resource Usage**: Efficient memory and CPU usage
+- **Scalability**: Horizontal scaling capability
 
-#### 4.1.1 Response Time
-- ✅ **Page Load**: < 3 seconds for initial load
-- ✅ **Image Loading**: Optimized thumbnail delivery
-- ✅ **Database Queries**: Efficient Supabase queries
-- ✅ **Caching**: Next.js static generation
+### 6.2 Reliability
+- **Availability**: 99.9% uptime
+- **Fault Tolerance**: Graceful error handling
+- **Recovery**: Quick recovery from failures
+- **Backup**: Automated data backup
 
-#### 4.1.2 Scalability
-- ✅ **Horizontal Scaling**: Vercel automatic scaling
-- ✅ **Database Scaling**: Supabase managed scaling
-- ✅ **CDN Integration**: Global content delivery
-- ✅ **Image Optimization**: Responsive image serving
+### 6.3 Security
+- **Authentication**: Secure user authentication
+- **Authorization**: Role-based access control
+- **Data Protection**: Encryption and access controls
+- **Input Validation**: Comprehensive input validation
 
-### 4.2 Security (✅ Implemented)
-
-#### 4.2.1 Authentication
-- ✅ **Secure Login**: Supabase Auth with JWT tokens
-- ✅ **Password Security**: Secure password handling
-- ✅ **Session Management**: Secure session storage
-- ✅ **Role-Based Access**: Admin and public user roles
-
-#### 4.2.2 Data Protection
-- ✅ **Row Level Security**: Database access controls
-- ✅ **Input Validation**: Form validation and sanitization
-- ✅ **SQL Injection Prevention**: Parameterized queries
-- ✅ **XSS Protection**: Content sanitization
-
-#### 4.2.3 Environment Security
-- ✅ **Environment Variables**: Secure configuration
-- ✅ **API Key Management**: Secure API key storage
-- ✅ **HTTPS Enforcement**: Secure communication
-- ✅ **CORS Configuration**: Cross-origin request controls
-
-### 4.3 Reliability (✅ Achieved)
-
-#### 4.3.1 Error Handling
-- ✅ **Graceful Degradation**: Fallback content when needed
-- ✅ **Error Boundaries**: React error boundary implementation
-- ✅ **Logging**: Error logging and monitoring
-- ✅ **User Feedback**: Clear error messages
-
-#### 4.3.2 Data Integrity
-- ✅ **Database Constraints**: Foreign key and check constraints
-- ✅ **Transaction Management**: ACID compliance
-- ✅ **Backup Strategy**: Supabase automatic backups
-- ✅ **Data Validation**: Input and output validation
-
-### 4.4 Usability (✅ Achieved)
-
-#### 4.4.1 User Interface
-- ✅ **Responsive Design**: Mobile and desktop compatibility
-- ✅ **Accessibility**: Basic accessibility features
-- ✅ **Intuitive Navigation**: Clear menu structure
-- ✅ **Consistent Design**: Unified design system
-
-#### 4.4.2 Language Support
-- ✅ **Bilingual Interface**: Vietnamese and English
-- ✅ **Language Switching**: Dynamic content toggle
-- ✅ **Localized Content**: Language-specific content
-- ✅ **SEO Optimization**: Language-specific URLs
+### 6.4 Usability
+- **Learnability**: Easy to learn and use
+- **Efficiency**: Efficient task completion
+- **Satisfaction**: User satisfaction with interface
+- **Accessibility**: WCAG 2.1 AA compliance
 
 ---
 
-## 5. System Architecture
+## 7. Constraints
 
-### 5.1 Frontend Architecture (✅ Implemented)
+### 7.1 Technical Constraints
+- **Framework**: Next.js 15 and React 18
+- **Database**: Supabase PostgreSQL
+- **Hosting**: Vercel platform
+- **Browser Support**: Modern browsers only
 
-#### 5.1.1 Next.js 15 Structure
-```
-src/
-├── app/                    # App Router pages
-│   ├── [lang]/            # Internationalized routes
-│   ├── admin/             # Admin panel
-│   ├── about/             # About page
-│   ├── blog/              # Blog pages
-│   └── portfolio/         # Portfolio pages
-├── components/            # Reusable components
-├── lib/                   # Utility functions
-└── types/                 # TypeScript definitions
-```
+### 7.2 Business Constraints
+- **Budget**: Cost-effective solution
+- **Timeline**: Production deployment completed
+- **Resources**: Single developer team
+- **Maintenance**: Minimal ongoing maintenance
 
-#### 5.1.2 Component Architecture
-- ✅ **Server Components**: Server-side rendering for performance
-- ✅ **Client Components**: Interactive UI elements
-- ✅ **Layout Components**: Consistent page layouts
-- ✅ **UI Components**: Reusable design elements
-
-### 5.2 Backend Architecture (✅ Implemented)
-
-#### 5.2.1 Database Schema
-```sql
--- Core tables
-blog_posts              # Main blog post data
-blog_post_translations  # Bilingual content
-categories              # Content categories
-category_translations   # Category names
-users                   # User accounts
-about_me                # About page content
-about_me_translations   # About page translations
-```
-
-#### 5.2.2 API Structure
-- ✅ **RESTful Endpoints**: Standard HTTP methods
-- ✅ **Supabase Client**: Direct database access
-- ✅ **Server Actions**: Next.js server actions
-- ✅ **API Routes**: Custom API endpoints
-
-### 5.3 Data Flow (✅ Implemented)
-
-#### 5.3.1 Content Display Flow
-1. **Server-Side Rendering**: Fetch data on server
-2. **Database Query**: Supabase optimized queries
-3. **Content Processing**: Translation and formatting
-4. **Client Hydration**: Interactive features
-5. **User Interaction**: Language switching and navigation
-
-#### 5.3.2 Admin Flow
-1. **Authentication**: Supabase Auth verification
-2. **Authorization**: Role-based access control
-3. **Content Management**: CRUD operations
-4. **Media Upload**: Supabase Storage integration
-5. **Content Publishing**: Status management
+### 7.3 Regulatory Constraints
+- **Data Protection**: GDPR compliance considerations
+- **Accessibility**: WCAG 2.1 AA compliance
+- **Security**: Industry-standard security practices
 
 ---
 
-## 6. Database Design
+## 8. Assumptions and Dependencies
 
-### 6.1 Core Tables (✅ Implemented)
+### 8.1 Assumptions
+- **User Behavior**: Users will use modern browsers
+- **Content Volume**: Moderate content growth
+- **Image Usage**: Reasonable image file sizes
+- **Network**: Reliable internet connectivity
 
-#### 6.1.1 Blog Posts
-```sql
-CREATE TABLE blog_posts (
-  id SERIAL PRIMARY KEY,
-  slug VARCHAR(255) UNIQUE NOT NULL,
-  status TEXT DEFAULT 'draft',
-  author_id UUID REFERENCES users(id),
-  published_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-```
-
-#### 6.1.2 Translations
-```sql
-CREATE TABLE blog_post_translations (
-  id SERIAL PRIMARY KEY,
-  blog_post_id INTEGER REFERENCES blog_posts(id),
-  language_code VARCHAR(2) NOT NULL,
-  title TEXT NOT NULL,
-  summary TEXT,
-  content TEXT,
-  meta_title VARCHAR(255),
-  meta_description TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-```
-
-### 6.2 Security Policies (✅ Implemented)
-
-#### 6.2.1 Row Level Security
-- ✅ **Public Read Access**: Published content accessible to all
-- ✅ **Admin Write Access**: Only authenticated admins can modify
-- ✅ **User Data Protection**: Users can only access their own data
-- ✅ **Content Isolation**: Proper data separation
+### 8.2 Dependencies
+- **Supabase**: Database and authentication services
+- **Vercel**: Hosting and deployment platform
+- **Next.js**: React framework updates
+- **Browser Support**: Modern browser features
 
 ---
 
-## 7. API Specifications
+## 9. Appendices
 
-### 7.1 RESTful Endpoints (✅ Implemented)
+### 9.1 Glossary
+- **Entity**: A content item (blog post or portfolio project)
+- **Entity Type**: The type of content ('blog' or 'portfolio')
+- **Entity ID**: The unique identifier for a content item
+- **Shared Images**: Images associated with specific content entities
+- **Temporary Storage**: Images stored during content creation
+- **Cross-Entity Separation**: Complete isolation between different content types
 
-#### 7.1.1 Blog Posts
-- ✅ `GET /api/blog-posts` - List all published posts
-- ✅ `GET /api/blog-posts/[id]` - Get specific post
-- ✅ `POST /api/blog-posts` - Create new post (admin)
-- ✅ `PUT /api/blog-posts/[id]` - Update post (admin)
-- ✅ `DELETE /api/blog-posts/[id]` - Delete post (admin)
-
-#### 7.1.2 Categories
-- ✅ `GET /api/categories` - List all categories
-- ✅ `POST /api/categories` - Create category (admin)
-- ✅ `PUT /api/categories/[id]` - Update category (admin)
-
-### 7.2 Server Actions (✅ Implemented)
-
-#### 7.2.1 Content Management
-- ✅ **Create Post**: Server action for post creation
-- ✅ **Update Post**: Server action for post updates
-- ✅ **Delete Post**: Server action for post deletion
-- ✅ **Upload Image**: Server action for media upload
+### 9.2 References
+- Next.js Documentation: https://nextjs.org/docs
+- Supabase Documentation: https://supabase.com/docs
+- React Documentation: https://react.dev
+- Tailwind CSS Documentation: https://tailwindcss.com/docs
 
 ---
 
-## 8. Current Issues and Solutions
-
-### 8.1 Critical Issues (✅ Resolved)
-
-#### 8.1.1 Server-Side Rendering Issues
-- ✅ **Problem**: Client-side Supabase client not working
-- ✅ **Solution**: Converted to server-side rendering
-- ✅ **Impact**: All pages now load correctly
-
-#### 8.1.2 Database Connection Issues
-- ✅ **Problem**: Missing database tables
-- ✅ **Solution**: Added fallback content and error handling
-- ✅ **Impact**: Graceful degradation when tables don't exist
-
-### 8.2 Medium Priority Issues (🔄 Pending)
-
-#### 8.2.1 Service Role Key
-- 🔄 **Problem**: Missing `SUPABASE_SERVICE_ROLE_KEY`
-- 🔄 **Impact**: Admin operations limited
-- 🔄 **Solution**: Add environment variable
-
-#### 8.2.2 Portfolio Page
-- 🔄 **Problem**: Client-side rendering issue
-- 🔄 **Impact**: Portfolio not accessible
-- 🔄 **Solution**: Convert to server-side rendering
-
-### 8.3 Low Priority Issues (🔄 Future)
-
-#### 8.3.1 Language Switcher
-- 🔄 **Problem**: UI synchronization issue
-- 🔄 **Impact**: Minor UI inconsistency
-- 🔄 **Solution**: Improve state management
-
-#### 8.3.2 Build Cache
-- 🔄 **Problem**: Development manifest errors
-- 🔄 **Impact**: Development environment issues
-- 🔄 **Solution**: Clear build cache
+**Document Approval:**
+- **Technical Lead:** Matt Dinh
+- **System Architect:** Matt Dinh
+- **Quality Assurance:** Matt Dinh
+- **Date:** January 9, 2025
 
 ---
 
-## 9. Testing Requirements
-
-### 9.1 Functional Testing (✅ Complete)
-- ✅ **User Interface**: All pages render correctly
-- ✅ **Content Management**: CRUD operations work
-- ✅ **Language Switching**: Bilingual functionality
-- ✅ **Admin Panel**: Administrative functions
-- ✅ **Navigation**: All links and routes work
-
-### 9.2 Performance Testing (✅ Achieved)
-- ✅ **Page Load Times**: < 3 seconds
-- ✅ **Image Loading**: Optimized delivery
-- ✅ **Database Queries**: Efficient performance
-- ✅ **Server-Side Rendering**: Fast initial loads
-
-### 9.3 Security Testing (✅ Implemented)
-- ✅ **Authentication**: Secure login system
-- ✅ **Authorization**: Role-based access
-- ✅ **Data Protection**: RLS policies
-- ✅ **Input Validation**: Form security
+*Last updated: January 9, 2025*
 
 ---
 
-## 10. Deployment Requirements
-
-### 10.1 Environment Setup (✅ Complete)
-- ✅ **Development**: Local development environment
-- ✅ **Staging**: Vercel preview deployments
-- ✅ **Production**: Vercel production deployment
-- ✅ **Database**: Supabase cloud database
-
-### 10.2 Configuration Management (✅ Implemented)
-- ✅ **Environment Variables**: Secure configuration
-- ✅ **Database Migrations**: Version-controlled schema
-- ✅ **Build Process**: Automated deployment pipeline
-- ✅ **Monitoring**: Basic error tracking
-
----
-
-## 11. Maintenance and Support
-
-### 11.1 Monitoring (✅ Implemented)
-- ✅ **Error Logging**: Application error tracking
-- ✅ **Performance Monitoring**: Page load times
-- ✅ **Database Monitoring**: Query performance
-- ✅ **Uptime Monitoring**: Service availability
-
-### 11.2 Backup and Recovery (✅ Configured)
-- ✅ **Database Backups**: Supabase automatic backups
-- ✅ **Code Versioning**: Git repository management
-- ✅ **Environment Recovery**: Configuration backup
-- ✅ **Data Recovery**: Point-in-time recovery
-
----
-
-## 12. Conclusion
-
-The Matt Dinh Blog platform has successfully met all critical software requirements. The system demonstrates excellent technical implementation with modern web technologies, robust security measures, and optimal performance characteristics.
-
-**Current Status**: 🎉 **EXCELLENT** - Ready for production use with minor enhancements pending.
-
-**Next Steps**: Address medium priority issues to complete full functionality.
-
----
-
-**Document Version**: 2.0  
-**Last Updated**: December 2024  
-**Next Review**: After medium priority fixes 
-
-## 4.2.2 Unsaved Changes Navigation Guard
-
-- The system shall prevent accidental data loss in admin blog edit and create forms.
-- If a user has unsaved changes and attempts to navigate away (via breadcrumbs, navigation bar, sidebar, any `<a>` or `<Link>`, or router navigation), the system shall display a confirmation popup.
-- The navigation guard shall be implemented via a reusable React hook and a navigation guard prop on the Breadcrumbs component.
-- This requirement applies to all admin blog forms (edit and create). 
+**Production Deployment Update (2025-01-09):**
+- All software requirements successfully implemented and deployed
+- Shared Images Management system with entity-scoped architecture fully operational
+- Production infrastructure and security measures in place
+- System ready for ongoing development and maintenance
