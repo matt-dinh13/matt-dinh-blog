@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Calendar } from 'lucide-react'
 import { CARD_TITLE_COLOR, CARD_DESC_COLOR } from './constants'
 
@@ -22,10 +23,13 @@ export default function BlogCard({ slug, title, description, thumbnailUrl, publi
     <article className="flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
       <Link href={`/blog/${slug}`} className="block">
         <div className="aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">
-          <img
+          <Image
             src={thumbnailUrl || '/cover.jpg'}
             alt={title}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+            width={400}
+            height={225}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       </Link>

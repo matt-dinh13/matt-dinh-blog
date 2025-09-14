@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminLayout from '@/components/AdminLayout'
 
@@ -107,7 +108,14 @@ export default function AdminSharedImagesPage() {
                 {items.map(img => (
                   <div key={img.id} className="border rounded overflow-hidden bg-white dark:bg-gray-900">
                     <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                      <img src={img.image_url} alt={img.original_filename} className="max-h-40 object-contain" />
+                      <Image 
+                      src={img.image_url} 
+                      alt={img.original_filename} 
+                      width={300}
+                      height={200}
+                      className="max-h-40 object-contain"
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                    />
                     </div>
                     <div className="p-3 text-sm">
                       <div className="font-mono break-all">{img.original_filename}</div>

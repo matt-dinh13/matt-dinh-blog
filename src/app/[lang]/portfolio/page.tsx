@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase'
 import Navigation from '@/components/Navigation'
@@ -99,10 +100,13 @@ export default async function LanguagePortfolioPage({ params }: Props) {
                   className="group block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
                 >
                   <div className="aspect-video relative overflow-hidden">
-                    <img
+                    <Image
                       src={project.thumbnail_url || "/covers/cover-home.jpg"}
                       alt={translation.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      width={400}
+                      height={225}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                   <div className="p-6">

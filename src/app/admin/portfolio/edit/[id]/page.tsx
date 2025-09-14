@@ -1,6 +1,7 @@
 "use client"
 
 import { use, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import AdminLayout from '@/components/AdminLayout'
@@ -184,7 +185,14 @@ export default function AdminPortfolioEditPage({ params }: Props) {
                         <input type="file" accept="image/heic,image/jpeg,image/jpg,image/png" onChange={handleFileChange} disabled={saving} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white flex-1" ref={fileInputRef} />
                         {(thumbnailPreview || thumbnailUrl) && (
                           <div className="relative">
-                            <img src={thumbnailPreview || thumbnailUrl} alt="Thumbnail preview" style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }} />
+                            <Image 
+                            src={thumbnailPreview || thumbnailUrl} 
+                            alt="Thumbnail preview" 
+                            width={200}
+                            height={120}
+                            style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
+                            sizes="(max-width: 768px) 100vw, 200px"
+                          />
                             {thumbnailPreview && (
                               <button type="button" onClick={handleRemoveThumbnail} className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-600 border border-gray-300 hover:bg-red-100" title="Remove thumbnail">×</button>
                             )}

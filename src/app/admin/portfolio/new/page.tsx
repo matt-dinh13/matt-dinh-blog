@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { processImageFile, validateImageFile } from '@/lib/imageUtils'
@@ -189,7 +190,14 @@ export default function AdminPortfolioNewPage() {
                     />
                     {thumbnailPreview && (
                       <div className="relative">
-                        <img src={thumbnailPreview} alt="Thumbnail preview" style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }} />
+                        <Image 
+                        src={thumbnailPreview} 
+                        alt="Thumbnail preview" 
+                        width={200}
+                        height={120}
+                        style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
+                        sizes="(max-width: 768px) 100vw, 200px"
+                      />
                         <button type="button" onClick={()=>{ setThumbnailPreview(''); setThumbnailError(''); if (fileInputRef.current) fileInputRef.current.value=''; }} className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-600 border border-gray-300 hover:bg-red-100" title="Remove thumbnail">×</button>
                       </div>
                     )}

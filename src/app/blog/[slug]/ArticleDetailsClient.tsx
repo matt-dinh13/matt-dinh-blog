@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link';
+import Image from 'next/image'
 import BlogPostViewCountClient from './BlogPostViewCountClient';
 import BlogCard from '@/components/BlogCard';
 import ReadingTime from '@/components/ReadingTime';
@@ -23,8 +24,8 @@ function stripHtml(html: string) {
 // Simple function to convert Markdown images to HTML
 function convertMarkdownImages(content: string): string {
   if (!content) return '';
-  // Convert ![](url) to <img src="url" alt="" />
-  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto max-h-[400px] rounded-lg my-4 object-contain" />');
+  // Convert ![](url) to <Image src="url" alt="" />
+  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<Image src="$2" alt="$1" class="max-w-full h-auto max-h-[400px] rounded-lg my-4 object-contain" />');
 }
 
 export default function ArticleDetailsClient({
@@ -82,11 +83,14 @@ export default function ArticleDetailsClient({
           {/* Thumbnail Image */}
           {thumbnailUrl && (
             <div className="my-8">
-              <img
+              <Image
                 src={thumbnailUrl}
                 alt={title}
+                width={800}
+                height={400}
                 className="w-full rounded-lg object-cover max-h-96 mx-auto"
                 style={{ background: '#f3f4f6' }}
+                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
           )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/AdminLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -541,11 +542,14 @@ export default function AdminBlogNewPage() {
                 />
                 {thumbnailPreview && (
                   <div className="relative">
-                    <img
-                      src={thumbnailPreview}
-                      alt="Thumbnail preview"
-                      style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
-                    />
+                    <Image
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    width={200}
+                    height={120}
+                    style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
+                    sizes="(max-width: 768px) 100vw, 200px"
+                  />
                     <button
                       type="button"
                       onClick={handleRemoveThumbnail}

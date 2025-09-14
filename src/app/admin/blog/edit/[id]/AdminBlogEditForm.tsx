@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import RichTextEditor from '@/components/RichTextEditor'
@@ -626,10 +627,13 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
               />
               {thumbnailPreview && (
                 <div className="relative">
-                  <img
+                  <Image
                     src={thumbnailPreview}
                     alt="Thumbnail preview"
+                    width={200}
+                    height={120}
                     style={{ height: 120, width: 'auto', objectFit: 'cover', borderRadius: 8, border: '1px solid #ccc' }}
+                    sizes="(max-width: 768px) 100vw, 200px"
                   />
                   <button
                     type="button"

@@ -1,6 +1,5 @@
 'use client'
 
-import { useLanguage } from '@/components/LanguageProvider'
 import { HeroSection } from '@/components/HeroSection'
 import { HomepagePosts } from '@/components/HomepagePosts'
 
@@ -20,11 +19,10 @@ interface Post {
 
 interface HomepageClientProps {
   posts: Post[]
+  language: 'vi' | 'en'
 }
 
-export function HomepageClient({ posts }: HomepageClientProps) {
-  const { language } = useLanguage()
-
+export function HomepageClient({ posts, language }: HomepageClientProps) {
   // Language-specific content
   const content = {
     vi: {
@@ -60,7 +58,7 @@ export function HomepageClient({ posts }: HomepageClientProps) {
 
         {/* Blog Posts Grid */}
         {posts && posts.length > 0 ? (
-          <HomepagePosts posts={posts} />
+          <HomepagePosts posts={posts} language={language} />
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-600 dark:text-gray-400">

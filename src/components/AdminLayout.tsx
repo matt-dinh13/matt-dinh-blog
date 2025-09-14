@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
@@ -97,10 +98,13 @@ export default function AdminLayout({ children, title = 'Admin Panel', subtitle 
         <div className={`flex items-center justify-between h-16 px-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 ${isClient && sidebarCollapsed ? 'justify-center' : ''}`}>
           <div className={`flex items-center ${isClient && sidebarCollapsed ? 'justify-center w-full' : 'space-x-3'}`}>
             {!(isClient && sidebarCollapsed) && (
-              <img
+              <Image
                 src="/logo-square.jpg"
                 alt="Logo"
+                width={32}
+                height={32}
                 className="rounded w-8 h-8"
+                sizes="32px"
               />
             )}
             {!(isClient && sidebarCollapsed) && (

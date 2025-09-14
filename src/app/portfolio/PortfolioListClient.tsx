@@ -1,6 +1,7 @@
 'use client'
 
 import { useLanguage } from '@/components/LanguageProvider'
+import Image from 'next/image'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import { Calendar, ExternalLink, Github } from 'lucide-react'
@@ -40,10 +41,13 @@ export default function PortfolioListClient() {
         >
           <Link href={`/${language}/portfolio/${project.slug}`} className="block">
             <div className="aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">
-              <img
+              <Image
                 src={project.thumbnail_url || '/cover.jpg'}
                 alt={translation.title}
+                width={400}
+                height={225}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>
           </Link>

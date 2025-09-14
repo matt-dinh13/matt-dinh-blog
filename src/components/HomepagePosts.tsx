@@ -1,6 +1,5 @@
 'use client'
 
-import { useLanguage } from '@/components/LanguageProvider'
 import { BlogPostCard } from '@/components/BlogPostCard'
 import { getThumbnailUrl, formatDate } from '@/lib/utils'
 import { logger } from '@/lib/logger'
@@ -21,26 +20,28 @@ interface Post {
 
 interface HomepagePostsProps {
   posts: Post[]
+  language: 'vi' | 'en'
 }
 
-export function HomepagePosts({ posts }: HomepagePostsProps) {
-  const { language } = useLanguage()
-
+export function HomepagePosts({ posts, language }: HomepagePostsProps) {
   const renderedPosts = posts.map((post) => {
     const translations = post.blog_post_translations || []
+    const translation = translations.find(t => t.language_code === language)
     
-    // Find translation for current language or fallback to Vietnamese
-    const translation = translations.find(t => t.language_code === language) || 
-                       translations.find(t => t.language_code === 'vi') || 
-                       translations[0]
-
     if (!translation) {
-      logger.warn('No translation found for homepage post', {
-        component: 'HomepagePosts',
-        data: { postId: post.id, language }
+      logger.warn('Translation not found for post', { 
+        component: 'homepage-posts',
+        data: { 
+          postId: post.id, 
+          language, 
+          availableLanguages: translations.map(t => t.language_code) 
+        } 
       })
       return null
     }
+
+    // Create a wrapper function for formatDate that includes the language
+    const formatDateWithLanguage = (dateString: string) => formatDate(dateString, language)
 
     return (
       <BlogPostCard
@@ -48,15 +49,15 @@ export function HomepagePosts({ posts }: HomepagePostsProps) {
         post={post}
         translation={translation}
         thumbnailUrl={getThumbnailUrl(post.thumbnail_url)}
-        formatDate={(dateString: string) => formatDate(dateString, language)}
+        formatDate={formatDateWithLanguage}
         language={language}
       />
     )
   }).filter(Boolean)
 
   return (
-    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {renderedPosts}
     </div>
   )
-} 
+}

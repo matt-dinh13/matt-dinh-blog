@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import styles from './SharedImagesLibrary.module.css'
 import { logger } from '@/lib/logger'
 
@@ -155,7 +156,7 @@ export default function SharedImagesLibrary({ tempImages = [], refreshTrigger = 
         onClick={() => onInsertImage(image.url)}
       >
         <div className={styles.imageContainer}>
-          <img 
+          <Image 
             src={image.url} 
             alt={image.filename}
             className={styles.image}
@@ -187,7 +188,7 @@ export default function SharedImagesLibrary({ tempImages = [], refreshTrigger = 
           </div>
           
           {/* Image */}
-          <img
+          <Image
             src={image.image_url}
             alt={image.original_filename}
             className={styles.image}

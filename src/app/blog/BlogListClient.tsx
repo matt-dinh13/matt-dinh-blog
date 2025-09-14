@@ -254,7 +254,7 @@ export default function BlogListClient({ initialPosts = [], error: initialError 
     } finally {
       setLoadingMore(false)
     }
-  }, [loadingMore, hasMore, page, language])
+  }, [loadingMore, hasMore, page])
 
   // Memoize rendered posts to prevent unnecessary re-renders
   const renderedPosts = useMemo(() => {
