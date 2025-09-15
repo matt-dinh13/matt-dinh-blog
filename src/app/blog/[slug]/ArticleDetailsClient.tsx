@@ -6,6 +6,7 @@ import BlogPostViewCountClient from './BlogPostViewCountClient';
 import BlogCard from '@/components/BlogCard';
 import ReadingTime from '@/components/ReadingTime';
 import { Calendar } from 'lucide-react';
+import ReadingProgress from '@/components/ReadingProgress'
 
 interface RelatedPost {
   id: number;
@@ -63,6 +64,7 @@ export default function ArticleDetailsClient({
 
   return (
     <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <ReadingProgress />
       <div className="p-8">
         <header className="mb-8">
           <div className="flex items-center gap-3 mb-4">

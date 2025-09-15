@@ -10,6 +10,7 @@ import { processImageFile, validateImageFile, cleanupOldThumbnail } from '@/lib/
 import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
 import { logger } from '@/lib/logger'
 // import Breadcrumbs from '@/components/Breadcrumbs'
+import { useAutosaveDraft } from '@/components/hooks/useAutosaveDraft'
 
 const cardTextColor = { color: 'oklch(21% .034 264.665)' };
 
@@ -70,6 +71,23 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
     categoryId: '',
     selectedTags: [] as any[],
     thumbnailPreview: ''
+  })
+
+  // Autosave draft (per post id)
+  useAutosaveDraft({
+    key: `draft:admin-blog-edit:${id}`,
+    data: { titleVi, titleEn, contentVi, contentEn, status, categoryId, selectedTags, thumbnailPreview },
+    onRestore: (d: any) => {
+      setTitleVi(d.titleVi ?? '')
+      setTitleEn(d.titleEn ?? '')
+      setContentVi(d.contentVi ?? '')
+      setContentEn(d.contentEn ?? '')
+      setStatus(d.status ?? 'draft')
+      setCategoryId(d.categoryId ?? '')
+      setSelectedTags(Array.isArray(d.selectedTags) ? d.selectedTags : [])
+      setThumbnailPreview(d.thumbnailPreview ?? '')
+    },
+    debounceMs: 1200,
   })
 
   const fetchPost = useCallback(async () => {

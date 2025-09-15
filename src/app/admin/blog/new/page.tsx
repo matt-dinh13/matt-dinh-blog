@@ -12,6 +12,7 @@ import { logActivity } from '@/lib/logActivity'
 import { processImageFile, validateImageFile } from '@/lib/imageUtils'
 import { useUnsavedChangesWarning } from '@/components/hooks/useUnsavedChangesWarning'
 import { logger } from '@/lib/logger'
+import { useAutosaveDraft } from '@/components/hooks/useAutosaveDraft'
 
 // Force dynamic rendering to prevent static generation issues with Supabase
 export const dynamic = 'force-dynamic'
@@ -49,6 +50,23 @@ export default function AdminBlogNewPage() {
     categoryId: '',
     selectedTags: [],
     thumbnailPreview: ''
+  })
+
+  // Autosave draft
+  useAutosaveDraft({
+    key: 'draft:admin-blog-new',
+    data: { titleVi, titleEn, contentVi, contentEn, status, categoryId, selectedTags, thumbnailPreview },
+    onRestore: (d: any) => {
+      setTitleVi(d.titleVi ?? '')
+      setTitleEn(d.titleEn ?? '')
+      setContentVi(d.contentVi ?? '')
+      setContentEn(d.contentEn ?? '')
+      setStatus(d.status ?? 'draft')
+      setCategoryId(d.categoryId ?? '')
+      setSelectedTags(Array.isArray(d.selectedTags) ? d.selectedTags : [])
+      setThumbnailPreview(d.thumbnailPreview ?? '')
+    },
+    debounceMs: 1200,
   })
 
   // Track unsaved changes
@@ -200,19 +218,10 @@ export default function AdminBlogNewPage() {
         return slug
       }
       
-      // Slug exists, try with counter suffix
+      // Slug exists, append a counter and try again
       slug = `${baseSlug}-${counter}`
       counter++
-      
-      // Prevent infinite loop (shouldn't happen in practice)
-      if (counter > 100) {
-        // Fallback: add timestamp to make it unique
-        slug = `${baseSlug}-${Date.now()}`
-        break
-      }
     }
-    
-    return slug
   }
 
   // Add tag
