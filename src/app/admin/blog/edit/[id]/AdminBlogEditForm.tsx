@@ -1,4 +1,5 @@
 'use client'
+import { VersionHistory } from "@/components/VersionHistory"
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
@@ -800,6 +801,11 @@ export default function AdminBlogEditForm({ id }: AdminBlogEditFormProps) {
             </button>
           </div>
         </form>
+        
+        {/* Version History */}
+        <div className="mt-8">
+          <VersionHistory postId={id} onVersionRestore={fetchPost} />
+        </div>
       </div>
     </>
   )

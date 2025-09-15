@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Search,
   Activity,
-  Images
+  Images,
+  Languages
 } from 'lucide-react'
 
 const cardTextColor = { color: 'var(--foreground)' }
@@ -37,6 +38,7 @@ const navigation = [
   { name: 'Tag Management', href: '/admin/tags', icon: Tags },
   { name: 'Portfolio Management', href: '/admin/portfolio', icon: Briefcase },
   { name: 'Shared Images', href: '/admin/shared-images', icon: Images },
+  { name: 'I18n Report', href: '/admin/i18n-report', icon: Languages },
   { name: 'About Me', href: '/admin/about-me', icon: User },
   { name: 'User Management', href: '/admin/users', icon: User },
   { name: 'Activity Log', href: '/admin/activity-log', icon: Activity },

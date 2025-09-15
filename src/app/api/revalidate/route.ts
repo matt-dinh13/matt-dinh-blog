@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+/* eslint-disable @typescript-eslint/no-unused-vars */import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
 import { createAdminSupabaseClient } from '@/lib/supabase-server'
